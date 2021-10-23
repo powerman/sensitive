@@ -6,25 +6,33 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/powerman/sensitive)](https://goreportcard.com/report/github.com/powerman/sensitive)
 [![Release](https://img.shields.io/github/v/release/powerman/sensitive)](https://github.com/powerman/sensitive/releases/latest)
 
-**NOTE:** This projects starts as a fork, but as upstream have no activity
-since initial commit new features are added here (see
-[Releases](https://github.com/powerman/sensitive/releases)) and you can
-consider this fork a maintained version of the upstream repo.
+**NOTE:** This project has been started as a fork of
+https://github.com/go-playground/sensitive, but as upstream repo have no
+activity since initial commit and several new features were added here
+(see [Releases](https://github.com/powerman/sensitive/releases)) this repo
+was detached and you can consider it an independent maintained alternative
+for the upstream repo.
 
-Package sensitive provides base types who's values should never be seen by the human eye, but still used for configuration.
+Package sensitive provides base types who's values should never be seen by
+the human eye, but still used for configuration.
 
-What? Explain
+Sometimes you have a variable, such as a password, passed into your
+program via arguments or ENV variables.
+Some of these variables are very sensitive! and should not in any
+circumstance be loggged or sent via JSON, despite JSON's "-", which people
+may forget.
+These variables, which are just typed primitive types, have their
+overridden `fmt.Formatter`, `encoding.MarshalText` & `json.Marshal`
+implementations.
 
-Sometimes you have a variable, such as a password, passed into your program via arguments or ENV variables.
-Some of these variables are very sensitive! and should not in any circumstance be loggged or sent via JSON, despite JSON's "-", which people may forget.
-These variables, which are just typed primitive types, have their overridden `fmt.Formatter`, `encoding.MarshalText` & `json.Marshal` implementations.
+As an added bonus using them as their base type eg. String => string, you
+have to explicitly cast the eg. string(s) This makes you think about what
+you're doing and why you casting it providing additional safety.
 
-As an added bonus using them as their base type eg. String => string, you have to explicitly cast the eg. string(s) This makes you think about what you're doing and why you casting it providing additional safelty.
-
-Variables:
+Supported types:
 - `Bool`
 - `Bytes`
-- `Decimal` (for https://github.com/shopspring/decimal)
+- `Decimal` (https://github.com/shopspring/decimal)
 - `Float32`
 - `Float64`
 - `Int`
@@ -32,7 +40,7 @@ Variables:
 - `Int16`
 - `Int32`
 - `Int64`
-- `String` - The most useful
+- `String` (the most useful)
 - `Uint`
 - `Uint8`
 - `Uint16`
