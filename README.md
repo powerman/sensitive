@@ -1,24 +1,38 @@
-## Package sensitive
+# Go package with base types protected from the human eye
 
-<img align="right" src="https://raw.githubusercontent.com/powerman/sensitive/master/logo.jpg">![Project status](https://img.shields.io/badge/version-0.0.1-green.svg)
-[![Build Status](https://travis-ci.org/powerman/sensitive.svg?branch=master)](https://travis-ci.org/powerman/sensitive)
-[![GoDoc](https://godoc.org/github.com/powerman/sensitive?status.svg)](https://godoc.org/github.com/powerman/sensitive)
-![License](https://img.shields.io/dub/l/vibe-d.svg)
+[![Go Reference](https://pkg.go.dev/badge/github.com/powerman/sensitive.svg)](https://pkg.go.dev/github.com/powerman/sensitive)
+[![CI/CD](https://github.com/powerman/sensitive/workflows/CI/CD/badge.svg?event=push)](https://github.com/powerman/sensitive/actions?query=workflow%3ACI%2FCD)
+[![Coverage Status](https://coveralls.io/repos/github/powerman/sensitive/badge.svg?branch=master)](https://coveralls.io/github/powerman/sensitive?branch=master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/powerman/sensitive)](https://goreportcard.com/report/github.com/powerman/sensitive)
+[![Release](https://img.shields.io/github/v/release/powerman/sensitive)](https://github.com/powerman/sensitive/releases/latest)
 
-Package sensitive provides base types who's values should never be seen by the human eye, but still used for configuration.
+**NOTE:** This project has been started as a fork of
+https://github.com/go-playground/sensitive, but as upstream repo have no
+activity since initial commit and several new features were added here
+(see [Releases](https://github.com/powerman/sensitive/releases)) this repo
+was detached and you can consider it an independent maintained alternative
+for the upstream repo.
 
-What? Explain
+Package sensitive provides base types who's values should never be seen by
+the human eye, but still used for configuration.
 
-Sometimes you have a variable, such as a password, passed into your program via arguments or ENV variables.
-Some of these variables are very sensitive! and should not in any circumstance be loggged or sent via JSON, despite JSON's "-", which people may forget.
-These variables, which are just typed primitive types, have their overridden `fmt.Formatter`, `encoding.MarshalText` & `json.Marshal` implementations.
+Sometimes you have a variable, such as a password, passed into your
+program via arguments or ENV variables.
+Some of these variables are very sensitive! and should not in any
+circumstance be loggged or sent via JSON, despite JSON's "-", which people
+may forget.
+These variables, which are just typed primitive types, have their
+overridden `fmt.Formatter`, `encoding.MarshalText` & `json.Marshal`
+implementations.
 
-As an added bonus using them as their base type eg. String => string, you have to explicitly cast the eg. string(s) This makes you think about what you're doing and why you casting it providing additional safelty.
+As an added bonus using them as their base type eg. String => string, you
+have to explicitly cast the eg. string(s) This makes you think about what
+you're doing and why you casting it providing additional safety.
 
-Variables:
-- `String` - The most useful
-- `Bytes`
+Supported types:
 - `Bool`
+- `Bytes`
+- `Decimal` (https://github.com/shopspring/decimal)
 - `Float32`
 - `Float64`
 - `Int`
@@ -26,14 +40,17 @@ Variables:
 - `Int16`
 - `Int32`
 - `Int64`
+- `String` (the most useful)
 - `Uint`
 - `Uint8`
 - `Uint16`
 - `Uint32`
 - `Uint64`
 
-Example
--------
+## Examples
+
+### Basic
+
 ```go
 // go run _examples/basic/main.go mypassword
 package main
@@ -67,9 +84,10 @@ func main() {
 }
 ```
 
-Custom Formatting
------------------
+### Custom Formatting
+
 ```go
+// go run _examples/custom/main.go mypassword
 package main
 
 import (
@@ -108,11 +126,7 @@ func main() {
 	// output:
 	// redacted
 	// mypa*******
-	// "redacted"
+	// "mypa*******"
 	// null
 }
 ```
-
-License
-------
-Distributed under MIT License, please see license file in code for more details.
