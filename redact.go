@@ -49,9 +49,6 @@ func Redact() {
 // because it is not safe to call from simultaneous goroutines.
 //
 // Calling Redact after Disable will re-enable protection of sensitive values.
-//
-// As an extra protection it's recommended to add this into your main():
-//   os.Unsetenv("GO_TEST_DISABLE_SENSITIVE")
 func Disable() {
 	if !strings.HasSuffix(os.Args[0], ".test") || os.Getenv("GO_TEST_DISABLE_SENSITIVE") == "" {
 		return
