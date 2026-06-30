@@ -12,13 +12,6 @@
 ![macOS | amd64 arm64](https://img.shields.io/badge/macOS-amd64%20arm64-royalblue)
 ![Windows | amd64 arm64](https://img.shields.io/badge/Windows-amd64%20arm64-royalblue)
 
-**NOTE:** This project has been started as a fork of
-https://github.com/go-playground/sensitive, but as upstream repo have no
-activity since initial commit and several new features were added here
-(see [Releases](https://github.com/powerman/sensitive/releases)) this repo
-was detached and you can consider it an independent maintained alternative
-for the upstream repo.
-
 Package sensitive provides base types who's values should never be seen by
 the human eye, but still used for configuration.
 
@@ -136,3 +129,8 @@ func main() {
 	// null
 }
 ```
+
+---
+
+*Inspired by and started as a fork of
+[go-playground/sensitive](https://github.com/go-playground/sensitive).*
