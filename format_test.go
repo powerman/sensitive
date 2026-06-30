@@ -4,13 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/powerman/check"
 
 	"github.com/powerman/sensitive"
 )
 
 //nolint:paralleltest // Modifies global FormatStringFn, so can't be parallel.
-func TestFormat(t *testing.T) {
+func TestFormat(tt *testing.T) {
+	t := check.T(tt).MustAll()
+
 	oldFn := sensitive.FormatStringFn
 	defer func() {
 		sensitive.FormatStringFn = oldFn
@@ -30,11 +32,11 @@ func TestFormat(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		t.Run(tc.formatting, func(t *testing.T) {
-			assert := require.New(t)
+		t.Run(tc.formatting, func(tt *testing.T) {
 			want := fmt.Sprintf(tc.formatting, "value")
+			t := check.T(tt)
 			result := fmt.Sprintf(tc.formatting, sensitive.String("value"))
-			assert.Equal(want, result)
+			t.Equal(result, want)
 		})
 	}
 }

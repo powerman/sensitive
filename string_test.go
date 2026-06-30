@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/powerman/check"
 
 	"github.com/powerman/sensitive"
 )
 
-func TestStringFormatting(t *testing.T) {
-	t.Parallel()
-	assert := require.New(t)
+func TestStringFormatting(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
+
 	value := sensitive.String("value")
 	var empty *sensitive.String
 
@@ -103,32 +104,34 @@ func TestStringFormatting(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+		t.Run(tc.name, func(tt *testing.T) {
+			tt.Parallel()
+			t := check.T(tt)
 			result := fmt.Sprintf(tc.formatting, tc.value)
-			assert.Equal(tc.expected, result)
+			t.Equal(result, tc.expected)
 		})
 	}
 }
 
-func TestStringJSON(t *testing.T) {
-	t.Parallel()
-	assert := require.New(t)
+func TestStringJSON(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
+
 	value := sensitive.String("value")
 
 	b, err := json.Marshal(value)
-	assert.NoError(err)
-	assert.Equal("\"\"", string(b))
+	t.Nil(err)
+	t.Equal(string(b), "\"\"")
 
 	var empty *sensitive.String
 	b, err = json.Marshal(empty)
-	assert.NoError(err)
-	assert.Equal("null", string(b))
+	t.Nil(err)
+	t.Equal(string(b), "null")
 }
 
 //nolint:paralleltest // Modifies global FormatStringFn, so can't be parallel.
-func TestStringCustomFormatFn(t *testing.T) {
-	assert := require.New(t)
+func TestStringCustomFormatFn(tt *testing.T) {
+	t := check.T(tt).MustAll()
 
 	oldFn := sensitive.FormatStringFn
 	defer func() {
@@ -140,8 +143,8 @@ func TestStringCustomFormatFn(t *testing.T) {
 
 	value := sensitive.String("value")
 	b, err := json.Marshal(value)
-	assert.NoError(err)
-	assert.Equal("\"blah\"", string(b))
+	t.Nil(err)
+	t.Equal(string(b), "\"blah\"")
 }
 
 func BenchmarkString_Format(b *testing.B) {

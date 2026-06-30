@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/powerman/check"
 
 	"github.com/powerman/sensitive"
 )
 
-func TestUint16Formatting(t *testing.T) {
-	t.Parallel()
-	assert := require.New(t)
+func TestUint16Formatting(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
+
 	value := sensitive.Uint16(100)
 	var empty *sensitive.Uint16
 
@@ -103,37 +104,38 @@ func TestUint16Formatting(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+		t.Run(tc.name, func(tt *testing.T) {
+			tt.Parallel()
+			t := check.T(tt)
 			result := fmt.Sprintf(tc.formatting, tc.value)
-			assert.Equal(tc.expected, result)
+			t.Equal(result, tc.expected)
 		})
 	}
 }
 
-func TestUint16_MarshalText(t *testing.T) {
-	t.Parallel()
-	assert := require.New(t)
+func TestUint16_MarshalText(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
 
 	value := sensitive.Uint16(100)
 
 	b, err := value.MarshalText()
-	assert.NoError(err)
-	assert.Empty(string(b))
+	t.Nil(err)
+	t.Zero(string(b))
 }
 
-func TestUint16JSON(t *testing.T) {
-	t.Parallel()
-	assert := require.New(t)
+func TestUint16JSON(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
 
 	value := sensitive.Uint16(100)
 
 	b, err := json.Marshal(value)
-	assert.NoError(err)
-	assert.Equal("null", string(b))
+	t.Nil(err)
+	t.Equal(string(b), "null")
 
 	var empty *sensitive.Uint16
 	b, err = json.Marshal(empty)
-	assert.NoError(err)
-	assert.Equal("null", string(b))
+	t.Nil(err)
+	t.Equal(string(b), "null")
 }

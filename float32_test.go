@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"github.com/powerman/check"
 
 	"github.com/powerman/sensitive"
 )
 
-func TestFloat32Formatting(t *testing.T) {
-	t.Parallel()
-	assert := require.New(t)
+func TestFloat32Formatting(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
+
 	value := sensitive.Float32(100.1)
 	var empty *sensitive.Float32
 
@@ -103,37 +104,38 @@ func TestFloat32Formatting(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+		t.Run(tc.name, func(tt *testing.T) {
+			tt.Parallel()
+			t := check.T(tt)
 			result := fmt.Sprintf(tc.formatting, tc.value)
-			assert.Equal(tc.expected, result)
+			t.Equal(result, tc.expected)
 		})
 	}
 }
 
-func TestFloat32_MarshalText(t *testing.T) {
-	t.Parallel()
-	assert := require.New(t)
+func TestFloat32_MarshalText(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
 
 	value := sensitive.Float32(100.1)
 
 	b, err := value.MarshalText()
-	assert.NoError(err)
-	assert.Empty(string(b))
+	t.Nil(err)
+	t.Zero(string(b))
 }
 
-func TestFloat32JSON(t *testing.T) {
-	t.Parallel()
-	assert := require.New(t)
+func TestFloat32JSON(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
 
 	value := sensitive.Float32(100.1)
 
 	b, err := json.Marshal(value)
-	assert.NoError(err)
-	assert.Equal("null", string(b))
+	t.Nil(err)
+	t.Equal(string(b), "null")
 
 	var empty *sensitive.Float32
 	b, err = json.Marshal(empty)
-	assert.NoError(err)
-	assert.Equal("null", string(b))
+	t.Nil(err)
+	t.Equal(string(b), "null")
 }

@@ -5,15 +5,16 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/powerman/check"
 	"github.com/shopspring/decimal"
-	"github.com/stretchr/testify/require"
 
 	"github.com/powerman/sensitive"
 )
 
-func TestDecimalFormatting(t *testing.T) {
-	t.Parallel()
-	assert := require.New(t)
+func TestDecimalFormatting(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
+
 	value := sensitive.Decimal(decimal.NewFromFloat(100.1))
 	var empty *sensitive.Decimal
 
@@ -104,37 +105,38 @@ func TestDecimalFormatting(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
+		t.Run(tc.name, func(tt *testing.T) {
+			tt.Parallel()
+			t := check.T(tt)
 			result := fmt.Sprintf(tc.formatting, tc.value)
-			assert.Equal(tc.expected, result)
+			t.Equal(result, tc.expected)
 		})
 	}
 }
 
-func TestDecimal_MarshalText(t *testing.T) {
-	t.Parallel()
-	assert := require.New(t)
+func TestDecimal_MarshalText(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
 
 	value := sensitive.Decimal(decimal.NewFromFloat(100.1))
 
 	b, err := value.MarshalText()
-	assert.NoError(err)
-	assert.Empty(string(b))
+	t.Nil(err)
+	t.Zero(string(b))
 }
 
-func TestDecimalJSON(t *testing.T) {
-	t.Parallel()
-	assert := require.New(t)
+func TestDecimalJSON(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
 
 	value := sensitive.Decimal(decimal.NewFromFloat(100.1))
 
 	b, err := json.Marshal(value)
-	assert.NoError(err)
-	assert.Equal("null", string(b))
+	t.Nil(err)
+	t.Equal(string(b), "null")
 
 	var empty *sensitive.Decimal
 	b, err = json.Marshal(empty)
-	assert.NoError(err)
-	assert.Equal("null", string(b))
+	t.Nil(err)
+	t.Equal(string(b), "null")
 }
