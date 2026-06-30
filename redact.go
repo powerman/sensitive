@@ -43,7 +43,8 @@ func Redact() {
 // got/want values. To make Disable actually works it's not enough to just
 // call it, there are a couple of extra requirements to minimize a chance
 // to get disabled sensitive in production:
-//   - Current binary name should have ".test" suffix.
+//   - Current binary name should have ".test" suffix
+//     (or ".test.exe" on Windows).
 //   - Environment variable GO_TEST_DISABLE_SENSITIVE should not be empty.
 //
 // It is recommended to call it from TestMain or non-Parallel tests
@@ -51,7 +52,8 @@ func Redact() {
 //
 // Calling Redact after Disable will re-enable protection of sensitive values.
 func Disable() {
-	if !strings.HasSuffix(os.Args[0], ".test") || os.Getenv("GO_TEST_DISABLE_SENSITIVE") == "" {
+	name := strings.TrimSuffix(os.Args[0], ".exe")
+	if !strings.HasSuffix(name, ".test") || os.Getenv("GO_TEST_DISABLE_SENSITIVE") == "" {
 		return
 	}
 	FormatBoolFn = func(s Bool, f fmt.State, c rune) { Format(f, c, bool(s)) }
