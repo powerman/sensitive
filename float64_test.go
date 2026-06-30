@@ -10,7 +10,7 @@ import (
 	"github.com/powerman/sensitive"
 )
 
-func TestFloat64Formatting(tt *testing.T) {
+func TestFloat64_formatting(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
@@ -113,6 +113,14 @@ func TestFloat64Formatting(tt *testing.T) {
 	}
 }
 
+func TestFloat64_ExposeSecret(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
+
+	t.Equal(sensitive.Float64(2.71828).ExposeSecret(), 2.71828)
+	t.Equal(sensitive.Float64(0).ExposeSecret(), 0.0)
+}
+
 func TestFloat64_MarshalText(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
@@ -124,7 +132,7 @@ func TestFloat64_MarshalText(tt *testing.T) {
 	t.Zero(string(b))
 }
 
-func TestFloat64JSON(tt *testing.T) {
+func TestFloat64_json(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 

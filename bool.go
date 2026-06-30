@@ -17,6 +17,11 @@ var (
 // Bool is a sensitive bool value.
 type Bool bool
 
+// ExposeSecret returns the secret value as a bool.
+func (s Bool) ExposeSecret() bool {
+	return bool(s)
+}
+
 func (s Bool) Format(f fmt.State, c rune) {
 	FormatBoolFn(s, f, c)
 }

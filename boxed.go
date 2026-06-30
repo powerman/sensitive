@@ -8,6 +8,15 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// Secret is an interface implemented
+// by both plain sensitive types and Boxed[T],
+// allowing them to be used interchangeably.
+//
+//nolint:iface // This is a public API for users of this package.
+type Secret[T any] interface {
+	ExposeSecret() T
+}
+
 var (
 	_ fmt.Formatter          = (*Boxed[any])(nil)
 	_ json.Marshaler         = (*Boxed[any])(nil)

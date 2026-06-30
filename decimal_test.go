@@ -11,7 +11,7 @@ import (
 	"github.com/powerman/sensitive"
 )
 
-func TestDecimalFormatting(tt *testing.T) {
+func TestDecimal_formatting(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
@@ -125,7 +125,19 @@ func TestDecimal_MarshalText(tt *testing.T) {
 	t.Zero(string(b))
 }
 
-func TestDecimalJSON(tt *testing.T) {
+func TestDecimal_ExposeSecret(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
+
+	original := decimal.NewFromFloat(42.5)
+	value := sensitive.Decimal(original)
+	t.True(value.ExposeSecret().Equal(original))
+
+	var zero sensitive.Decimal
+	t.True(zero.ExposeSecret().Equal(decimal.Zero))
+}
+
+func TestDecimal_json(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 

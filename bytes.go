@@ -16,6 +16,11 @@ var (
 // Bytes is a sensitive bytes value.
 type Bytes []byte
 
+// ExposeSecret returns the secret value as a byte slice.
+func (s Bytes) ExposeSecret() []byte {
+	return []byte(s)
+}
+
 func (s Bytes) Format(f fmt.State, c rune) {
 	FormatBytesFn(s, f, c)
 }

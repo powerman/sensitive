@@ -10,7 +10,7 @@ import (
 	"github.com/powerman/sensitive"
 )
 
-func TestStringFormatting(tt *testing.T) {
+func TestString_formatting(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
@@ -113,7 +113,7 @@ func TestStringFormatting(tt *testing.T) {
 	}
 }
 
-func TestStringJSON(tt *testing.T) {
+func TestString_json(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
@@ -129,8 +129,17 @@ func TestStringJSON(tt *testing.T) {
 	t.Equal(string(b), "null")
 }
 
+func TestString_ExposeSecret(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
+
+	value := sensitive.String("secret-string")
+	t.Equal(value.ExposeSecret(), "secret-string")
+	t.Equal(sensitive.String("").ExposeSecret(), "")
+}
+
 //nolint:paralleltest // Modifies global FormatStringFn, so can't be parallel.
-func TestStringCustomFormatFn(tt *testing.T) {
+func TestString_customFormatFn(tt *testing.T) {
 	t := check.T(tt).MustAll()
 
 	oldFn := sensitive.FormatStringFn

@@ -10,7 +10,7 @@ import (
 	"github.com/powerman/sensitive"
 )
 
-func TestBoolFormatting(tt *testing.T) {
+func TestBool_formatting(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
@@ -113,7 +113,7 @@ func TestBoolFormatting(tt *testing.T) {
 	}
 }
 
-func TestBoolJSON(tt *testing.T) {
+func TestBool_json(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
@@ -129,8 +129,16 @@ func TestBoolJSON(tt *testing.T) {
 	t.Equal(string(b), "null")
 }
 
+func TestBool_ExposeSecret(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
+
+	t.Equal(sensitive.Bool(true).ExposeSecret(), true)
+	t.Equal(sensitive.Bool(false).ExposeSecret(), false)
+}
+
 //nolint:paralleltest // Modifies global FormatBoolFn, so can't be parallel.
-func TestBoolCustomFormatFn(tt *testing.T) {
+func TestBool_customFormatFn(tt *testing.T) {
 	t := check.T(tt).MustAll()
 
 	oldFn := sensitive.FormatBoolFn

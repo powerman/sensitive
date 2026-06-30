@@ -17,6 +17,11 @@ var (
 // Uint16 is a sensitive uint16 value.
 type Uint16 uint16
 
+// ExposeSecret returns the secret value as a uint16.
+func (s Uint16) ExposeSecret() uint16 {
+	return uint16(s)
+}
+
 func (s Uint16) Format(f fmt.State, c rune) {
 	FormatUint16Fn(s, f, c)
 }

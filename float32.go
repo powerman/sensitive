@@ -17,6 +17,11 @@ var (
 // Float32 is a sensitive float32 value.
 type Float32 float32
 
+// ExposeSecret returns the secret value as a float32.
+func (s Float32) ExposeSecret() float32 {
+	return float32(s)
+}
+
 func (s Float32) Format(f fmt.State, c rune) {
 	FormatFloat32Fn(s, f, c)
 }

@@ -17,6 +17,11 @@ var (
 // Float64 is a sensitive float64 value.
 type Float64 float64
 
+// ExposeSecret returns the secret value as a float64.
+func (s Float64) ExposeSecret() float64 {
+	return float64(s)
+}
+
 func (s Float64) Format(f fmt.State, c rune) {
 	FormatFloat64Fn(s, f, c)
 }

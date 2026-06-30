@@ -17,6 +17,11 @@ var (
 // Int16 is a sensitive int16 value.
 type Int16 int16
 
+// ExposeSecret returns the secret value as an int16.
+func (s Int16) ExposeSecret() int16 {
+	return int16(s)
+}
+
 func (s Int16) Format(f fmt.State, c rune) {
 	FormatInt16Fn(s, f, c)
 }

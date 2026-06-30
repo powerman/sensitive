@@ -17,6 +17,11 @@ var (
 // Int32 is a sensitive int32 value.
 type Int32 int32
 
+// ExposeSecret returns the secret value as an int32.
+func (s Int32) ExposeSecret() int32 {
+	return int32(s)
+}
+
 func (s Int32) Format(f fmt.State, c rune) {
 	FormatInt32Fn(s, f, c)
 }

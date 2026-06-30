@@ -17,6 +17,11 @@ var (
 // Int is a sensitive int value.
 type Int int
 
+// ExposeSecret returns the secret value as an int.
+func (s Int) ExposeSecret() int {
+	return int(s)
+}
+
 func (s Int) Format(f fmt.State, c rune) {
 	FormatIntFn(s, f, c)
 }

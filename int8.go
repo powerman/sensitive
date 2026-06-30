@@ -17,6 +17,11 @@ var (
 // Int8 is a sensitive int8 value.
 type Int8 int8
 
+// ExposeSecret returns the secret value as an int8.
+func (s Int8) ExposeSecret() int8 {
+	return int8(s)
+}
+
 func (s Int8) Format(f fmt.State, c rune) {
 	FormatInt8Fn(s, f, c)
 }

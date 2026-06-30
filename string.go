@@ -15,6 +15,11 @@ var (
 
 type String string
 
+// ExposeSecret returns the secret value as a string.
+func (s String) ExposeSecret() string {
+	return string(s)
+}
+
 func (s String) Format(f fmt.State, c rune) {
 	FormatStringFn(s, f, c)
 }

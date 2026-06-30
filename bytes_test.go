@@ -10,7 +10,7 @@ import (
 	"github.com/powerman/sensitive"
 )
 
-func TestBytesFormatting(tt *testing.T) {
+func TestBytes_formatting(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
@@ -113,7 +113,7 @@ func TestBytesFormatting(tt *testing.T) {
 	}
 }
 
-func TestBytesJSON(tt *testing.T) {
+func TestBytes_json(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
@@ -129,8 +129,20 @@ func TestBytesJSON(tt *testing.T) {
 	t.Equal(string(b), "null")
 }
 
+func TestBytes_ExposeSecret(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
+
+	value := sensitive.Bytes("secret-bytes")
+	t.True(len(value.ExposeSecret()) > 0)
+	t.Equal(string(value.ExposeSecret()), "secret-bytes")
+
+	var empty sensitive.Bytes
+	t.Nil(empty.ExposeSecret())
+}
+
 //nolint:paralleltest // Modifies global FormatBytesFn, so can't be parallel.
-func TestBytesCustomFormatFn(tt *testing.T) {
+func TestBytes_customFormatFn(tt *testing.T) {
 	t := check.T(tt).MustAll()
 
 	oldFn := sensitive.FormatBytesFn

@@ -41,7 +41,7 @@ type structWithInterfaceHoldingBoxed struct {
 	v any
 }
 
-func TestBoxedFormatting(tt *testing.T) {
+func TestBoxed_formatting(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
@@ -72,7 +72,7 @@ func TestBoxedFormatting(tt *testing.T) {
 	}
 }
 
-func TestBoxedReflectionSafety(tt *testing.T) {
+func TestBoxed_reflectionSafety(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
@@ -105,7 +105,7 @@ func TestBoxedReflectionSafety(tt *testing.T) {
 	}
 }
 
-func TestBoxedInterfaceInUnexportedField(tt *testing.T) {
+func TestBoxed_interfaceInUnexportedField(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
@@ -131,7 +131,7 @@ func TestBoxedInterfaceInUnexportedField(tt *testing.T) {
 	}
 }
 
-func TestBoxedComparable(tt *testing.T) {
+func TestBoxed_comparable(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
@@ -150,7 +150,7 @@ func TestBoxedComparable(tt *testing.T) {
 	t.Equal(m[b], 2)
 }
 
-func TestBoxedDeepEqual(tt *testing.T) {
+func TestBoxed_deepEqual(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
@@ -191,7 +191,7 @@ func TestBoxedDeepEqual(tt *testing.T) {
 	})
 }
 
-func TestBoxedExposeSecret(tt *testing.T) {
+func TestBoxed_ExposeSecret(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
@@ -224,7 +224,7 @@ func TestBoxedExposeSecret(tt *testing.T) {
 	})
 }
 
-func TestBoxedJSON(tt *testing.T) {
+func TestBoxed_json(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
@@ -240,7 +240,7 @@ func TestBoxedJSON(tt *testing.T) {
 	t.Equal(string(result), "null")
 }
 
-func TestBoxedZeroValue(tt *testing.T) {
+func TestBoxed_zeroValue(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
@@ -303,21 +303,21 @@ func testBoxedGlobalMode(mode string) {
 	os.Exit(0)
 }
 
-func TestBoxedDefaultMode(tt *testing.T) {
+func TestBoxed_defaultMode(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
 	runBoxedSubprocess(t, "default")
 }
 
-func TestBoxedRedactMode(tt *testing.T) {
+func TestBoxed_redactMode(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
 	runBoxedSubprocess(t, "Redact")
 }
 
-func TestBoxedDisableMode(tt *testing.T) {
+func TestBoxed_disableMode(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
@@ -331,7 +331,7 @@ func runBoxedSubprocess(t *check.C, mode string) {
 	t.Cleanup(cancel)
 
 	cmd := exec.CommandContext(ctx, os.Args[0],
-		"-test.run=^TestBoxedGlobalModeHelper$",
+		"-test.run=^TestBoxed_globalModeHelper$",
 	)
 	cmd.Env = append(os.Environ(),
 		"_BOXED_MODE="+mode,
@@ -341,10 +341,10 @@ func runBoxedSubprocess(t *check.C, mode string) {
 	t.Nil(err, "subprocess for mode %s must exit successfully:\n%s", mode, out)
 }
 
-// testBoxedGlobalModeHelper is a Test function that acts as an entry
+// testBoxed_globalModeHelper is a Test function that acts as an entry
 // point for the subprocess call in runBoxedSubprocess. It reads the
 // mode from env and delegates to testBoxedGlobalMode.
-func TestBoxedGlobalModeHelper(tt *testing.T) {
+func TestBoxed_globalModeHelper(tt *testing.T) {
 	tt.Parallel()
 
 	mode := os.Getenv("_BOXED_MODE")

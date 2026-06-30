@@ -17,6 +17,11 @@ var (
 // Int64 is a sensitive int64 value.
 type Int64 int64
 
+// ExposeSecret returns the secret value as an int64.
+func (s Int64) ExposeSecret() int64 {
+	return int64(s)
+}
+
 func (s Int64) Format(f fmt.State, c rune) {
 	FormatInt64Fn(s, f, c)
 }

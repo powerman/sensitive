@@ -17,6 +17,11 @@ var (
 // Uint is a sensitive uint value.
 type Uint uint
 
+// ExposeSecret returns the secret value as a uint.
+func (s Uint) ExposeSecret() uint {
+	return uint(s)
+}
+
 func (s Uint) Format(f fmt.State, c rune) {
 	FormatUintFn(s, f, c)
 }

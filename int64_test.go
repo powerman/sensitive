@@ -10,7 +10,7 @@ import (
 	"github.com/powerman/sensitive"
 )
 
-func TestInt64Formatting(tt *testing.T) {
+func TestInt64_formatting(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
@@ -113,6 +113,14 @@ func TestInt64Formatting(tt *testing.T) {
 	}
 }
 
+func TestInt64_ExposeSecret(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
+
+	t.Equal(sensitive.Int64(42).ExposeSecret(), int64(42))
+	t.Equal(sensitive.Int64(-1).ExposeSecret(), int64(-1))
+}
+
 func TestInt64_MarshalText(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
@@ -124,7 +132,7 @@ func TestInt64_MarshalText(tt *testing.T) {
 	t.Zero(string(b))
 }
 
-func TestInt64JSON(tt *testing.T) {
+func TestInt64_json(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 

@@ -19,6 +19,11 @@ var (
 // Decimal is a sensitive decimal.Decimal value.
 type Decimal decimal.Decimal
 
+// ExposeSecret returns the secret value as a decimal.Decimal.
+func (s Decimal) ExposeSecret() decimal.Decimal {
+	return decimal.Decimal(s)
+}
+
 func (s Decimal) Format(f fmt.State, c rune) {
 	FormatDecimalFn(s, f, c)
 }

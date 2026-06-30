@@ -17,6 +17,11 @@ var (
 // Uint8 is a sensitive uint8 value.
 type Uint8 uint8
 
+// ExposeSecret returns the secret value as a uint8.
+func (s Uint8) ExposeSecret() uint8 {
+	return uint8(s)
+}
+
 func (s Uint8) Format(f fmt.State, c rune) {
 	FormatUint8Fn(s, f, c)
 }

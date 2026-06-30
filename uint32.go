@@ -17,6 +17,11 @@ var (
 // Uint32 is a sensitive uint32 value.
 type Uint32 uint32
 
+// ExposeSecret returns the secret value as a uint32.
+func (s Uint32) ExposeSecret() uint32 {
+	return uint32(s)
+}
+
 func (s Uint32) Format(f fmt.State, c rune) {
 	FormatUint32Fn(s, f, c)
 }
