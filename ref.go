@@ -9,7 +9,7 @@ import (
 )
 
 // Secret is an interface implemented
-// by both plain sensitive types and Boxed[T],
+// by both plain sensitive types and Ref[T] and Handle[T],
 // allowing them to be used interchangeably.
 //
 //nolint:iface // This is a public API for users of this package.
@@ -18,38 +18,54 @@ type Secret[T any] interface {
 }
 
 var (
-	_ fmt.Formatter          = (*Boxed[any])(nil)
-	_ json.Marshaler         = (*Boxed[any])(nil)
-	_ encoding.TextMarshaler = (*Boxed[any])(nil)
+	_ fmt.Formatter          = (*Ref[any])(nil)
+	_ json.Marshaler         = (*Ref[any])(nil)
+	_ encoding.TextMarshaler = (*Ref[any])(nil)
 )
 
-// Boxed holds a secret value that fmt reflection cannot reach
-// even through an unexported struct field.
+// Ref holds a secret value that fmt reflection cannot reach, and behaves
+// like []byte for equality: == is a compile-time error, so an accidental
+// comparison fails loudly instead of silently returning false.
 //
-// The zero value is safe: [Boxed.ExposeSecret] returns the zero T.
-type Boxed[T any] struct {
+// Use Ref in two cases (see the package doc for the full rule):
+//   - the element type's == does not compare by value: []byte, decimals,
+//     composite structs. These cannot be a [Handle] element, so they belong
+//     here by construction.
+//   - the element type's == DOES work by value, but using it is harmful:
+//     passwords and hashes are compared constant-time (against another
+//     hash), never with ==, so deny == by using Ref[string].
+//
+// The zero value is safe: [Ref.ExposeSecret] returns the zero T.
+//
+// == on a Ref, or on any struct containing a Ref field, is a compile-time
+// error. Compare values explicitly when needed — [bytes.Equal] for []byte,
+// decimal.Decimal.Equal for decimals, a constant-time compare for hashes —
+// or compare whole structs in tests with [reflect.DeepEqual], which reads
+// through Ref and compares by value.
+type Ref[T any] struct {
+	_  [0]func()
 	pp **T
 }
 
-// New returns a [Boxed] holding a copy of v.
-func New[T any](v T) Boxed[T] {
+// New returns a [Ref] holding a copy of v.
+func New[T any](v T) Ref[T] {
 	p := &v
-	return Boxed[T]{pp: &p}
+	return Ref[T]{pp: &p}
 }
 
 // ExposeSecret returns the stored value,
-// or the zero T if the Boxed is nil or was created with the zero value.
-func (b Boxed[T]) ExposeSecret() T {
-	if b.pp == nil || *b.pp == nil {
+// or the zero T if the Ref is nil or was created with the zero value.
+func (r Ref[T]) ExposeSecret() T {
+	if r.pp == nil || *r.pp == nil {
 		var z T
 		return z
 	}
-	return **b.pp
+	return **r.pp
 }
 
 // Format implements [fmt.Formatter].
-func (b Boxed[T]) Format(f fmt.State, c rune) {
-	switch v := any(b.ExposeSecret()).(type) {
+func (r Ref[T]) Format(f fmt.State, c rune) {
+	switch v := any(r.ExposeSecret()).(type) {
 	case bool:
 		FormatBoolFn(Bool(v), f, c)
 	case []byte:
@@ -91,8 +107,8 @@ func (b Boxed[T]) Format(f fmt.State, c rune) {
 // MarshalJSON implements [json.Marshaler].
 //
 //lint:ignore errchkjson // Delegates to existing marshalers.
-func (b Boxed[T]) MarshalJSON() ([]byte, error) {
-	switch v := any(b.ExposeSecret()).(type) {
+func (r Ref[T]) MarshalJSON() ([]byte, error) {
+	switch v := any(r.ExposeSecret()).(type) {
 	case bool:
 		return Bool(v).MarshalJSON()
 	case []byte:
@@ -131,8 +147,8 @@ func (b Boxed[T]) MarshalJSON() ([]byte, error) {
 }
 
 // MarshalText implements [encoding.TextMarshaler].
-func (b Boxed[T]) MarshalText() (text []byte, err error) {
-	switch v := any(b.ExposeSecret()).(type) {
+func (r Ref[T]) MarshalText() (text []byte, err error) {
+	switch v := any(r.ExposeSecret()).(type) {
 	case bool:
 		return Bool(v).MarshalText()
 	case []byte:

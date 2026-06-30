@@ -15,7 +15,7 @@ import (
 	"github.com/powerman/sensitive"
 )
 
-// testStruct is a user-defined struct used as a type parameter for Boxed.
+// testStruct is a user-defined struct used as a type parameter for Ref.
 type testStruct struct {
 	A string
 	B int
@@ -27,21 +27,21 @@ func equal(a, b any) bool {
 	return reflect.DeepEqual(a, b)
 }
 
-// structWithUnexportedBoxed holds Boxed values in unexported fields.
-type structWithUnexportedBoxed struct {
-	s  sensitive.Boxed[string]
-	bs sensitive.Boxed[[]byte]
-	st sensitive.Boxed[testStruct]
+// structWithUnexportedRef holds Ref values in unexported fields.
+type structWithUnexportedRef struct {
+	s  sensitive.Ref[string]
+	bs sensitive.Ref[[]byte]
+	st sensitive.Ref[testStruct]
 }
 
-// structWithInterfaceHoldingBoxed holds an interface containing a Boxed
+// structWithInterfaceHoldingRef holds an interface containing a Ref
 // in an unexported field, which is the scenario that defeats
 // plain Bytes/String because fmt sees flagRO and skips Format.
-type structWithInterfaceHoldingBoxed struct {
+type structWithInterfaceHoldingRef struct {
 	v any
 }
 
-func TestBoxed_formatting(tt *testing.T) {
+func TestRef_formatting(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
@@ -54,13 +54,13 @@ func TestBoxed_formatting(tt *testing.T) {
 		value      any
 		notWant    string
 	}{
-		{name: "Boxed[string] %s", formatting: "%s", value: bSecret, notWant: secret},
-		{name: "Boxed[string] %q", formatting: "%q", value: bSecret, notWant: secret},
-		{name: "Boxed[string] %v", formatting: "%v", value: bSecret, notWant: secret},
-		{name: "Boxed[string] %+v", formatting: "%+v", value: bSecret, notWant: secret},
-		{name: "Boxed[string] %#v", formatting: "%#v", value: bSecret, notWant: secret},
-		{name: "Boxed[string] %x", formatting: "%x", value: bSecret, notWant: secret},
-		{name: "Boxed[string] %X", formatting: "%X", value: bSecret, notWant: secret},
+		{name: "Ref[string] %s", formatting: "%s", value: bSecret, notWant: secret},
+		{name: "Ref[string] %q", formatting: "%q", value: bSecret, notWant: secret},
+		{name: "Ref[string] %v", formatting: "%v", value: bSecret, notWant: secret},
+		{name: "Ref[string] %+v", formatting: "%+v", value: bSecret, notWant: secret},
+		{name: "Ref[string] %#v", formatting: "%#v", value: bSecret, notWant: secret},
+		{name: "Ref[string] %x", formatting: "%x", value: bSecret, notWant: secret},
+		{name: "Ref[string] %X", formatting: "%X", value: bSecret, notWant: secret},
 	}
 
 	for _, tc := range tests {
@@ -72,7 +72,7 @@ func TestBoxed_formatting(tt *testing.T) {
 	}
 }
 
-func TestBoxed_reflectionSafety(tt *testing.T) {
+func TestRef_reflectionSafety(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
@@ -80,7 +80,7 @@ func TestBoxed_reflectionSafety(tt *testing.T) {
 	secretBytes := []byte("secret-bytes")
 	secretStruct := testStruct{A: "hidden", B: 42}
 
-	parent := structWithUnexportedBoxed{
+	parent := structWithUnexportedRef{
 		s:  sensitive.New(secretStr),
 		bs: sensitive.New(secretBytes),
 		st: sensitive.New(secretStruct),
@@ -105,15 +105,15 @@ func TestBoxed_reflectionSafety(tt *testing.T) {
 	}
 }
 
-func TestBoxed_interfaceInUnexportedField(tt *testing.T) {
+func TestRef_interfaceInUnexportedField(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
 	secret := "hidden-behind-interface"
-	boxed := sensitive.New(secret)
+	ref := sensitive.New(secret)
 
-	parent := structWithInterfaceHoldingBoxed{
-		v: boxed,
+	parent := structWithInterfaceHoldingRef{
+		v: ref,
 	}
 
 	verbs := []string{"%v", "%+v", "%#v", "%s", "%q", "%x", "%X"}
@@ -131,26 +131,7 @@ func TestBoxed_interfaceInUnexportedField(tt *testing.T) {
 	}
 }
 
-func TestBoxed_comparable(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
-
-	// Compile-time check: Boxed[T] must be usable as a map key.
-	var _ map[sensitive.Boxed[string]]struct{}
-
-	a := sensitive.New("hello")
-	b := sensitive.New("hello")
-
-	m := map[sensitive.Boxed[string]]int{
-		a: 1,
-		b: 2,
-	}
-	t.Len(m, 2, "each New call produces a unique map key")
-	t.Equal(m[a], 1)
-	t.Equal(m[b], 2)
-}
-
-func TestBoxed_deepEqual(tt *testing.T) {
+func TestRef_deepEqual(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
@@ -160,7 +141,7 @@ func TestBoxed_deepEqual(tt *testing.T) {
 
 		a := sensitive.New("equal-value")
 		b := sensitive.New("equal-value")
-		t.True(equal(a, b), "DeepEqual Boxed[string] with same value")
+		t.True(equal(a, b), "DeepEqual Ref[string] with same value")
 	})
 
 	t.Run("bytes", func(tt *testing.T) {
@@ -169,7 +150,7 @@ func TestBoxed_deepEqual(tt *testing.T) {
 
 		a := sensitive.New([]byte("equal-bytes"))
 		b := sensitive.New([]byte("equal-bytes"))
-		t.True(equal(a, b), "DeepEqual Boxed[[]byte] with same value")
+		t.True(equal(a, b), "DeepEqual Ref[[]byte] with same value")
 	})
 
 	t.Run("struct", func(tt *testing.T) {
@@ -178,7 +159,7 @@ func TestBoxed_deepEqual(tt *testing.T) {
 
 		a := sensitive.New(testStruct{A: "x", B: 1})
 		b := sensitive.New(testStruct{A: "x", B: 1})
-		t.True(equal(a, b), "DeepEqual Boxed[testStruct] with same value")
+		t.True(equal(a, b), "DeepEqual Ref[testStruct] with same value")
 	})
 
 	t.Run("different", func(tt *testing.T) {
@@ -187,11 +168,11 @@ func TestBoxed_deepEqual(tt *testing.T) {
 
 		a := sensitive.New("alpha")
 		b := sensitive.New("beta")
-		t.False(equal(a, b), "DeepEqual Boxed[string] with different values")
+		t.False(equal(a, b), "DeepEqual Ref[string] with different values")
 	})
 }
 
-func TestBoxed_ExposeSecret(tt *testing.T) {
+func TestRef_ExposeSecret(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
@@ -208,9 +189,9 @@ func TestBoxed_ExposeSecret(tt *testing.T) {
 		tt.Parallel()
 		t := check.T(tt)
 
-		var z sensitive.Boxed[string]
+		var z sensitive.Ref[string]
 		t.NotPanic(func() { _ = z.ExposeSecret() },
-			"zero value Boxed must not panic on ExposeSecret")
+			"zero value Ref must not panic on ExposeSecret")
 		t.Equal(z.ExposeSecret(), "")
 	})
 
@@ -224,7 +205,7 @@ func TestBoxed_ExposeSecret(tt *testing.T) {
 	})
 }
 
-func TestBoxed_json(tt *testing.T) {
+func TestRef_json(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
@@ -234,13 +215,13 @@ func TestBoxed_json(tt *testing.T) {
 	t.Nil(err)
 	t.NotContains(string(result), "my-json-value")
 
-	var empty *sensitive.Boxed[string]
+	var empty *sensitive.Ref[string]
 	result, err = json.Marshal(empty)
 	t.Nil(err)
 	t.Equal(string(result), "null")
 }
 
-func TestBoxed_zeroValue(tt *testing.T) {
+func TestRef_zeroValue(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
@@ -248,7 +229,7 @@ func TestBoxed_zeroValue(tt *testing.T) {
 		tt.Parallel()
 		t := check.T(tt)
 		t.NotPanic(func() {
-			_ = fmt.Sprintf("%v", sensitive.Boxed[string]{})
+			_ = fmt.Sprintf("%v", sensitive.Ref[string]{})
 		})
 	})
 
@@ -256,19 +237,19 @@ func TestBoxed_zeroValue(tt *testing.T) {
 		tt.Parallel()
 		t := check.T(tt)
 		t.NotPanic(func() {
-			_ = sensitive.Boxed[string]{}.ExposeSecret()
+			_ = sensitive.Ref[string]{}.ExposeSecret()
 		})
 	})
 }
 
 // --- Redact and Disable tests via subprocess ---
 
-// testBoxedGlobalMode exercises Boxed formatting under a specific
+// testRefGlobalMode exercises Ref formatting under a specific
 // global mode (default, Redact, or Disable).
 // It is invoked as a subprocess entry point, so os.Exit is acceptable.
 //
 //nolint:revive // deep-exit: called from subprocess entry point.
-func testBoxedGlobalMode(mode string) {
+func testRefGlobalMode(mode string) {
 	switch mode {
 	case "Redact":
 		sensitive.Redact()
@@ -303,53 +284,53 @@ func testBoxedGlobalMode(mode string) {
 	os.Exit(0)
 }
 
-func TestBoxed_defaultMode(tt *testing.T) {
+func TestRef_defaultMode(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
-	runBoxedSubprocess(t, "default")
+	runRefSubprocess(t, "default")
 }
 
-func TestBoxed_redactMode(tt *testing.T) {
+func TestRef_redactMode(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
-	runBoxedSubprocess(t, "Redact")
+	runRefSubprocess(t, "Redact")
 }
 
-func TestBoxed_disableMode(tt *testing.T) {
+func TestRef_disableMode(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()
 
-	runBoxedSubprocess(t, "Disable")
+	runRefSubprocess(t, "Disable")
 }
 
-// runBoxedSubprocess re-runs this test binary with a special marker
-// to execute testBoxedGlobalMode with the given mode.
-func runBoxedSubprocess(t *check.C, mode string) {
+// runRefSubprocess re-runs this test binary with a special marker
+// to execute testRefGlobalMode with the given mode.
+func runRefSubprocess(t *check.C, mode string) {
 	ctx, cancel := context.WithCancel(t.Context())
 	t.Cleanup(cancel)
 
 	cmd := exec.CommandContext(ctx, os.Args[0],
-		"-test.run=^TestBoxed_globalModeHelper$",
+		"-test.run=^TestRef_globalModeHelper$",
 	)
 	cmd.Env = append(os.Environ(),
-		"_BOXED_MODE="+mode,
+		"_REF_MODE="+mode,
 		"GO_TEST_DISABLE_SENSITIVE=1", // Always set; only used in Disable mode.
 	)
 	out, err := cmd.CombinedOutput()
 	t.Nil(err, "subprocess for mode %s must exit successfully:\n%s", mode, out)
 }
 
-// testBoxed_globalModeHelper is a Test function that acts as an entry
-// point for the subprocess call in runBoxedSubprocess. It reads the
-// mode from env and delegates to testBoxedGlobalMode.
-func TestBoxed_globalModeHelper(tt *testing.T) {
+// testRef_globalModeHelper is a Test function that acts as an entry
+// point for the subprocess call in runRefSubprocess. It reads the
+// mode from env and delegates to testRefGlobalMode.
+func TestRef_globalModeHelper(tt *testing.T) {
 	tt.Parallel()
 
-	mode := os.Getenv("_BOXED_MODE")
+	mode := os.Getenv("_REF_MODE")
 	if mode == "" {
 		tt.Skip("not running in subprocess")
 	}
-	testBoxedGlobalMode(mode)
+	testRefGlobalMode(mode)
 }
