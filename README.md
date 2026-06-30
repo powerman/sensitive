@@ -46,6 +46,44 @@ Supported types:
 - `Uint32`
 - `Uint64`
 
+## Storing secrets in unexported fields
+
+`Bytes`/`String`/etc. redact via `fmt.Formatter`, but this only works
+when `fmt` can call `CanInterface() == true` on the value's reflect wrapper.
+The moment `fmt` descends through an **unexported struct field**,
+`reflect` sets an internal read-only flag (`flagRO`),
+`CanInterface()` returns false, and `fmt.Formatter` is skipped —
+the raw secret leaks into logs and error messages.
+
+`Boxed[T]` is a generic wrapper that stores its value
+behind **two** pointer indirections (`**T`), which `fmt` never fully follows:
+
+```go
+type Config struct {
+	apiKey sensitive.Boxed[string]    // safe — fmt cannot reach the value
+	dbPass sensitive.Boxed[[]byte]    // safe, even for compound types
+}
+
+k := sensitive.New("sk-...")
+key := k.ExposeSecret() // explicit opt-in to access the real value
+```
+
+`Boxed` is comparable (`==` works, usable as a map key),
+and `reflect.DeepEqual` compares by value — so tests keep working without per-field helpers.
+
+### Safety net
+
+Run [lint-sensitive](https://github.com/powerman/lint-sensitive) as part
+of your CI to catch remaining unexported-field leaks that `Boxed` is designed to fix.
+
+### Memory zeroization is deferred
+
+Unlike `negrel/secrecy`, `Boxed` does not use `runtime.SetFinalizer`:
+finalizers are unreliable (strings are immutable, Go moves values in memory, GC copies).
+The right vehicle is the experimental `runtime/secret` package.
+`Boxed`'s `**T` storage keeps the door open to add eager `Destroy()` / `Clear()`
+without breaking the API when `runtime/secret` stabilises.
+
 ## Examples
 
 ### Basic
@@ -132,5 +170,5 @@ func main() {
 
 ---
 
-*Inspired by and started as a fork of
-[go-playground/sensitive](https://github.com/go-playground/sensitive).*
+_Inspired by and started as a fork of
+[go-playground/sensitive](https://github.com/go-playground/sensitive)._
