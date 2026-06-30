@@ -55,34 +55,52 @@ The moment `fmt` descends through an **unexported struct field**,
 `CanInterface()` returns false, and `fmt.Formatter` is skipped —
 the raw secret leaks into logs and error messages.
 
-`Boxed[T]` is a generic wrapper that stores its value
-behind **two** pointer indirections (`**T`), which `fmt` never fully follows:
+### `Ref[T]` — non-comparable, for any type
+
+`Ref[T]` is a generic wrapper that stores its value
+behind **two** pointer indirections (`**T`), which `fmt` never fully follows.
+It behaves like `[]byte` for equality: `==` is a compile-time error,
+so an accidental comparison fails loudly instead of silently returning false.
+Use `Ref` when the element type is not value-comparable (`[]byte`, decimals,
+composites) or when value-`==` is harmful (passwords, hashes).
 
 ```go
 type Config struct {
-	apiKey sensitive.Boxed[string]    // safe — fmt cannot reach the value
-	dbPass sensitive.Boxed[[]byte]    // safe, even for compound types
+	apiKey sensitive.Ref[string]    // safe — fmt cannot reach the value
+	dbPass sensitive.Ref[[]byte]    // safe, even for compound types
 }
 
 k := sensitive.New("sk-...")
 key := k.ExposeSecret() // explicit opt-in to access the real value
 ```
 
-`Boxed` is comparable (`==` works, usable as a map key),
-and `reflect.DeepEqual` compares by value — so tests keep working without per-field helpers.
+`Ref` is **non-comparable** (`==` is a compile error, not a valid map key).
+Use `reflect.DeepEqual` or explicit compare functions for testing.
+
+### `Handle[T]` — comparable, for value-comparable secrets
+
+For value-comparable secrets where `==` is not harmful (tokens, IDs, API keys),
+`Handle[T]` provides value equality and map-key support while remaining
+fmt-safe. Equal values are canonicalized via the runtime's `unique.Handle`
+intern pool.
+
+```go
+type AccessToken struct{ sensitive.Handle[string] }
+
+t := sensitive.Make("sk-...")
+t == sensitive.Make("sk-...") // true
+```
 
 ### Safety net
 
 Run [lint-sensitive](https://github.com/powerman/lint-sensitive) as part
-of your CI to catch remaining unexported-field leaks that `Boxed` is designed to fix.
+of your CI to catch remaining unexported-field leaks.
 
 ### Memory zeroization is deferred
 
-Unlike `negrel/secrecy`, `Boxed` does not use `runtime.SetFinalizer`:
+Unlike `negrel/secrecy`, `Ref` and `Handle` do not use `runtime.SetFinalizer`:
 finalizers are unreliable (strings are immutable, Go moves values in memory, GC copies).
 The right vehicle is the experimental `runtime/secret` package.
-`Boxed`'s `**T` storage keeps the door open to add eager `Destroy()` / `Clear()`
-without breaking the API when `runtime/secret` stabilises.
 
 ## Examples
 

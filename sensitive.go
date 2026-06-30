@@ -1,5 +1,3 @@
-// Package sensitive provides base types who's values should never be seen
-// by the human eye.
 package sensitive
 
 import "fmt"
