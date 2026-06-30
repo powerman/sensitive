@@ -10,9 +10,10 @@ var (
 	_             fmt.Formatter          = (*Bytes)(nil)
 	_             json.Marshaler         = (*Bytes)(nil)
 	_             encoding.TextMarshaler = (*Bytes)(nil)
-	FormatBytesFn                        = func(s Bytes, f fmt.State, c rune) {} //nolint:gochecknoglobals // By design.
+	FormatBytesFn                        = func(_ Bytes, _ fmt.State, _ rune) {} //nolint:gochecknoglobals,godoclint // By design.
 )
 
+// Bytes is a sensitive bytes value.
 type Bytes []byte
 
 func (s Bytes) Format(f fmt.State, c rune) {

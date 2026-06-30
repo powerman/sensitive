@@ -11,13 +11,13 @@ import (
 // It is useful in case you'll redefine some Format<type>Fn to output
 // redacted value using formatting applied to original value.
 //
-//     sensitive.FormatStringFn = func(s sensitive.String, f fmt.State, c rune) {
-//         sensitive.Format(f, c, "REDACTED")
-//     }
-//     sensitive.FormatBytesFn = func(s sensitive.Bytes, f fmt.State, c rune) {
-//         sensitive.Format(f, c, []byte{0xDE, 0xFA, 0xCE})
-//     }
-func Format(f fmt.State, c rune, value interface{}) {
+//	sensitive.FormatStringFn = func(s sensitive.String, f fmt.State, c rune) {
+//	    sensitive.Format(f, c, "REDACTED")
+//	}
+//	sensitive.FormatBytesFn = func(s sensitive.Bytes, f fmt.State, c rune) {
+//	    sensitive.Format(f, c, []byte{0xDE, 0xFA, 0xCE})
+//	}
+func Format(f fmt.State, c rune, value any) {
 	const flags = "+-# 0"
 	const usualLen = 8
 	var format strings.Builder
@@ -36,5 +36,5 @@ func Format(f fmt.State, c rune, value interface{}) {
 		format.WriteString(strconv.Itoa(prec))
 	}
 	format.WriteRune(c)
-	fmt.Fprintf(f, format.String(), value)
+	_, _ = fmt.Fprintf(f, format.String(), value)
 }

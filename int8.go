@@ -11,9 +11,10 @@ var (
 	_            fmt.Formatter          = (*Int8)(nil)
 	_            json.Marshaler         = (*Int8)(nil)
 	_            encoding.TextMarshaler = (*Int8)(nil)
-	FormatInt8Fn                        = func(s Int8, f fmt.State, c rune) {} //nolint:gochecknoglobals // By design.
+	FormatInt8Fn                        = func(_ Int8, _ fmt.State, _ rune) {} //nolint:gochecknoglobals,godoclint // By design.
 )
 
+// Int8 is a sensitive int8 value.
 type Int8 int8
 
 func (s Int8) Format(f fmt.State, c rune) {

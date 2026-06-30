@@ -11,9 +11,10 @@ var (
 	_            fmt.Formatter          = (*Bool)(nil)
 	_            json.Marshaler         = (*Bool)(nil)
 	_            encoding.TextMarshaler = (*Bool)(nil)
-	FormatBoolFn                        = func(s Bool, f fmt.State, c rune) {} //nolint:gochecknoglobals // By design.
+	FormatBoolFn                        = func(_ Bool, _ fmt.State, _ rune) {} //nolint:gochecknoglobals,godoclint // By design.
 )
 
+// Bool is a sensitive bool value.
 type Bool bool
 
 func (s Bool) Format(f fmt.State, c rune) {

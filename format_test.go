@@ -9,6 +9,7 @@ import (
 	"github.com/powerman/sensitive"
 )
 
+//nolint:paralleltest // Modifies global FormatStringFn, so can't be parallel.
 func TestFormat(t *testing.T) {
 	oldFn := sensitive.FormatStringFn
 	defer func() {
@@ -29,7 +30,6 @@ func TestFormat(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.formatting, func(t *testing.T) {
 			assert := require.New(t)
 			want := fmt.Sprintf(tc.formatting, "value")

@@ -11,9 +11,10 @@ var (
 	_            fmt.Formatter          = (*Uint)(nil)
 	_            json.Marshaler         = (*Uint)(nil)
 	_            encoding.TextMarshaler = (*Uint)(nil)
-	FormatUintFn                        = func(s Uint, f fmt.State, c rune) {} //nolint:gochecknoglobals // By design.
+	FormatUintFn                        = func(_ Uint, _ fmt.State, _ rune) {} //nolint:gochecknoglobals,godoclint // By design.
 )
 
+// Uint is a sensitive uint value.
 type Uint uint
 
 func (s Uint) Format(f fmt.State, c rune) {

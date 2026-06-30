@@ -11,9 +11,10 @@ var (
 	_               fmt.Formatter          = (*Float64)(nil)
 	_               json.Marshaler         = (*Float64)(nil)
 	_               encoding.TextMarshaler = (*Float64)(nil)
-	FormatFloat64Fn                        = func(s Float64, f fmt.State, c rune) {} //nolint:gochecknoglobals // By design.
+	FormatFloat64Fn                        = func(_ Float64, _ fmt.State, _ rune) {} //nolint:gochecknoglobals,godoclint // By design.
 )
 
+// Float64 is a sensitive float64 value.
 type Float64 float64
 
 func (s Float64) Format(f fmt.State, c rune) {

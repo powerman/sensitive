@@ -13,7 +13,7 @@ import (
 
 func ExampleRedact() {
 	var (
-		vBool    sensitive.Bool    = true //nolint:stylecheck // False positive.
+		vBool    sensitive.Bool    = true // False positive.
 		vFloat32 sensitive.Float32 = 4.2
 		vFloat64 sensitive.Float64 = 42.42
 		vInt8    sensitive.Int8    = -42
@@ -29,13 +29,13 @@ func ExampleRedact() {
 		vString  sensitive.String  = "secret"
 		vBytes   sensitive.Bytes   = []byte("secret")
 		vDecimal                   = sensitive.Decimal(decimal.NewFromFloat(42.42))
-		vs                         = []interface{}{
+		vs                         = []any{
 			vBool, vFloat32, vFloat64,
 			vInt8, vInt16, vInt32, vInt64, vInt,
 			vUint8, vUint16, vUint32, vUint64, vUint,
 			vString, vBytes, vDecimal,
 		}
-		imap = map[interface{}]interface{}{
+		imap = map[any]any{
 			vBool:    vBool,
 			vFloat32: vFloat32,
 			vFloat64: vFloat64,
@@ -53,7 +53,7 @@ func ExampleRedact() {
 			// vBytes:   vBytes,
 			vDecimal: vDecimal,
 		}
-		vmap = map[string]interface{}{
+		vmap = map[string]any{
 			"Bool":    vBool,
 			"Float32": vFloat32,
 			"Float64": vFloat64,
@@ -145,7 +145,7 @@ func ExampleRedact() {
 
 	// Outputs to stderr, not intercepted by testing package:
 	// println: true +4.200000e+000 +4.242000e+001 -42 -4242 -424242 -42424242 -42424242 42 4242 424242 42424242 42424242 secret [6/6]0xc000216158
-	println("println:",
+	println("println:", //nolint:revive,forbidigo // Wants to test output of println.
 		vBool, vFloat32, vFloat64,
 		vInt8, vInt16, vInt32, vInt64, vInt,
 		vUint8, vUint16, vUint32, vUint64, vUint,
@@ -154,16 +154,16 @@ func ExampleRedact() {
 	)
 
 	output := func() {
-		fmt.Println(append(append([]interface{}{"fmt.Println(...):"}, vs...), "EOL")...)
+		fmt.Println(append(append([]any{"fmt.Println(...):"}, vs...), "EOL")...)
 		fmt.Printf("fmt.Printf: %t %e %E %c %b %o %x %d %c %b %O %X %U %q %X %v EOL\n", vs...)
 		fmt.Printf("fmt.Printf(vs): %v\n", vs)
 		fmt.Printf("fmt.Printf(imap): %v\n", imap)
 		fmt.Printf("fmt.Printf(vmap): %v\n", vmap)
 		fmt.Printf("fmt.Printf(exported): %v\n", exported)
 		fmt.Printf("fmt.Printf(unexported): %v\n", unexported)
-		json.NewEncoder(os.Stdout).Encode(vs)
-		json.NewEncoder(os.Stdout).Encode(vmap)
-		json.NewEncoder(os.Stdout).Encode(exported)
+		json.NewEncoder(os.Stdout).Encode(vs)       //nolint:errchkjson // Example test, output verified.
+		json.NewEncoder(os.Stdout).Encode(vmap)     //nolint:errchkjson // Example test, output verified.
+		json.NewEncoder(os.Stdout).Encode(exported) //nolint:errchkjson,musttag // Example test, output verified.
 		xml.NewEncoder(os.Stdout).Encode(vs)
 		fmt.Println()
 	}

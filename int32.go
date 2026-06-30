@@ -11,9 +11,10 @@ var (
 	_             fmt.Formatter          = (*Int32)(nil)
 	_             json.Marshaler         = (*Int32)(nil)
 	_             encoding.TextMarshaler = (*Int32)(nil)
-	FormatInt32Fn                        = func(s Int32, f fmt.State, c rune) {} //nolint:gochecknoglobals // By design.
+	FormatInt32Fn                        = func(_ Int32, _ fmt.State, _ rune) {} //nolint:gochecknoglobals,godoclint // By design.
 )
 
+// Int32 is a sensitive int32 value.
 type Int32 int32
 
 func (s Int32) Format(f fmt.State, c rune) {

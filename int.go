@@ -11,9 +11,10 @@ var (
 	_           fmt.Formatter          = (*Int)(nil)
 	_           json.Marshaler         = (*Int)(nil)
 	_           encoding.TextMarshaler = (*Int)(nil)
-	FormatIntFn                        = func(s Int, f fmt.State, c rune) {} //nolint:gochecknoglobals // By design.
+	FormatIntFn                        = func(_ Int, _ fmt.State, _ rune) {} //nolint:gochecknoglobals,godoclint // By design.
 )
 
+// Int is a sensitive int value.
 type Int int
 
 func (s Int) Format(f fmt.State, c rune) {

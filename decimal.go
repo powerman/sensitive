@@ -13,9 +13,10 @@ var (
 	_               fmt.Formatter          = (*Decimal)(nil)
 	_               json.Marshaler         = (*Decimal)(nil)
 	_               encoding.TextMarshaler = (*Decimal)(nil)
-	FormatDecimalFn                        = func(s Decimal, f fmt.State, c rune) {} //nolint:gochecknoglobals // By design.
+	FormatDecimalFn                        = func(_ Decimal, _ fmt.State, _ rune) {} //nolint:gochecknoglobals,godoclint // By design.
 )
 
+// Decimal is a sensitive decimal.Decimal value.
 type Decimal decimal.Decimal
 
 func (s Decimal) Format(f fmt.State, c rune) {

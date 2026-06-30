@@ -14,23 +14,28 @@ const (
 
 var _ fmt.State = (*State)(nil)
 
+// State implements [fmt.State].
 type State struct {
 	b []byte
 }
 
+// Write implements [fmt.State].
 func (s *State) Write(b []byte) (n int, err error) {
 	s.b = append(s.b, b...)
 	return len(b), nil
 }
 
-func (State) Width() (wid int, ok bool) {
+// Width implements [fmt.State].
+func (*State) Width() (wid int, ok bool) {
 	return 0, false
 }
 
-func (State) Precision() (prec int, ok bool) {
+// Precision implements [fmt.State].
+func (*State) Precision() (prec int, ok bool) {
 	return 0, false
 }
 
-func (State) Flag(_ int) bool {
+// Flag implements [fmt.State].
+func (*State) Flag(_ int) bool {
 	return false
 }

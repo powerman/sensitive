@@ -11,9 +11,10 @@ var (
 	_              fmt.Formatter          = (*Uint64)(nil)
 	_              json.Marshaler         = (*Uint64)(nil)
 	_              encoding.TextMarshaler = (*Uint64)(nil)
-	FormatUint64Fn                        = func(s Uint64, f fmt.State, c rune) {} //nolint:gochecknoglobals // By design.
+	FormatUint64Fn                        = func(_ Uint64, _ fmt.State, _ rune) {} //nolint:gochecknoglobals,godoclint // By design.
 )
 
+// Uint64 is a sensitive uint64 value.
 type Uint64 uint64
 
 func (s Uint64) Format(f fmt.State, c rune) {

@@ -11,9 +11,10 @@ var (
 	_              fmt.Formatter          = (*Uint16)(nil)
 	_              json.Marshaler         = (*Uint16)(nil)
 	_              encoding.TextMarshaler = (*Uint16)(nil)
-	FormatUint16Fn                        = func(s Uint16, f fmt.State, c rune) {} //nolint:gochecknoglobals // By design.
+	FormatUint16Fn                        = func(_ Uint16, _ fmt.State, _ rune) {} //nolint:gochecknoglobals,godoclint // By design.
 )
 
+// Uint16 is a sensitive uint16 value.
 type Uint16 uint16
 
 func (s Uint16) Format(f fmt.State, c rune) {

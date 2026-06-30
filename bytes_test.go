@@ -20,7 +20,7 @@ func TestBytesFormatting(t *testing.T) {
 		name       string
 		formatting string
 		expected   string
-		value      interface{}
+		value      any
 	}{
 		{
 			name:       "Bytes %s",
@@ -103,7 +103,6 @@ func TestBytesFormatting(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			result := fmt.Sprintf(tc.formatting, tc.value)
@@ -127,6 +126,7 @@ func TestBytesJSON(t *testing.T) {
 	assert.Equal("null", string(b))
 }
 
+//nolint:paralleltest // Modifies global FormatBytesFn, so can't be parallel.
 func TestBytesCustomFormatFn(t *testing.T) {
 	assert := require.New(t)
 
@@ -134,7 +134,7 @@ func TestBytesCustomFormatFn(t *testing.T) {
 	defer func() {
 		sensitive.FormatBytesFn = oldFn
 	}()
-	sensitive.FormatBytesFn = func(s sensitive.Bytes, f fmt.State, c rune) {
+	sensitive.FormatBytesFn = func(_ sensitive.Bytes, f fmt.State, _ rune) {
 		_, _ = f.Write([]byte("blah"))
 	}
 
@@ -146,28 +146,28 @@ func TestBytesCustomFormatFn(t *testing.T) {
 
 func BenchmarkBytes_Format(b *testing.B) {
 	value := sensitive.Bytes("value")
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		_ = fmt.Sprintf("%s", value)
 	}
 }
 
 func BenchmarkBytes_FormatNative(b *testing.B) {
 	value := "value"
-	for i := 0; i < b.N; i++ {
-		_ = fmt.Sprintf("%s", value) //nolint:gosimple // Benchmark.
+	for range b.N {
+		_ = value // Benchmark.
 	}
 }
 
 func BenchmarkBytesJSON(b *testing.B) {
 	value := sensitive.Bytes("value")
-	for i := 0; i < b.N; i++ {
-		_, _ = json.Marshal(value)
+	for range b.N {
+		_, _ = json.Marshal(value) //nolint:errchkjson // Benchmark, value is discarded.
 	}
 }
 
 func BenchmarkBytes_JSONNative(b *testing.B) {
 	value := "value"
-	for i := 0; i < b.N; i++ {
+	for range b.N {
 		_, _ = json.Marshal(value)
 	}
 }

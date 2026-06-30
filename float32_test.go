@@ -20,7 +20,7 @@ func TestFloat32Formatting(t *testing.T) {
 		name       string
 		formatting string
 		expected   string
-		value      interface{}
+		value      any
 	}{
 		{
 			name:       "Float32 %s",
@@ -103,7 +103,6 @@ func TestFloat32Formatting(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			result := fmt.Sprintf(tc.formatting, tc.value)
@@ -120,7 +119,7 @@ func TestFloat32_MarshalText(t *testing.T) {
 
 	b, err := value.MarshalText()
 	assert.NoError(err)
-	assert.Equal("", string(b))
+	assert.Empty(string(b))
 }
 
 func TestFloat32JSON(t *testing.T) {

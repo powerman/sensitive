@@ -20,7 +20,7 @@ func TestBoolFormatting(t *testing.T) {
 		name       string
 		formatting string
 		expected   string
-		value      interface{}
+		value      any
 	}{
 		{
 			name:       "Bool %s",
@@ -103,7 +103,6 @@ func TestBoolFormatting(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			result := fmt.Sprintf(tc.formatting, tc.value)
@@ -127,6 +126,7 @@ func TestBoolJSON(t *testing.T) {
 	assert.Equal("null", string(b))
 }
 
+//nolint:paralleltest // Modifies global FormatBoolFn, so can't be parallel.
 func TestBoolCustomFormatFn(t *testing.T) {
 	assert := require.New(t)
 
@@ -134,7 +134,7 @@ func TestBoolCustomFormatFn(t *testing.T) {
 	defer func() {
 		sensitive.FormatBoolFn = oldFn
 	}()
-	sensitive.FormatBoolFn = func(s sensitive.Bool, f fmt.State, c rune) {
+	sensitive.FormatBoolFn = func(_ sensitive.Bool, f fmt.State, _ rune) {
 		_, _ = f.Write([]byte("blah"))
 	}
 
