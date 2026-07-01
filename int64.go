@@ -14,7 +14,7 @@ var (
 	FormatInt64Fn                        = func(_ Int64, _ fmt.State, _ rune) {} //nolint:gochecknoglobals,godoclint // By design.
 )
 
-// Int64 is a sensitive int64 value.
+// Deprecated: use Handle or Ref instead.
 type Int64 int64
 
 // ExposeSecret returns the secret value as an int64.

@@ -14,7 +14,7 @@ var (
 	FormatIntFn                        = func(_ Int, _ fmt.State, _ rune) {} //nolint:gochecknoglobals,godoclint // By design.
 )
 
-// Int is a sensitive int value.
+// Deprecated: use Handle or Ref instead.
 type Int int
 
 // ExposeSecret returns the secret value as an int.

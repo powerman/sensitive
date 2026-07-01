@@ -16,7 +16,7 @@ var (
 	FormatDecimalFn                        = func(_ Decimal, _ fmt.State, _ rune) {} //nolint:gochecknoglobals,godoclint // By design.
 )
 
-// Decimal is a sensitive decimal.Decimal value.
+// Deprecated: use Ref instead.
 type Decimal decimal.Decimal
 
 // ExposeSecret returns the secret value as a decimal.Decimal.

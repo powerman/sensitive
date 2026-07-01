@@ -14,7 +14,7 @@ var (
 	FormatInt32Fn                        = func(_ Int32, _ fmt.State, _ rune) {} //nolint:gochecknoglobals,godoclint // By design.
 )
 
-// Int32 is a sensitive int32 value.
+// Deprecated: use Handle or Ref instead.
 type Int32 int32
 
 // ExposeSecret returns the secret value as an int32.

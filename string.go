@@ -13,6 +13,7 @@ var (
 	FormatStringFn                        = func(_ String, _ fmt.State, _ rune) {} //nolint:gochecknoglobals,godoclint // By design.
 )
 
+// Deprecated: use Handle or Ref instead.
 type String string
 
 // ExposeSecret returns the secret value as a string.

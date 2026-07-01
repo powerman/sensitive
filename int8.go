@@ -14,7 +14,7 @@ var (
 	FormatInt8Fn                        = func(_ Int8, _ fmt.State, _ rune) {} //nolint:gochecknoglobals,godoclint // By design.
 )
 
-// Int8 is a sensitive int8 value.
+// Deprecated: use Handle or Ref instead.
 type Int8 int8
 
 // ExposeSecret returns the secret value as an int8.

@@ -14,7 +14,7 @@ var (
 	FormatUint32Fn                        = func(_ Uint32, _ fmt.State, _ rune) {} //nolint:gochecknoglobals,godoclint // By design.
 )
 
-// Uint32 is a sensitive uint32 value.
+// Deprecated: use Handle or Ref instead.
 type Uint32 uint32
 
 // ExposeSecret returns the secret value as a uint32.

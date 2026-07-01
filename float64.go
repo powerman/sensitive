@@ -14,7 +14,7 @@ var (
 	FormatFloat64Fn                        = func(_ Float64, _ fmt.State, _ rune) {} //nolint:gochecknoglobals,godoclint // By design.
 )
 
-// Float64 is a sensitive float64 value.
+// Deprecated: use Handle or Ref instead.
 type Float64 float64
 
 // ExposeSecret returns the secret value as a float64.

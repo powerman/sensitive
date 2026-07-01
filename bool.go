@@ -14,7 +14,7 @@ var (
 	FormatBoolFn                        = func(_ Bool, _ fmt.State, _ rune) {} //nolint:gochecknoglobals,godoclint // By design.
 )
 
-// Bool is a sensitive bool value.
+// Deprecated: use Handle or Ref instead.
 type Bool bool
 
 // ExposeSecret returns the secret value as a bool.

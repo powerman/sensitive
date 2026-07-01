@@ -2,6 +2,10 @@
 // fmt, encoding/json, and similar reflection-based output, and from silent
 // bugs caused by comparing secrets that hold indirections.
 //
+// Use only [Handle], [Ref], and the [Secret] interface for new code.
+// All other types in this package are deprecated legacy types kept for
+// compatibility — see the "Why not the plain named types" section.
+//
 // # Choosing a type
 //
 // Every supported element type falls into one of two behavioral categories,
@@ -90,11 +94,12 @@
 //
 // # Why not the plain named types (String, Int, Bytes, …)
 //
-// The legacy [String]/[Int]/[Bytes]/… types redact only through their
-// [fmt.Formatter] methods, which fmt skips the moment it descends through an
-// unexported struct field — the raw value then leaks. They are kept for
-// compatibility, but prefer [Ref] or [Handle] for new code: their
-// protection is structural and does not depend on field visibility or on
+// The [String]/[Int]/[Bytes]/… types are deprecated legacy types kept only for
+// compatibility. They redact through their [fmt.Formatter] methods, which fmt
+// skips the moment it descends through an unexported struct field — the raw
+// value then leaks through JSON/text encoding. Do not use them in new code.
+// Use [Handle] or [Ref] instead (plus the [Secret] interface where needed):
+// their protection is structural and does not depend on field visibility or on
 // running a linter.
 //
 // # Why typed redacted values

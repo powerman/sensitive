@@ -14,7 +14,7 @@ var (
 	FormatInt16Fn                        = func(_ Int16, _ fmt.State, _ rune) {} //nolint:gochecknoglobals,godoclint // By design.
 )
 
-// Int16 is a sensitive int16 value.
+// Deprecated: use Handle or Ref instead.
 type Int16 int16
 
 // ExposeSecret returns the secret value as an int16.

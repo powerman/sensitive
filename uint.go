@@ -14,7 +14,7 @@ var (
 	FormatUintFn                        = func(_ Uint, _ fmt.State, _ rune) {} //nolint:gochecknoglobals,godoclint // By design.
 )
 
-// Uint is a sensitive uint value.
+// Deprecated: use Handle or Ref instead.
 type Uint uint
 
 // ExposeSecret returns the secret value as a uint.

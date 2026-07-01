@@ -14,7 +14,7 @@ var (
 	FormatFloat32Fn                        = func(_ Float32, _ fmt.State, _ rune) {} //nolint:gochecknoglobals,godoclint // By design.
 )
 
-// Float32 is a sensitive float32 value.
+// Deprecated: use Handle or Ref instead.
 type Float32 float32
 
 // ExposeSecret returns the secret value as a float32.

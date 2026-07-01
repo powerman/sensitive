@@ -13,7 +13,7 @@ var (
 	FormatBytesFn                        = func(_ Bytes, _ fmt.State, _ rune) {} //nolint:gochecknoglobals,godoclint // By design.
 )
 
-// Bytes is a sensitive bytes value.
+// Deprecated: use Ref instead.
 type Bytes []byte
 
 // ExposeSecret returns the secret value as a byte slice.

@@ -14,7 +14,7 @@ var (
 	FormatUint16Fn                        = func(_ Uint16, _ fmt.State, _ rune) {} //nolint:gochecknoglobals,godoclint // By design.
 )
 
-// Uint16 is a sensitive uint16 value.
+// Deprecated: use Handle or Ref instead.
 type Uint16 uint16
 
 // ExposeSecret returns the secret value as a uint16.
