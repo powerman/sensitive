@@ -50,6 +50,44 @@
 // non-comparable, so == on it is also rejected — which is what you want for
 // a struct holding secrets.
 //
+// # Why these storage shapes
+//
+// Both boxes protect a secret by storing it behind a shape that fmt
+// reflection can only print as an address, never as the value.
+// The shapes are chosen so each box also gives the right == behavior:
+//
+//   - [Ref] stores T behind **T. A single *T would still allow ==
+//     (pointer identity, silently wrong for a value); **T makes == a
+//     compile-time error, while [reflect.DeepEqual] still reads through
+//     both levels and compares by value — so tests comparing whole
+//     structs keep working. This is the right shape for secrets whose
+//     direct == is unsafe (passwords, hashes are compared constant-time,
+//     never with ==) and for types whose == does not compare by value at
+//     all ([]byte, decimals, composites).
+//
+//   - [Handle] stores T behind [unique.Handle], which canonicalizes equal
+//     values to one pointer, giving value == and a valid map key. That is
+//     the only safe way to give a secret a value ==:
+//     a bare *any is no better than **T (still pointer identity, no
+//     canonicalization); chan/func fields would break [reflect.DeepEqual]
+//     too; [unsafe.Pointer] is too costly and unsafe to rely on; no other
+//     safe variant exists. For the non-compound types [Comparable] admits
+//     today (primitives and named types over them) a single
+//     [unique.Handle][T] is enough — fmt prints its *T as an address. A
+//     compound T (e.g. a struct-based type like decimal.Decimal but WITHOUT
+//     an internal pointer, with honest value ==) would need one extra
+//     indirection (nesting [unique.Handle] one level deeper) — see the
+//     Comparable invariant in handle.go. That nesting is deferred: it is
+//     overkill today, and there is a high probability no compound type is
+//     ever added to Comparable.
+//
+// "Compound types we might add to Comparable" never means slice/map
+// types. They cannot be a [unique.Handle][T] element ([unique.Handle]
+// requires Go's standard comparable constraint, which excludes slices
+// and maps), and [Handle] differs from [Ref] only by supporting == —
+// which slices and maps never had in Go, and which this package does not
+// set out to add.
+//
 // # Why not the plain named types (String, Int, Bytes, …)
 //
 // The legacy [String]/[Int]/[Bytes]/… types redact only through their

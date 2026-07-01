@@ -16,13 +16,19 @@ type Comparable interface {
 	// [Handle] stores T behind a single *T (via [unique.Handle]);
 	// fmt prints that pointer as an address for primitive T,
 	// but dereferences it and prints the contents for a struct/slice/array/map T
-	// (e.g. under %s/%q - because it triggers "badVerb").
-	// Adding a compound-kind T here would let the secret leak through an unexported field.
-	// If Comparable is ever extended to such a type,
-	// [Handle] must store that T behind an extra indirection
-	// (e.g. by nesting [unique.Handle] one level deeper)
-	// so the pointer fmt reaches never points directly at compound data;
-	// the lint-sensitive safety net is expected to flag the leak otherwise.
+	// (e.g. under %s/%q — because it triggers "badVerb").
+	// Adding a compound-kind T here would let the secret leak through an
+	// unexported field.
+	// If Comparable is ever extended to such a type, it would be ONE concrete
+	// type (not an abstract widening) — e.g. a struct-based type like
+	// decimal.Decimal but WITHOUT an internal pointer, with honest value-==.
+	// Then [Handle] must store that T behind an extra indirection
+	// (nesting [unique.Handle] one level deeper: unique.Handle[unique.Handle[T]])
+	// so the pointer fmt reaches never points directly at compound data
+	// (the lint-sensitive safety net is expected to flag the leak otherwise).
+	// That nesting is deferred — it is overkill today, and there is a high
+	// probability no compound type is ever added to Comparable.
+	// See doc.go ("Why these storage shapes") for the full rationale.
 	~string | ~bool |
 		~int | ~int8 | ~int16 | ~int32 | ~int64 |
 		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 |
