@@ -29,7 +29,7 @@ func (s Decimal) Format(f fmt.State, c rune) {
 }
 
 func (s Decimal) MarshalJSON() ([]byte, error) {
-	var ss State
+	var ss state
 	s.Format(&ss, 'v')
 	if len(ss.b) == 0 {
 		return json.Marshal(nil)
@@ -42,7 +42,7 @@ func (s Decimal) MarshalJSON() ([]byte, error) {
 }
 
 func (s Decimal) MarshalText() (text []byte, err error) {
-	var ss State
+	var ss state
 	s.Format(&ss, 'v')
 	return ss.b, nil
 }

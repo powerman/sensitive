@@ -25,13 +25,13 @@ func (s String) Format(f fmt.State, c rune) {
 }
 
 func (s String) MarshalJSON() ([]byte, error) {
-	var ss State
+	var ss state
 	s.Format(&ss, 'v')
 	return json.Marshal(string(ss.b))
 }
 
 func (s String) MarshalText() (text []byte, err error) {
-	var ss State
+	var ss state
 	s.Format(&ss, 'v')
 	return ss.b, nil
 }

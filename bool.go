@@ -27,7 +27,7 @@ func (s Bool) Format(f fmt.State, c rune) {
 }
 
 func (s Bool) MarshalJSON() ([]byte, error) {
-	var ss State
+	var ss state
 	s.Format(&ss, 'v')
 	if len(ss.b) == 0 {
 		return json.Marshal(nil)
@@ -40,7 +40,7 @@ func (s Bool) MarshalJSON() ([]byte, error) {
 }
 
 func (s Bool) MarshalText() (text []byte, err error) {
-	var ss State
+	var ss state
 	s.Format(&ss, 'v')
 	return ss.b, nil
 }

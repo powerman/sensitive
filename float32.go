@@ -27,7 +27,7 @@ func (s Float32) Format(f fmt.State, c rune) {
 }
 
 func (s Float32) MarshalJSON() ([]byte, error) {
-	var ss State
+	var ss state
 	s.Format(&ss, 'v')
 	if len(ss.b) == 0 {
 		return json.Marshal(nil)
@@ -40,7 +40,7 @@ func (s Float32) MarshalJSON() ([]byte, error) {
 }
 
 func (s Float32) MarshalText() (text []byte, err error) {
-	var ss State
+	var ss state
 	s.Format(&ss, 'v')
 	return ss.b, nil
 }

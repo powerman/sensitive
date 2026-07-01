@@ -10,30 +10,30 @@ const (
 	bits64 = 64
 )
 
-var _ fmt.State = (*State)(nil)
+var _ fmt.State = (*state)(nil)
 
-// State implements [fmt.State].
-type State struct {
+// state implements [fmt.state].
+type state struct {
 	b []byte
 }
 
 // Write implements [fmt.State].
-func (s *State) Write(b []byte) (n int, err error) {
+func (s *state) Write(b []byte) (n int, err error) {
 	s.b = append(s.b, b...)
 	return len(b), nil
 }
 
 // Width implements [fmt.State].
-func (*State) Width() (wid int, ok bool) {
+func (*state) Width() (wid int, ok bool) {
 	return 0, false
 }
 
 // Precision implements [fmt.State].
-func (*State) Precision() (prec int, ok bool) {
+func (*state) Precision() (prec int, ok bool) {
 	return 0, false
 }
 
 // Flag implements [fmt.State].
-func (*State) Flag(_ int) bool {
+func (*state) Flag(_ int) bool {
 	return false
 }
