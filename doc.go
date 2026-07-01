@@ -97,6 +97,28 @@
 // protection is structural and does not depend on field visibility or on
 // running a linter.
 //
+// # Why typed redacted values
+//
+// When you call [Redact], each sensitive type is replaced with a visible but
+// safe value that preserves the original's type:
+//
+//	Bool    → FALSE               (still a bool in JSON)
+//	Float*  → NaN                 (still a number in JSON)
+//	Int*    → math.MinInt*        (still a number in JSON)
+//	Uint*   → math.MaxUint*       (still a number in JSON)
+//	String  → "REDACTED"          (still a string in JSON)
+//	Bytes   → 0xDEFACE            (still a byte slice)
+//	Decimal → NaN                 (still a number in JSON)
+//
+// Using type-specific sentinels means that if a secret accidentally ends up in
+// JSON output, the JSON structure stays valid and parseable — a numeric field
+// remains a number, a boolean field remains a boolean. Text log parsers that
+// expect specific field types (such as structured loggers emitting typed
+// values) likewise keep working instead of failing on a type mismatch.
+// This is especially important in pre-production or debugging configurations
+// where [Redact] is used: the shape of the data must be preserved even though
+// the actual secret value is hidden.
+//
 // # Custom named secret types
 //
 // For nominal type safety, wrap a box — no hand-written methods are needed,
