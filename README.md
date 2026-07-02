@@ -54,14 +54,7 @@ func main() {
 
 ## How protection works
 
-Redaction has two independent layers, and only one of them is a real defense.
-
-- **Structural protection — the real defense.**
-  `Ref[T]` stores its value behind a double pointer (`**T`);
-  `Handle[T]` stores it behind a single `*T` (via the runtime's `unique.Handle`).
-  `fmt` reflection never dereferences these, so it can only ever print a pointer address,
-  never the secret — even when the value sits behind an unexported field or a pointer,
-  where the interface methods below are silently skipped.
+Redaction has three independent layers.
 
 - **Interface methods — cosmetic only.**
   `Ref`/`Handle` also implement `fmt.Formatter`, `json.Marshaler`, and `encoding.TextMarshaler`.
@@ -70,8 +63,26 @@ Redaction has two independent layers, and only one of them is a real defense.
   a numeric secret stays a number, a bool stays a bool. That keeps JSON output valid
   and text-log parsers working instead of emitting a type they cannot parse.
 
-The point: the pretty `REDACTED` output is a nicety; the guarantee that the raw
-secret never reaches your logs comes from the structural layer alone.
+- **Structural protection — the real defense.**
+  `Ref[T]` stores its value behind a double pointer (`**T`);
+  `Handle[T]` stores it behind a single `*T` (via the runtime's `unique.Handle`).
+  `fmt` reflection never dereferences these, so it can only ever print a pointer address,
+  never the secret — even when the value sits behind an unexported field or a pointer,
+  where the interface methods below are silently skipped.
+
+- **In-memory encryption — last-ditch defense for string and `[]byte`.**
+  `string` and `[]byte` secrets are encrypted with a random per-process AES-256 key
+  before being stored in the pointer cell.
+  Anyone who reaches the cell via deep reflection
+  (e.g. `go-spew`, a custom serializer that follows `**T`) finds ciphertext,
+  not the original value.
+  This is not a memory-disclosure defense: the key lives in ordinary Go memory.
+  It raises the bar against accidental output from tools that bypass the structural layer.
+
+The primary guarantee that the secret never reaches your logs comes from the structural
+layer alone.
+The interface layer adds readable output in normal use;
+the encryption layer protects the stored bytes against deep-reflection tools.
 When the interface layer is bypassed, structural protection still holds:
 
 ```go

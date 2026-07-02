@@ -73,7 +73,9 @@ type Handle[T Comparable] struct{ h unique.Handle[T] }
 // so == and map lookups work by value.
 // Making a Handle inserts v into a process-global weak intern table;
 // the entry is reclaimed when no Handle refers to it.
-func Make[T Comparable](v T) Handle[T] { return Handle[T]{h: unique.Make(v)} }
+// For string kinds (including named types), the interned value is encrypted
+// with a random per-process key so a deep-reflection dump reveals only ciphertext.
+func Make[T Comparable](v T) Handle[T] { return Handle[T]{h: unique.Make(encryptT(v))} }
 
 // ExposeSecret returns the stored value, or the zero T for the zero-value Handle.
 func (h Handle[T]) ExposeSecret() T {
@@ -83,7 +85,7 @@ func (h Handle[T]) ExposeSecret() T {
 		var z T
 		return z
 	}
-	return h.h.Value()
+	return decryptT(h.h.Value())
 }
 
 // Format implements [fmt.Formatter].

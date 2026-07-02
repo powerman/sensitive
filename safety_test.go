@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/powerman/check"
 	"github.com/shopspring/decimal"
 
@@ -482,6 +483,53 @@ func TestSafety_postIngestDecimalNoLeak(tt *testing.T) {
 				"ingested Ref[decimal] must not leak via json.Marshal")
 		})
 	}
+}
+
+// TestSafety_deepReflectionNoLeak verifies that a deep-reflection dump produced
+// by go-spew (which follows pointer chains and accesses unexported fields via
+// unsafe, bypassing fmt.Formatter) does not contain the plaintext secret.
+// This tests the in-memory encryption layer: the stored value is ciphertext,
+// so even tools that bypass Format cannot extract the secret.
+func TestSafety_deepReflectionNoLeak(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
+
+	// Use a long, distinctive secret to make a false-positive collision
+	// with a random AES ciphertext astronomically unlikely.
+	const secret = "deep-reflect-safety-secret-2024-sensitive"
+
+	t.Run("Ref_string", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+
+		r := sensitive.New(secret)
+		dump := spew.Sdump(r)
+		t.NotContains(dump, secret,
+			"go-spew deep dump must not reveal plaintext from Ref[string]")
+		t.Equal(r.ExposeSecret(), secret,
+			"ExposeSecret must still return the plaintext")
+	})
+
+	t.Run("Handle_string", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+
+		h := sensitive.Make(secret)
+		dump := spew.Sdump(h)
+		t.NotContains(dump, secret,
+			"go-spew deep dump must not reveal plaintext from Handle[string]")
+		t.Equal(h.ExposeSecret(), secret,
+			"ExposeSecret must still return the plaintext")
+	})
+
+	t.Run("Ref_int_unchanged", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+
+		// Non-string/[]byte types are not encrypted; behavior must be unchanged.
+		r := sensitive.New(12345)
+		t.Equal(r.ExposeSecret(), 12345, "int Ref must round-trip without encryption")
+	})
 }
 
 // TestSafety_postIngestUnexportedNoLeak verifies that a secret ingested via Scan

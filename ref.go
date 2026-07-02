@@ -50,7 +50,10 @@ type Ref[T any] struct {
 }
 
 // New returns a [Ref] holding a copy of v.
+// For string and []byte kinds (including named types), the value is encrypted
+// with a random per-process key so a deep-reflection dump reveals only ciphertext.
 func New[T any](v T) Ref[T] {
+	v = encryptT(v)
 	p := &v
 	return Ref[T]{pp: &p}
 }
@@ -62,7 +65,7 @@ func (r Ref[T]) ExposeSecret() T {
 		var z T
 		return z
 	}
-	return **r.pp
+	return decryptT(**r.pp)
 }
 
 // Format implements [fmt.Formatter].
