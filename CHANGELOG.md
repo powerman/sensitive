@@ -5,13 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-07-02
+
+### 🚀 Added
+
+- Add Handle[T] and Make[T] for comparable canonicalized secrets by @powerman in [26328a5]
+
+### 🔔 Changed
+
+- **⚠️ BREAKING!** Rename Boxed to Ref and make it non-comparable by @powerman in [0d4a2f4]
+
+### 📚 Documentation
+
+- Improve by @powerman in [beaa2a9]
+- Explain why typed redacted values are used per type by @powerman in [572e177]
+- Mark legacy plain named types as deprecated by @powerman in [e8866d2]
+- Refine and restructure package documentation by @powerman in [9aefe6a]
+- Rewrite README, update package doc and examples by @powerman in [f402ccd]
+
+[0.2.0]: https://github.com/powerman/sensitive/compare/v0.0.7..v0.2.0
+[0d4a2f4]: https://github.com/powerman/sensitive/commit/0d4a2f4ee334639fa9fe92b1ea79ca9b79522919
+[26328a5]: https://github.com/powerman/sensitive/commit/26328a505ae993fd7f8f9ec1e06066d744ea267d
+[beaa2a9]: https://github.com/powerman/sensitive/commit/beaa2a985675942193dca61571bb31a63b4a2a9c
+[572e177]: https://github.com/powerman/sensitive/commit/572e177b0f35f6a146237da4493ea8b83f17ac90
+[e8866d2]: https://github.com/powerman/sensitive/commit/e8866d2399fd44bf1e49b20c976d9178563cb7e8
+[9aefe6a]: https://github.com/powerman/sensitive/commit/9aefe6a2c31b17bf535b7ef0967e3087581f4fdc
+[f402ccd]: https://github.com/powerman/sensitive/commit/f402ccd9adf78bdddce0ed0b6c0227b702e62121
+
 ## [0.0.7] - 2021-10-23
 
 ### 📚 Documentation
 
 - Update by @powerman in [#6]
 
-[0.0.7]: https://github.com/powerman/sensitive/compare/v0.0.6..v0.0.7
+[0.0.7]: https://github.com/powerman/sensitive/compare/%40%7B10year%7D..v0.0.7
 [#6]: https://github.com/powerman/sensitive/pull/6
 
 ## [0.0.6] - 2021-04-19
