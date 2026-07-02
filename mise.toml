@@ -81,7 +81,7 @@ run = 'prettier --check "**/*.md"'
 
 [tasks.'lint:go']
 description = 'Lint Go files'
-run = 'golangci-lint run && lint-sensitive -sensitive.{skip-tests,require-{format,marshal-text}} ./...'
+run = 'golangci-lint run && lint-sensitive -sensitive.skip-tests -sensitive.require-format -sensitive.require-marshal-text ./...'
 
 [tasks.'lint:go-compile-windows']
 description = 'Check Go test compiles on Windows'
