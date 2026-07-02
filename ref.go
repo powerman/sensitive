@@ -8,42 +8,39 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-// Secret is an interface implemented
-// by both plain sensitive types and Ref[T] and Handle[T],
-// allowing them to be used interchangeably.
-//
-//nolint:iface // This is a public API for users of this package.
-type Secret[T any] interface {
-	ExposeSecret() T
-}
-
 var (
 	_ fmt.Formatter          = (*Ref[any])(nil)
 	_ json.Marshaler         = (*Ref[any])(nil)
 	_ encoding.TextMarshaler = (*Ref[any])(nil)
 )
 
-// Ref holds a secret value that fmt reflection cannot reach, and behaves
-// like []byte for equality: == is a compile-time error, so an accidental
-// comparison fails loudly instead of silently returning false.
+// Ref holds a secret value that fmt reflection cannot reach,
+// and behaves like []byte for equality: == is a compile-time error,
+// so an accidental comparison fails loudly instead of silently returning false.
 //
-// Use Ref in two cases (see the package doc for the full rule):
-//   - the element type's == does not compare by value: []byte, decimals,
-//     composite structs. These cannot be a [Handle] element, so they belong
-//     here by construction.
+// Use Ref in two cases:
+//   - the element type's == does not compare by value: []byte, [decimal.Decimal],
+//     composite structs.
+//     These cannot be a [Handle] element, so they belong here by construction.
 //   - the element type's == DOES work by value, but using it is harmful:
-//     passwords and hashes are compared constant-time (against another
-//     hash), never with ==, so deny == by using Ref[string].
+//     passwords and hashes are compared constant-time (against another hash),
+//     never with ==, so deny == by using Ref[string].
 //
 // The zero value is safe: [Ref.ExposeSecret] returns the zero T.
 //
-// == on a Ref, or on any struct containing a Ref field, is a compile-time
-// error. Compare values explicitly when needed — [bytes.Equal] for []byte,
-// decimal.Decimal.Equal for decimals, a constant-time compare for hashes —
-// or compare whole structs in tests with [reflect.DeepEqual], which reads
-// through Ref and compares by value.
+// == on a Ref, or on any struct containing a Ref field, is a compile-time error.
+// Compare values explicitly when needed — [bytes.Equal] for []byte,
+// [decimal.Decimal.Equal] for decimals, a constant-time compare for hashes —
+// or compare whole structs in tests with [reflect.DeepEqual],
+// which reads through Ref and compares by value.
 type Ref[T any] struct {
-	_  [0]func()
+	// Disable ==.
+	_ [0]func()
+	// While there are other structurally-protected types, the **T is the best:
+	// - *any uses extra int storage for the type descriptor;
+	// - chan T and func() T breaks [reflect.DeepEqual];
+	// - unsafe.Pointer is too complicated (where to keep a secret?) and unsafe to rely on.
+	// - *<non-compound> won't work because Ref must also support compound types.
 	pp **T
 }
 

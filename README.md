@@ -15,13 +15,13 @@
 Package sensitive provides base types who's values should never be seen by
 the human eye, but still used for configuration.
 
-Sometimes you have a variable, such as a password,
+Sometimes you have a variable, such as a password or an API token,
 passed into your program via arguments or ENV variables.
 Some of these variables are very sensitive
-and should not in any circumstance be loggged or sent via JSON,
-despite JSON's "-", which people may forget.
+and should not in any circumstance be logged or sent via JSON
+(despite JSON's "-", which people may forget).
 These variables, which are just typed primitive types,
-have their overridden `fmt.Formatter`, `encoding.MarshalText` & `json.Marshal` implementations.
+implements `fmt.Formatter`, `encoding.TestMarshaler` & `json.Marshaler`.
 
 As an added bonus using them as their base type eg. `String` => `string`, you
 have to explicitly cast the eg. `string(s)` This makes you think about what

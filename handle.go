@@ -9,26 +9,24 @@ import (
 
 // Comparable is the element-type constraint for [Handle]:
 // the primitive comparable types whose native == compares by value.
-// It excludes decimal.Decimal, []byte, and composite structs on purpose — see [Handle].
+// It excludes [decimal.Decimal], []byte, and composite structs on purpose — see [Handle].
 type Comparable interface {
-	// Maintainer invariant (not part of the public API contract):
-	// besides enabling value ==, this constraint is a fmt-safety invariant.
+	// Besides enabling value ==, this constraint is a fmt-safety invariant.
 	// [Handle] stores T behind a single *T (via [unique.Handle]);
 	// fmt prints that pointer as an address for primitive T,
 	// but dereferences it and prints the contents for a struct/slice/array/map T
 	// (e.g. under %s/%q — because it triggers "badVerb").
-	// Adding a compound-kind T here would let the secret leak through an
-	// unexported field.
-	// If Comparable is ever extended to such a type, it would be ONE concrete
-	// type (not an abstract widening) — e.g. a struct-based type like
-	// decimal.Decimal but WITHOUT an internal pointer, with honest value-==.
-	// Then [Handle] must store that T behind an extra indirection
+	// Adding a compound-kind T here would let the secret leak through an unexported field.
+	//
+	// If Comparable is ever extended to such a type, it would be list of concrete types
+	// (not an abstract widening) — e.g. a struct-based type like [decimal.Decimal]
+	// but WITHOUT an internal pointer, with honest value-==.
+	// Then [Handle] MUST be changed to store that T behind an extra indirection
 	// (nesting [unique.Handle] one level deeper: unique.Handle[unique.Handle[T]])
 	// so the pointer fmt reaches never points directly at compound data
 	// (the lint-sensitive safety net is expected to flag the leak otherwise).
-	// That nesting is deferred — it is overkill today, and there is a high
-	// probability no compound type is ever added to Comparable.
-	// See doc.go ("Why these storage shapes") for the full rationale.
+	// That nesting is deferred — it is overkill today, and there is a high probability
+	// no compound type is ever added to Comparable.
 	~string | ~bool |
 		~int | ~int8 | ~int16 | ~int32 | ~int64 |
 		~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 |
@@ -41,40 +39,41 @@ var (
 	_ encoding.TextMarshaler = Handle[string]{}
 )
 
-// Handle holds a secret value that behaves like string for equality: ==
-// compares by value and a Handle is a valid map key, while the value stays
-// unreachable by fmt reflection.
+// Handle holds a secret value that behaves like string for equality:
+// == compares by value and a Handle is a valid map key,
+// while the value stays unreachable by fmt reflection.
 //
-// Use Handle for value-comparable secrets where == is not harmful: bearer
-// tokens, session IDs, refresh tokens, API keys — anything you would
-// naturally hold as a string or number and might compare or index. Do NOT
-// use Handle for passwords or hashes even though they are strings: == on
-// them is an anti-pattern (compare hashes constant-time), so use [Ref].
+// Use Handle for value-comparable secrets where == is not harmful:
+// bearer tokens, session IDs, refresh tokens, API keys —
+// anything you would naturally hold as a string or number and might compare or index.
+// Do NOT use Handle for passwords or hashes even though they are strings:
+// == on them is an anti-pattern (compare hashes constant-time), so use [Ref].
 //
 // Equal values are canonicalized to a single pointer via the runtime's
-// unique-handle intern pool, so == and map lookups work by value. Making a
-// Handle inserts the value into a process-global intern table; the entry is
-// held weakly and is reclaimed when no Handle refers to it.
+// unique-handle intern pool, so == and map lookups work by value.
+// Making a Handle inserts the value into a process-global intern table;
+// the entry is held weakly and is reclaimed when no Handle refers to it.
 //
 // T must be one of the primitive comparable types listed in [Comparable]
 // (string, bool, integers, floats, and named types over them).
-// decimal.Decimal, []byte, and composite structs are rejected at compile
-// time because their native == compares pointer identity, not value — use
-// [Ref] for those.
+// [decimal.Decimal], []byte, and composite structs are rejected at compile time
+// because their native == compares pointer identity, not value — use [Ref] for those.
 //
 // The zero value is safe: [Handle.ExposeSecret] returns the zero T.
 type Handle[T Comparable] struct{ h unique.Handle[T] }
 
-// Make returns a [Handle] holding v. Equal values are canonicalized to a
-// single pointer via the runtime's unique-handle intern pool, so == and map
-// lookups work by value. Making a Handle inserts v into a process-global
-// weak intern table; the entry is reclaimed when no Handle refers to it.
+// Make returns a [Handle] holding v.
+// Equal values are canonicalized to a single pointer via
+// the runtime's unique-handle intern pool,
+// so == and map lookups work by value.
+// Making a Handle inserts v into a process-global weak intern table;
+// the entry is reclaimed when no Handle refers to it.
 func Make[T Comparable](v T) Handle[T] { return Handle[T]{h: unique.Make(v)} }
 
-// ExposeSecret returns the stored value, or the zero T for the zero-value
-// Handle. (A raw unique.Handle.Value panics on the zero value; Handle
-// guards against this so its zero value is safe, matching [Ref].)
+// ExposeSecret returns the stored value, or the zero T for the zero-value Handle.
 func (h Handle[T]) ExposeSecret() T {
+	// A raw [unique.Handle.Value] panics on the zero value;
+	// Handle guards against this so its zero value is safe, matching [Ref].
 	if h.h == (unique.Handle[T]{}) {
 		var z T
 		return z
