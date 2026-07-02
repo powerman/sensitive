@@ -14,6 +14,8 @@ prettier = 'latest'
 actionlint = 'latest'
 # Fast linters runner for Go.
 golangci-lint = 'latest'
+# Go linter to detect sensitive value leak via fmt reflection and builtin print/println.
+'github:powerman/lint-sensitive' = 'latest'
 
 #--- Test
 # 'go test' runner with output optimized for humans.
@@ -79,7 +81,7 @@ run = 'prettier --check "**/*.md"'
 
 [tasks.'lint:go']
 description = 'Lint Go files'
-run = 'golangci-lint run'
+run = 'golangci-lint run && lint-sensitive -sensitive.{skip-tests,require-{format,marshal-text}} ./...'
 
 [tasks.'lint:go-compile-windows']
 description = 'Check Go test compiles on Windows'
