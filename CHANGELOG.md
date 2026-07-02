@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-07-02
+
+### 🚀 Added
+
+- Add ingest-side serialization for Ref and Handle by @powerman in [01fdb0a]
+- Add in-memory encryption for string and []byte secrets by @powerman in [ef78ee2]
+
+### 📚 Documentation
+
+- Add comparison rows for rsjethani/secret and andrewbenton/go-secrets by @powerman in [d1cd9c3]
+- Rewrite comparison table in README by @powerman in [f2c7a24]
+
+[0.3.0]: https://github.com/powerman/sensitive/compare/v0.2.0..v0.3.0
+[d1cd9c3]: https://github.com/powerman/sensitive/commit/d1cd9c3515f6b5265f632aa2590a6b50412269a0
+[01fdb0a]: https://github.com/powerman/sensitive/commit/01fdb0abe2e05d35c76f4d8e9e836d74f16cd5fd
+[f2c7a24]: https://github.com/powerman/sensitive/commit/f2c7a24242516f02877356077d67f6750468d948
+[ef78ee2]: https://github.com/powerman/sensitive/commit/ef78ee2fe8e27ba9d39dbe5f1415274d39a470ed
+
 ## [0.2.0] - 2026-07-02
 
 ### 🚀 Added
