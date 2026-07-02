@@ -1,4 +1,4 @@
-# Go package with base types protected from the human eye
+# Package sensitive protects secret values from accidental exposure
 
 [![License MIT](https://img.shields.io/badge/license-MIT-royalblue.svg)](LICENSE)
 [![Go version](https://img.shields.io/github/go-mod/go-version/powerman/sensitive?color=blue)](https://go.dev/)
@@ -12,179 +12,202 @@
 ![macOS | amd64 arm64](https://img.shields.io/badge/macOS-amd64%20arm64-royalblue)
 ![Windows | amd64 arm64](https://img.shields.io/badge/Windows-amd64%20arm64-royalblue)
 
-Package sensitive provides base types who's values should never be seen by
-the human eye, but still used for configuration.
+Package `sensitive` wraps secret values — passwords, API tokens, keys —
+so they cannot be leaked through `fmt`, `encoding/json`,
+or any package that uses `encoding.TextMarshaler`,
+and so that accidental comparisons of secrets fail loudly.
 
-Sometimes you have a variable, such as a password or an API token,
-passed into your program via arguments or ENV variables.
-Some of these variables are very sensitive
-and should not in any circumstance be logged or sent via JSON
-(despite JSON's "-", which people may forget).
-These variables, which are just typed primitive types,
-implements `fmt.Formatter`, `encoding.TestMarshaler` & `json.Marshaler`.
+The two types to use are **`Ref[T]`** and **`Handle[T]`**.
+Both keep the secret behind pointer indirections that `fmt` reflection never follows,
+so the secret stays protected **regardless of how it is reached** —
+even through an unexported struct field or a pointer,
+where interface-based redaction silently gives up.
 
-As an added bonus using them as their base type eg. `String` => `string`, you
-have to explicitly cast the eg. `string(s)` This makes you think about what
-you're doing and why you casting it providing additional safety.
+> The legacy named types (`String`, `Int`, `Bytes`, …) are **deprecated** and
+> kept only for compatibility. They rely on interfaces alone and can leak — see
+> [Deprecated legacy types](#deprecated-legacy-types).
 
-Supported types:
-
-- `Bool`
-- `Bytes`
-- `Decimal` from <https://github.com/shopspring/decimal>
-- `Float32`
-- `Float64`
-- `Int`
-- `Int8`
-- `Int16`
-- `Int32`
-- `Int64`
-- `String` (the most useful)
-- `Uint`
-- `Uint8`
-- `Uint16`
-- `Uint32`
-- `Uint64`
-
-## Storing secrets in unexported fields
-
-`Bytes`/`String`/etc. redact via `fmt.Formatter`, but this only works
-when `fmt` can call `CanInterface() == true` on the value's reflect wrapper.
-The moment `fmt` descends through an **unexported struct field**,
-`reflect` sets an internal read-only flag (`flagRO`),
-`CanInterface()` returns false, and `fmt.Formatter` is skipped —
-the raw secret leaks into logs and error messages.
-
-### `Ref[T]` — non-comparable, for any type
-
-`Ref[T]` is a generic wrapper that stores its value
-behind **two** pointer indirections (`**T`), which `fmt` never fully follows.
-It behaves like `[]byte` for equality: `==` is a compile-time error,
-so an accidental comparison fails loudly instead of silently returning false.
-Use `Ref` when the element type is not value-comparable (`[]byte`, decimals,
-composites) or when value-`==` is harmful (passwords, hashes).
+## Quick start
 
 ```go
 type Config struct {
-	apiKey sensitive.Ref[string]    // safe — fmt cannot reach the value
-	dbPass sensitive.Ref[[]byte]    // safe, even for compound types
+    Password sensitive.Ref[string] // password: comparing with == is harmful → Ref
+    TenantID sensitive.Handle[int] // value-comparable, == is fine → Handle
 }
 
-k := sensitive.New("sk-...")
-key := k.ExposeSecret() // explicit opt-in to access the real value
+func main() {
+    sensitive.Redact() // enable REDACTED-style output; call once at startup
+
+    cfg := Config{
+        Password: sensitive.New("hunter2"),
+        TenantID: sensitive.Make(42),
+    }
+
+    fmt.Printf("%v\n", cfg) // {REDACTED -2147483648}
+
+    b, _ := json.Marshal(cfg)
+    fmt.Println(string(b)) // {"Password":"REDACTED","TenantID":-2147483648}
+
+    pw := cfg.Password.ExposeSecret() // explicit opt-in to the real value
+    _ = pw
+}
 ```
 
-`Ref` is **non-comparable** (`==` is a compile error, not a valid map key).
-Use `reflect.DeepEqual` or explicit compare functions for testing.
+## How protection works
 
-### `Handle[T]` — comparable, for value-comparable secrets
+Redaction has two independent layers, and only one of them is a real defense.
 
-For value-comparable secrets where `==` is not harmful (tokens, IDs, API keys),
-`Handle[T]` provides value equality and map-key support while remaining
-fmt-safe. Equal values are canonicalized via the runtime's `unique.Handle`
-intern pool.
+- **Structural protection — the real defense.**
+  `Ref[T]` stores its value behind a double pointer (`**T`);
+  `Handle[T]` stores it behind a single `*T` (via the runtime's `unique.Handle`).
+  `fmt` reflection never dereferences these, so it can only ever print a pointer address,
+  never the secret — even when the value sits behind an unexported field or a pointer,
+  where the interface methods below are silently skipped.
+
+- **Interface methods — cosmetic only.**
+  `Ref`/`Handle` also implement `fmt.Formatter`, `json.Marshaler`, and `encoding.TextMarshaler`.
+  When `fmt` can reach the value on a clean path, these replace the address noise
+  with a readable `REDACTED` and, crucially, **preserve the redacted value's type**:
+  a numeric secret stays a number, a bool stays a bool. That keeps JSON output valid
+  and text-log parsers working instead of emitting a type they cannot parse.
+
+The point: the pretty `REDACTED` output is a nicety; the guarantee that the raw
+secret never reaches your logs comes from the structural layer alone.
+When the interface layer is bypassed, structural protection still holds:
 
 ```go
-type AccessToken struct{ sensitive.Handle[string] }
+type Server struct {
+    cfg Config // unexported field — fmt skips Formatter for everything beneath it
+}
 
-t := sensitive.Make("sk-...")
-t == sensitive.Make("sk-...") // true
+fmt.Printf("%+v\n", Server{cfg: cfg})
+// {cfg:{Password:{_:[] pp:0x...} TenantID:{h:{value:0x...}}}}
+// interface skipped, but only addresses print — the secret does not leak
 ```
 
-### Safety net
+## Choosing between Ref and Handle
 
-Run [lint-sensitive](https://github.com/powerman/lint-sensitive) as part
-of your CI to catch remaining unexported-field leaks.
+The choice is driven by how `==` should behave on the secret:
 
-### Memory zeroization is deferred
+- **`Ref[T]`** — when comparing the secret with `==` is wrong or harmful:
+  - the type's `==` does not compare by value: `[]byte` (compile error),
+    `decimal.Decimal` (pointer identity, silently wrong), composite structs; or
+  - `==` works but must not be used: passwords and hashes are compared constant-time,
+    never with `==`.
 
-Unlike `negrel/secrecy`, `Ref` and `Handle` do not use `runtime.SetFinalizer`:
-finalizers are unreliable (strings are immutable, Go moves values in memory, GC copies).
-The right vehicle is the experimental `runtime/secret` package.
+  `Ref` makes `==` a **compile-time error**,
+  so an accidental comparison fails loudly instead of silently returning `false`.
+  It is non-comparable and not a valid map key; compare values explicitly
+  (`bytes.Equal`, `decimal.Decimal.Equal`, a constant-time compare)
+  or whole structs in tests with `reflect.DeepEqual`.
+
+- **`Handle[T]`** — for value-comparable primitive secrets where `==` is fine:
+  bearer tokens, session IDs, API keys.
+  `==` compares by value and a `Handle` is a valid map key.
+  `T` is restricted to primitive comparable types
+  (string, bool, integers, floats, and named types over them).
+
+Both are structurally protected, both work with `reflect.DeepEqual`,
+and both satisfy the `Secret[T]` interface via `ExposeSecret`.
+Wrap either one for a nominal type:
+
+```go
+type Password struct{ sensitive.Ref[string] }       // == is harmful   → Ref
+type AccessToken struct{ sensitive.Handle[string] } // safe to compare → Handle
+```
+
+## When interface-only redaction breaks
+
+Types that protect a secret **only** through interfaces (the deprecated named
+types here, `go-playground/sensitive`, `negrel/secrecy`, `angusgmorrison/logfusc`)
+redact only while `fmt` reaches the value on a clean path.
+Redaction silently disappears when the secret is reached through an unexported struct field,
+a pointer on the path, or the builtin `print`/`println` — among other subtle cases.
+For the full list of failure modes and examples, see the
+[lint-sensitive README](https://github.com/powerman/lint-sensitive#how-protection-silently-breaks).
+
+`Ref` and `Handle` are immune to all of these because their protection is structural,
+not interface-based. If you must keep the deprecated named types,
+run [lint-sensitive](https://github.com/powerman/lint-sensitive) in CI
+to catch the leaks statically.
+
+## Comparison with other libraries
+
+| Feature                                               | `sensitive` `Ref`/`Handle` | `sensitive` `String`… (legacy) | `go-playground/sensitive` | `negrel/secrecy` | `angusgmorrison/logfusc` |
+| ----------------------------------------------------- | -------------------------- | ------------------------------ | ------------------------- | ---------------- | ------------------------ |
+| Structural protection (survives unexported / pointer) | ✓                          | ✗                              | ✗                         | ✗                | ✗                        |
+| Redacts under **all** `fmt` verbs (`fmt.Formatter`)   | ✓                          | ✓                              | ✓                         | ✗¹               | ✗¹                       |
+| JSON redaction                                        | ✓                          | ✓                              | ✓                         | ✓                | ✓                        |
+| `encoding.TextMarshaler` redaction                    | ✓                          | ✓                              | ✓                         | ✓                | ✗                        |
+| Type-preserving redaction (number stays a number)     | ✓                          | ✓                              | ✗                         | ✗                | ✗                        |
+| Customizable redaction output                         | ✓                          | ✓                              | ✓                         | ~²               | ✗                        |
+| Value `==` equality                                   | `Handle` ✓ / `Ref` ✗³      | ✓⁶                             | ✓                         | ✗                | ✗                        |
+| Valid map key                                         | `Handle` ✓ / `Ref` ✗       | ✓⁶                             | ✓                         | ✗                | ✗                        |
+| Works with `reflect.DeepEqual`                        | ✓                          | ✓                              | ✓                         | ✓                | ✓                        |
+| Any element type (generic)                            | ✓                          | ✗⁴                             | ✗⁴                        | ✓                | ✓                        |
+| Memory zeroization                                    | ✗⁵                         | ✗                              | ✗                         | ✓                | ✗                        |
+
+¹ — only `fmt.Stringer`/`GoStringer`, so `%v`/`%s`/`%#v` redact but verbs they do not cover
+can still print the raw value.<br/>
+² — a single global marker string, not per-type or per-verb.<br/>
+³ — `Ref` rejects `==` at compile time **on purpose**, so accidental comparisons fail loudly.<br/>
+⁴ — a fixed set of named types only.<br/>
+⁵ — deferred by design, see [Memory zeroization](#memory-zeroization).<br/>
+⁶ — `String`/`Int`/… compare by value; `Bytes` and `Decimal` do not.
+
+The `sensitive` legacy column is the deprecated named types (`String`, `Int`, `Bytes`, …).
+They match `go-playground/sensitive` on every interface-based row —
+the project began as a fork of it — but add type-preserving redaction.
+They still lack the structural protection that makes `Ref`/`Handle` leak-proof,
+so prefer those in new code.
+
+## Redaction output
+
+By default every `Format<Type>Fn` is a no-op, so secrets print as empty.
+Pick a policy at startup:
+
+- `sensitive.Redact()` — replace each secret with a visible, type-preserving
+  sentinel (`"REDACTED"`, `NaN`, `math.MinInt*`, `math.MaxUint*`, `0xDEFACE`, …).
+- Override an individual `Format<Type>Fn` for custom output (e.g. show the first few characters):
+
+  ```go
+  sensitive.FormatStringFn = func(s sensitive.String, f fmt.State, c rune) {
+      sensitive.Format(f, c, s.ExposeSecret()[:4]+"…")
+  }
+  ```
+
+  This also drives `Ref[string]`/`Handle[string]` output,
+  since they delegate to the same functions.
+
+- `sensitive.Disable()` — print the real value, for tests only.
+  It is a no-op unless the binary name ends in `.test` and `GO_TEST_DISABLE_SENSITIVE` is set,
+  minimizing the chance of disabling protection in production.
+
+## Deprecated legacy types
+
+`Bool`, `Bytes`, `Decimal`, `Float32/64`, `Int/8/16/32/64`, `String`, `Uint/8/16/32/64`
+are kept only for backward compatibility.
+They redact through their `fmt.Formatter` method,
+which `fmt` skips the moment it descends through an unexported struct field or a pointer —
+the raw secret then leaks.
+Prefer `Ref` and `Handle` in new code; if you must keep these, guard them with
+[lint-sensitive](https://github.com/powerman/lint-sensitive).
+
+## Memory zeroization
+
+Unlike `negrel/secrecy`, `Ref` and `Handle` do not wipe the secret from memory
+via `runtime.SetFinalizer`: finalizers are unreliable here
+(strings are immutable, Go moves values in memory, the GC copies).
+The right vehicle is the experimental `runtime/secret` package,
+and support is deferred until it stabilizes.
 
 ## Examples
 
-### Basic
+Runnable programs live in [`_examples/`](_examples/):
 
-```go
-// go run _examples/basic/main.go mypassword
-package main
-
-import (
-	"encoding/json"
-	"fmt"
-	"os"
-
-	"github.com/powerman/sensitive"
-)
-
-func main() {
-	password := sensitive.String(os.Args[1])
-
-	fmt.Printf("%s\n", password)
-	fmt.Printf("%v\n", password)
-
-	b, _ := json.Marshal(password)
-	fmt.Println(string(b))
-
-	var empty *sensitive.String
-	b, _ = json.Marshal(empty)
-	fmt.Println(string(b))
-
-	// output:
-	//
-	//
-	// ""
-	// null
-}
-```
-
-### Custom Formatting
-
-```go
-// go run _examples/custom/main.go mypassword
-package main
-
-import (
-	"encoding/json"
-	"fmt"
-	"os"
-
-	"github.com/powerman/sensitive"
-)
-
-func init() {
-	// override default Formatter
-	sensitive.FormatStringFn = func(s sensitive.String, f fmt.State, c rune) {
-		switch c {
-		default:
-			sensitive.Format(f, c, "redacted")
-		case 'v':
-			sensitive.Format(f, c, string(s)[:4]+"*******")
-		}
-	}
-}
-
-func main() {
-	password := sensitive.String(os.Args[1])
-
-	fmt.Printf("%s\n", password)
-	fmt.Printf("%v\n", password)
-
-	b, _ := json.Marshal(password)
-	fmt.Println(string(b))
-
-	var empty *sensitive.String
-	b, _ = json.Marshal(empty)
-	fmt.Println(string(b))
-
-	// output:
-	// redacted
-	// mypa*******
-	// "mypa*******"
-	// null
-}
-```
+- [`basic`](_examples/basic/main.go) — `Ref` with `Redact()`.
+- [`custom`](_examples/custom/main.go) — custom redaction via `FormatStringFn`.
+- [`handle`](_examples/handle/main.go) — `Handle` value equality and map keys.
 
 ---
 

@@ -1,3 +1,4 @@
+// go run _examples/basic/main.go mypassword
 package main
 
 import (
@@ -9,7 +10,9 @@ import (
 )
 
 func main() {
-	password := sensitive.String(os.Args[1])
+	sensitive.Redact()
+
+	password := sensitive.New(os.Args[1]) // Ref[string]
 
 	fmt.Printf("%s\n", password)
 	fmt.Printf("%v\n", password)
@@ -17,13 +20,8 @@ func main() {
 	b, _ := json.Marshal(password)
 	fmt.Println(string(b))
 
-	var empty *sensitive.String
-	b, _ = json.Marshal(empty)
-	fmt.Println(string(b))
-
 	// output:
-	//
-	//
-	// ""
-	// null
+	// REDACTED
+	// REDACTED
+	// "REDACTED"
 }

@@ -8,33 +8,18 @@
 //
 // # Choosing a type
 //
-// Every secret kind falls into one of two behavioral categories,
-// defined by how == behaves on it:
+// The choice is driven by how == should behave on the secret:
 //
-//	"string" — value-comparable primitives: string, bool, int*, uint*, float*,
-//	           and named types over them. == compares by value.
-//	           (These are exactly what Handle's [Comparable] accepts.)
-//	"[]byte" — types whose == does NOT compare by value: []byte (compile error),
-//	           decimal.Decimal (pointer-identity, silently wrong), composite structs.
-//	           (These are exactly what [Comparable] rejects,
-//	           so they cannot be a Handle element.)
+//  1. == does NOT compare by value → [Ref]: []byte (compile error),
+//     decimal.Decimal (pointer identity, silently wrong), composite structs.
+//     (These are exactly what [Comparable] rejects, so they cannot be a Handle.)
+//  2. == compares by value (string, bool, int*, uint*, float*, and named types
+//     over them — exactly what [Comparable] accepts) → ask whether using == is HARMFUL:
+//     harmful (passwords, hashes — compared constant-time, never with ==) → [Ref].
+//     otherwise (tokens, IDs, API keys) → [Handle].
 //
-// The choice rule is two-level:
-//
-//  1. "[]byte" category → [Ref].            (== does not work by value at all)
-//  2. "string" category → ask whether value-== is HARMFUL:
-//     harmful (password, hash — compared constant-time, never with ==) → [Ref].
-//     otherwise → [Handle].
-//
-// [Ref] gathers two kinds of secrets: those whose == cannot work ([]byte, decimals, composites),
-// and those whose == should not be used (passwords, hashes).
-// [Handle] is for value-comparable secrets where == is not harmful (tokens, IDs, API keys).
-//
-// Behavioral analogy: [Handle] behaves like string for == and map keys
-// (value equality, valid map key);
+// Behavioral analogy: [Handle] behaves like string (value ==, valid map key);
 // [Ref] behaves like []byte (== and map keys are compile errors).
-// Use it as a fast path, then apply level 2 (harm) for string-category secrets
-// that must not be compared with ==.
 //
 // Both are structurally-protected: fmt reflection cannot reach the stored value
 // even through an unexported struct field.
@@ -43,13 +28,13 @@
 //
 // # Comparing and indexing
 //
-// With [Handle], == compares by value and it is a valid map key, just like string.
+// With [Handle], == and map keys work by value, just like string.
 // With [Ref], == is a compile-time error (as it is for []byte),
 // so an accidental comparison fails loudly instead of silently returning false;
 // compare values explicitly with [bytes.Equal] / [decimal.Equal] / a constant-time compare,
 // or compare whole structs in tests with [reflect.DeepEqual].
-// A struct containing a Ref field is itself non-comparable,
-// so == on it is also rejected — which is what you want for a struct holding secrets.
+// A struct containing a Ref field is itself non-comparable —
+// which is what you want for a struct holding secrets.
 //
 // # Why not the plain named types (String, Int, Bytes, …)
 //
