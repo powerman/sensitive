@@ -115,6 +115,59 @@ type Password struct{ sensitive.Ref[string] }       // == is harmful   → Ref
 type AccessToken struct{ sensitive.Handle[string] } // safe to compare → Handle
 ```
 
+## Ingesting and persisting secrets
+
+A secret often arrives from JSON/YAML config or a database row
+and later has to be written back to a database.
+`Ref` and `Handle` implement the interfaces that let the secret land
+**directly** in the protected field and leave it through the driver
+**explicitly** — never materialized as a plain `string`/`[]byte`
+in application code, where it could be logged by accident.
+
+### Ingest: unmarshal and scan into a Ref/Handle
+
+`*Ref[T]` and `*Handle[T]` implement `json.Unmarshaler`,
+`encoding.TextUnmarshaler`, and `database/sql.Scanner`,
+so external data can be deserialized straight into a protected field:
+
+```go
+type Config struct {
+    Password sensitive.Ref[string]
+    TenantID sensitive.Handle[int]
+}
+
+var cfg Config
+_ = json.Unmarshal(configBytes, &cfg) // lands in Ref/Handle, never a plain string
+```
+
+Reading a secret column from the database works the same way:
+
+```go
+var pw sensitive.Ref[string]
+err := db.QueryRow(`SELECT password FROM users WHERE id = ?`, id).Scan(&pw)
+```
+
+Prefer this over scanning into a plain `string` and then calling `sensitive.New`:
+the intermediate plain value has no structural protection and can be logged
+by any `fmt.Printf` added to that code path later.
+
+### Persist: write to the database with ExposeSecretValuer
+
+`Ref`/`Handle` do **not** implement `driver.Valuer` directly —
+that would let the secret flow to the driver through an implicit interface
+call with no visible `ExposeSecret*` at the call site.
+Instead, call `ExposeSecretValuer()` to get a `SecretValuer[T]`
+that implements `driver.Valuer` while staying redaction-safe everywhere else:
+
+```go
+_, err := db.Exec(`UPDATE users SET password = ? WHERE id = ?`,
+    cfg.Password.ExposeSecretValuer(), id)
+```
+
+`SecretValuer` is structurally protected and redacts under `fmt`/`json`,
+so even if the wrapper is logged by accident the secret does not leak —
+the plaintext reaches only the database driver.
+
 ## When interface-only redaction breaks
 
 Types that protect a secret **only** through interfaces (the deprecated named
@@ -140,6 +193,9 @@ to catch the leaks statically.
 | `encoding.TextMarshaler` redaction                    | ✓                          | ✓                  | ✗                         | ✓                              | ✓                         | ✓                | ✗                        |
 | Type-preserving redaction (number stays a number)     | ✓                          | —¹⁰                | ~⁹                        | ✓                              | ✗                         | ✗                | ✗                        |
 | Customizable redaction output                         | ✓                          | ✓                  | ✗                         | ✓                              | ✓                         | ~²               | ✗                        |
+| Ingest via `json.Unmarshaler`/`TextUnmarshaler`       | ✓                          | ~¹³                | ~¹⁴                       | ✗                              | ✗                         | ~¹⁴              | ~¹⁴                      |
+| DB read via `database/sql.Scanner`                    | ✓                          | ✗                  | ✗                         | ✗                              | ✗                         | ✗                | ✗                        |
+| DB write via `driver.Valuer`                          | ✓¹⁵                        | ✗                  | ✗                         | ✗                              | ✗                         | ✗                | ✗                        |
 | Value `==` equality                                   | `Handle` ✓ / `Ref` ✗³      | ✗¹¹                | ✗                         | ✓⁶                             | ✓                         | ✗                | ✗                        |
 | Valid map key                                         | `Handle` ✓ / `Ref` ✗       | ✗¹¹                | ✗                         | ✓⁶                             | ✓                         | ✗                | ✗                        |
 | Works with `reflect.DeepEqual`                        | ✓                          | ✓                  | ✗¹²                       | ✓                              | ✓                         | ✓                | ✓                        |
@@ -163,6 +219,15 @@ and is only meaningful for JSON.<br/>
 its `Equal` helper must be used instead.<br/>
 ¹² — the value lives in a `func`, and `reflect.DeepEqual` treats non-nil funcs as never equal,
 so equal secrets compare unequal.
+¹³ — `rsjethani/secret` implements `encoding.TextUnmarshaler` (string only);
+`encoding/json` picks it up for string fields, so JSON ingest works for strings,
+but there is no generic `json.Unmarshaler`.
+¹⁴ — `go-secrets`, `negrel/secrecy`, and `angusgmorrison/logfusc` implement
+`json.Unmarshaler` only (no `TextUnmarshaler`), so ingest works for JSON
+but not for text-based formats that rely on `TextUnmarshaler`.
+¹⁵ — `Ref`/`Handle` do not implement `driver.Valuer` directly:
+the secret is exposed to the driver only through the explicit
+`ExposeSecretValuer()` wrapper, so the expose is visible at the call site.
 
 The `sensitive` legacy column is the deprecated named types (`String`, `Int`, `Bytes`, …).
 They match `go-playground/sensitive` on every interface-based row —

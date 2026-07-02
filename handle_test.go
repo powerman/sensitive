@@ -1,8 +1,10 @@
 package sensitive_test
 
 import (
+	"encoding"
 	"encoding/json"
 	"fmt"
+	"math"
 	"testing"
 
 	"github.com/powerman/check"
@@ -209,3 +211,177 @@ func TestHandle_zeroValue(tt *testing.T) {
 		})
 	})
 }
+
+func TestHandle_UnmarshalJSON(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
+
+	t.Run("string", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var h sensitive.Handle[string]
+		t.Nil(json.Unmarshal([]byte(`"hello"`), &h))
+		t.Equal(h.ExposeSecret(), "hello")
+	})
+
+	t.Run("int", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var h sensitive.Handle[int]
+		t.Nil(json.Unmarshal([]byte(`42`), &h))
+		t.Equal(h.ExposeSecret(), 42)
+	})
+
+	t.Run("bool", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var h sensitive.Handle[bool]
+		t.Nil(json.Unmarshal([]byte(`true`), &h))
+		t.Equal(h.ExposeSecret(), true)
+	})
+
+	t.Run("invalid_json", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var h sensitive.Handle[string]
+		t.NotNil(json.Unmarshal([]byte(`not json`), &h))
+	})
+}
+
+func TestHandle_UnmarshalText(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
+
+	t.Run("string", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var h sensitive.Handle[string]
+		t.Nil(h.UnmarshalText([]byte("hello")))
+		t.Equal(h.ExposeSecret(), "hello")
+	})
+
+	t.Run("bool_false", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var h sensitive.Handle[bool]
+		t.Nil(h.UnmarshalText([]byte("false")))
+		t.Equal(h.ExposeSecret(), false)
+	})
+
+	t.Run("bool_invalid", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var h sensitive.Handle[bool]
+		t.NotNil(h.UnmarshalText([]byte("notabool")))
+	})
+
+	t.Run("int64_negative", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var h sensitive.Handle[int64]
+		t.Nil(h.UnmarshalText([]byte("-9223372036854775808")))
+		t.Equal(h.ExposeSecret(), int64(math.MinInt64))
+	})
+
+	t.Run("uint64_max", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var h sensitive.Handle[uint64]
+		t.Nil(h.UnmarshalText([]byte("18446744073709551615")))
+		t.Equal(h.ExposeSecret(), uint64(math.MaxUint64))
+	})
+
+	t.Run("float32", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var h sensitive.Handle[float32]
+		t.Nil(h.UnmarshalText([]byte("3.14")))
+		t.Equal(h.ExposeSecret(), float32(3.14))
+	})
+
+	t.Run("float64_invalid", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var h sensitive.Handle[float64]
+		t.NotNil(h.UnmarshalText([]byte("not-a-float")))
+	})
+}
+
+func TestHandle_Scan(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
+
+	t.Run("string_from_string", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var h sensitive.Handle[string]
+		t.Nil(h.Scan("token"))
+		t.Equal(h.ExposeSecret(), "token")
+	})
+
+	t.Run("string_from_bytes", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var h sensitive.Handle[string]
+		t.Nil(h.Scan([]byte("token")))
+		t.Equal(h.ExposeSecret(), "token")
+	})
+
+	t.Run("bool_from_bool", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var h sensitive.Handle[bool]
+		t.Nil(h.Scan(false))
+		t.Equal(h.ExposeSecret(), false)
+	})
+
+	t.Run("bool_from_int64_zero", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var h sensitive.Handle[bool]
+		t.Nil(h.Scan(int64(0)))
+		t.Equal(h.ExposeSecret(), false)
+	})
+
+	t.Run("int64_from_int64", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var h sensitive.Handle[int64]
+		t.Nil(h.Scan(int64(-99)))
+		t.Equal(h.ExposeSecret(), int64(-99))
+	})
+
+	t.Run("float64_from_float64", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var h sensitive.Handle[float64]
+		t.Nil(h.Scan(float64(1.23)))
+		t.Equal(h.ExposeSecret(), 1.23)
+	})
+
+	t.Run("nil_yields_zero", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var h sensitive.Handle[string]
+		t.Nil(h.Scan("before"))
+		t.Nil(h.Scan(nil))
+		t.Equal(h.ExposeSecret(), "")
+	})
+
+	t.Run("type_mismatch_error", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var h sensitive.Handle[string]
+		t.NotNil(h.Scan(int64(1)))
+	})
+
+	t.Run("no_panic_on_type_mismatch", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var h sensitive.Handle[float64]
+		t.NotPanic(func() { _ = h.Scan("not-a-float") })
+	})
+}
+
+// textUnmarshalerHandle verifies that Handle[T] satisfies encoding.TextUnmarshaler at compile time.
+var _ encoding.TextUnmarshaler = (*sensitive.Handle[string])(nil)

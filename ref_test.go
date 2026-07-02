@@ -2,6 +2,7 @@ package sensitive_test
 
 import (
 	"context"
+	"encoding"
 	"encoding/json"
 	"fmt"
 	"math"
@@ -11,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/powerman/check"
+	"github.com/shopspring/decimal"
 
 	"github.com/powerman/sensitive"
 )
@@ -334,3 +336,240 @@ func TestRef_globalModeHelper(tt *testing.T) {
 	}
 	testRefGlobalMode(mode)
 }
+
+func TestRef_UnmarshalJSON(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
+
+	t.Run("string", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[string]
+		t.Nil(json.Unmarshal([]byte(`"hello"`), &r))
+		t.Equal(r.ExposeSecret(), "hello")
+	})
+
+	t.Run("int", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[int]
+		t.Nil(json.Unmarshal([]byte(`42`), &r))
+		t.Equal(r.ExposeSecret(), 42)
+	})
+
+	t.Run("bool", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[bool]
+		t.Nil(json.Unmarshal([]byte(`true`), &r))
+		t.Equal(r.ExposeSecret(), true)
+	})
+
+	t.Run("decimal", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[decimal.Decimal]
+		t.Nil(json.Unmarshal([]byte(`"1.5"`), &r))
+		t.True(r.ExposeSecret().Equal(decimal.NewFromFloat(1.5)))
+	})
+
+	t.Run("invalid_json", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[string]
+		t.NotNil(json.Unmarshal([]byte(`not json`), &r))
+	})
+}
+
+func TestRef_UnmarshalText(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
+
+	t.Run("string", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[string]
+		t.Nil(r.UnmarshalText([]byte("hello")))
+		t.Equal(r.ExposeSecret(), "hello")
+	})
+
+	t.Run("bytes", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[[]byte]
+		t.Nil(r.UnmarshalText([]byte("rawbytes")))
+		t.Equal(string(r.ExposeSecret()), "rawbytes")
+	})
+
+	t.Run("bool_true", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[bool]
+		t.Nil(r.UnmarshalText([]byte("true")))
+		t.Equal(r.ExposeSecret(), true)
+	})
+
+	t.Run("bool_invalid", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[bool]
+		t.NotNil(r.UnmarshalText([]byte("notabool")))
+	})
+
+	t.Run("int", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[int]
+		t.Nil(r.UnmarshalText([]byte("-7")))
+		t.Equal(r.ExposeSecret(), -7)
+	})
+
+	t.Run("int_invalid", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[int]
+		t.NotNil(r.UnmarshalText([]byte("abc")))
+	})
+
+	t.Run("uint64", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[uint64]
+		t.Nil(r.UnmarshalText([]byte("18446744073709551615")))
+		t.Equal(r.ExposeSecret(), uint64(math.MaxUint64))
+	})
+
+	t.Run("float64", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[float64]
+		t.Nil(r.UnmarshalText([]byte("3.14")))
+		t.Equal(r.ExposeSecret(), 3.14)
+	})
+
+	t.Run("decimal_via_TextUnmarshaler", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[decimal.Decimal]
+		t.Nil(r.UnmarshalText([]byte("1.5")))
+		t.True(r.ExposeSecret().Equal(decimal.NewFromFloat(1.5)))
+	})
+
+	t.Run("unsupported_type", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[testStruct]
+		t.NotNil(r.UnmarshalText([]byte("anything")))
+	})
+}
+
+func TestRef_Scan(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
+
+	t.Run("string_from_string", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[string]
+		t.Nil(r.Scan("secret"))
+		t.Equal(r.ExposeSecret(), "secret")
+	})
+
+	t.Run("string_from_bytes", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[string]
+		t.Nil(r.Scan([]byte("secret")))
+		t.Equal(r.ExposeSecret(), "secret")
+	})
+
+	t.Run("bytes_from_bytes", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[[]byte]
+		t.Nil(r.Scan([]byte("raw")))
+		t.Equal(string(r.ExposeSecret()), "raw")
+	})
+
+	t.Run("bytes_from_string", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[[]byte]
+		t.Nil(r.Scan("raw"))
+		t.Equal(string(r.ExposeSecret()), "raw")
+	})
+
+	t.Run("bool_from_bool", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[bool]
+		t.Nil(r.Scan(true))
+		t.Equal(r.ExposeSecret(), true)
+	})
+
+	t.Run("bool_from_int64", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[bool]
+		t.Nil(r.Scan(int64(1)))
+		t.Equal(r.ExposeSecret(), true)
+	})
+
+	t.Run("int_from_int64", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[int]
+		t.Nil(r.Scan(int64(42)))
+		t.Equal(r.ExposeSecret(), 42)
+	})
+
+	t.Run("float64_from_float64", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[float64]
+		t.Nil(r.Scan(float64(2.718)))
+		t.Equal(r.ExposeSecret(), 2.718)
+	})
+
+	t.Run("decimal_via_scanner", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[decimal.Decimal]
+		t.Nil(r.Scan("1.5"))
+		t.True(r.ExposeSecret().Equal(decimal.NewFromFloat(1.5)))
+	})
+
+	t.Run("nil_yields_zero", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[string]
+		t.Nil(r.Scan("before"))
+		t.Nil(r.Scan(nil))
+		t.Equal(r.ExposeSecret(), "")
+	})
+
+	t.Run("type_mismatch_error", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[string]
+		t.NotNil(r.Scan(int64(1)))
+	})
+
+	t.Run("unsupported_type_error", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[testStruct]
+		t.NotNil(r.Scan("anything"))
+	})
+
+	t.Run("no_panic_on_unsupported", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[testStruct]
+		t.NotPanic(func() { _ = r.Scan("anything") })
+	})
+}
+
+// textUnmarshalerRef verifies that Ref[T] satisfies encoding.TextUnmarshaler at compile time.
+// The variable is assigned, not blank, to silence unused-variable linters.
+var _ encoding.TextUnmarshaler = (*sensitive.Ref[string])(nil)

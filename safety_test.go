@@ -13,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/powerman/check"
+	"github.com/shopspring/decimal"
 
 	"github.com/powerman/sensitive"
 )
@@ -352,4 +353,182 @@ func TestSafety_redactMode(tt *testing.T) {
 	t := check.T(tt).MustAll()
 
 	runSafetySubprocess(t)
+}
+
+// TestSafety_postIngestNoLeak verifies that a secret ingested via Unmarshal/Scan
+// still cannot leak through fmt, json, slog, or xml.
+func TestSafety_postIngestNoLeak(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
+
+	const secret = "ingested-secret"
+
+	sinks := []struct {
+		name string
+		run  func(any) string
+	}{
+		{
+			name: "fmt",
+			run: func(a any) string {
+				parts := make([]string, 0, 4)
+				for _, verb := range []string{"%v", "%+v", "%#v", "%s"} {
+					parts = append(parts, fmt.Sprintf(verb, a))
+				}
+				return strings.Join(parts, " | ")
+			},
+		},
+		{
+			name: "json",
+			run: func(a any) string {
+				b, err := json.Marshal(a)
+				if err != nil {
+					return fmt.Sprintf("<json error: %v>", err)
+				}
+				return string(b)
+			},
+		},
+		{
+			name: "slog",
+			run: func(a any) string {
+				var buf bytes.Buffer
+				slog.New(slog.NewTextHandler(&buf, nil)).Info("Msg", "k", a)
+				return buf.String()
+			},
+		},
+	}
+
+	type ingestCase struct {
+		name string
+		ref  sensitive.Ref[string]
+		h    sensitive.Handle[string]
+	}
+
+	var refJSON sensitive.Ref[string]
+	_ = json.Unmarshal([]byte(`"`+secret+`"`), &refJSON)
+
+	var refText sensitive.Ref[string]
+	_ = refText.UnmarshalText([]byte(secret))
+
+	var refScan sensitive.Ref[string]
+	_ = refScan.Scan(secret)
+
+	var hJSON sensitive.Handle[string]
+	_ = json.Unmarshal([]byte(`"`+secret+`"`), &hJSON)
+
+	var hText sensitive.Handle[string]
+	_ = hText.UnmarshalText([]byte(secret))
+
+	var hScan sensitive.Handle[string]
+	_ = hScan.Scan(secret)
+
+	cases := []ingestCase{
+		{name: "json", ref: refJSON, h: hJSON},
+		{name: "text", ref: refText, h: hText},
+		{name: "scan", ref: refScan, h: hScan},
+	}
+
+	for _, c := range cases {
+		for _, s := range sinks {
+			t.Run("Ref/"+c.name+"/"+s.name, func(tt *testing.T) {
+				tt.Parallel()
+				t := check.T(tt)
+				t.NotContains(s.run(c.ref), secret,
+					"ingested Ref must not leak via %s", s.name)
+			})
+			t.Run("Handle/"+c.name+"/"+s.name, func(tt *testing.T) {
+				tt.Parallel()
+				t := check.T(tt)
+				t.NotContains(s.run(c.h), secret,
+					"ingested Handle must not leak via %s", s.name)
+			})
+		}
+	}
+}
+
+// TestSafety_postIngestDecimalNoLeak verifies that a decimal secret ingested via
+// Unmarshal or Scan still cannot leak through fmt or json.
+func TestSafety_postIngestDecimalNoLeak(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
+
+	const secretStr = "31415926535"
+
+	var refJSON sensitive.Ref[decimal.Decimal]
+	_ = json.Unmarshal([]byte(`"`+secretStr+`"`), &refJSON)
+
+	var refText sensitive.Ref[decimal.Decimal]
+	_ = refText.UnmarshalText([]byte(secretStr))
+
+	var refScan sensitive.Ref[decimal.Decimal]
+	_ = refScan.Scan(secretStr)
+
+	for name, r := range map[string]sensitive.Ref[decimal.Decimal]{
+		"json": refJSON,
+		"text": refText,
+		"scan": refScan,
+	} {
+		t.Run(name+"/fmt", func(tt *testing.T) {
+			tt.Parallel()
+			t := check.T(tt)
+			t.NotContains(fmt.Sprintf("%v", r), secretStr,
+				"ingested Ref[decimal] must not leak via fmt")
+		})
+		t.Run(name+"/json_marshal", func(tt *testing.T) {
+			tt.Parallel()
+			t := check.T(tt)
+			b, err := json.Marshal(r)
+			t.Nil(err)
+			t.NotContains(string(b), secretStr,
+				"ingested Ref[decimal] must not leak via json.Marshal")
+		})
+	}
+}
+
+// TestSafety_postIngestUnexportedNoLeak verifies that a secret ingested via Scan
+// into an unexported struct field still cannot leak.
+func TestSafety_postIngestUnexportedNoLeak(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
+
+	const secret = "unexported-ingested"
+
+	var inner safetyHiddenR
+	_ = inner.r.Scan(secret)
+
+	var innerH safetyHiddenH
+	_ = innerH.h.Scan(secret)
+
+	for _, s := range []struct {
+		name string
+		run  func(any) string
+	}{
+		{"fmt", func(a any) string { return fmt.Sprintf("%+v", a) }},
+		{"json", func(a any) string {
+			b, err := json.Marshal(a)
+			if err != nil {
+				return fmt.Sprintf("<json error: %v>", err)
+			}
+			return string(b)
+		}},
+		{"xml", func(a any) string {
+			b, err := xml.Marshal(a)
+			if err != nil {
+				return fmt.Sprintf("<xml error: %v>", err)
+			}
+			return string(b)
+		}},
+	} {
+		t.Run("Ref/"+s.name, func(tt *testing.T) {
+			tt.Parallel()
+			t := check.T(tt)
+			t.NotContains(s.run(inner), secret,
+				"ingested Ref in unexported field must not leak via %s", s.name)
+		})
+		t.Run("Handle/"+s.name, func(tt *testing.T) {
+			tt.Parallel()
+			t := check.T(tt)
+			t.NotContains(s.run(innerH), secret,
+				"ingested Handle in unexported field must not leak via %s", s.name)
+		})
+	}
 }
