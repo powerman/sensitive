@@ -133,19 +133,19 @@ to catch the leaks statically.
 
 ## Comparison with other libraries
 
-| Feature                                               | `sensitive` `Ref`/`Handle` | `sensitive` `String`… (legacy) | `go-playground/sensitive` | `negrel/secrecy` | `angusgmorrison/logfusc` |
-| ----------------------------------------------------- | -------------------------- | ------------------------------ | ------------------------- | ---------------- | ------------------------ |
-| Structural protection (survives unexported / pointer) | ✓                          | ✗                              | ✗                         | ✗                | ✗                        |
-| Redacts under **all** `fmt` verbs (`fmt.Formatter`)   | ✓                          | ✓                              | ✓                         | ✗¹               | ✗¹                       |
-| JSON redaction                                        | ✓                          | ✓                              | ✓                         | ✓                | ✓                        |
-| `encoding.TextMarshaler` redaction                    | ✓                          | ✓                              | ✓                         | ✓                | ✗                        |
-| Type-preserving redaction (number stays a number)     | ✓                          | ✓                              | ✗                         | ✗                | ✗                        |
-| Customizable redaction output                         | ✓                          | ✓                              | ✓                         | ~²               | ✗                        |
-| Value `==` equality                                   | `Handle` ✓ / `Ref` ✗³      | ✓⁶                             | ✓                         | ✗                | ✗                        |
-| Valid map key                                         | `Handle` ✓ / `Ref` ✗       | ✓⁶                             | ✓                         | ✗                | ✗                        |
-| Works with `reflect.DeepEqual`                        | ✓                          | ✓                              | ✓                         | ✓                | ✓                        |
-| Any element type (generic)                            | ✓                          | ✗⁴                             | ✗⁴                        | ✓                | ✓                        |
-| Memory zeroization                                    | ✗⁵                         | ✗                              | ✗                         | ✓                | ✗                        |
+| Feature                                               | `sensitive` `Ref`/`Handle` | `rsjethani/secret` | `andrewbenton/go-secrets` | `sensitive` `String`… (legacy) | `go-playground/sensitive` | `negrel/secrecy` | `angusgmorrison/logfusc` |
+| ----------------------------------------------------- | -------------------------- | ------------------ | ------------------------- | ------------------------------ | ------------------------- | ---------------- | ------------------------ |
+| Structural protection (survives unexported / pointer) | ✓                          | ✓⁷                 | ✓⁸                        | ✗                              | ✗                         | ✗                | ✗                        |
+| Redacts under **all** `fmt` verbs (`fmt.Formatter`)   | ✓                          | ✓⁷                 | ✓⁸                        | ✓                              | ✓                         | ✗¹               | ✗¹                       |
+| JSON redaction                                        | ✓                          | ✓                  | ✓⁹                        | ✓                              | ✓                         | ✓                | ✓                        |
+| `encoding.TextMarshaler` redaction                    | ✓                          | ✓                  | ✗                         | ✓                              | ✓                         | ✓                | ✗                        |
+| Type-preserving redaction (number stays a number)     | ✓                          | —¹⁰                | ~⁹                        | ✓                              | ✗                         | ✗                | ✗                        |
+| Customizable redaction output                         | ✓                          | ✓                  | ✗                         | ✓                              | ✓                         | ~²               | ✗                        |
+| Value `==` equality                                   | `Handle` ✓ / `Ref` ✗³      | ✗¹¹                | ✗                         | ✓⁶                             | ✓                         | ✗                | ✗                        |
+| Valid map key                                         | `Handle` ✓ / `Ref` ✗       | ✗¹¹                | ✗                         | ✓⁶                             | ✓                         | ✗                | ✗                        |
+| Works with `reflect.DeepEqual`                        | ✓                          | ✓                  | ✗¹²                       | ✓                              | ✓                         | ✓                | ✓                        |
+| Any element type (generic)                            | ✓                          | ✗¹⁰                | ✓                         | ✗⁴                             | ✗⁴                        | ✓                | ✓                        |
+| Memory zeroization                                    | ✗⁵                         | ✗                  | ✗                         | ✗                              | ✗                         | ✓                | ✗                        |
 
 ¹ — only `fmt.Stringer`/`GoStringer`, so `%v`/`%s`/`%#v` redact but verbs they do not cover
 can still print the raw value.<br/>
@@ -153,13 +153,32 @@ can still print the raw value.<br/>
 ³ — `Ref` rejects `==` at compile time **on purpose**, so accidental comparisons fail loudly.<br/>
 ⁴ — a fixed set of named types only.<br/>
 ⁵ — deferred by design, see [Memory zeroization](#memory-zeroization).<br/>
-⁶ — `String`/`Int`/… compare by value; `Bytes` and `Decimal` do not.
+⁶ — `String`/`Int`/… compare by value; `Bytes` and `Decimal` do not.<br/>
+⁷ — `rsjethani/secret` stores the secret behind a `*string`, which `fmt` prints as an address,
+so its protection is structural even though it also implements `Stringer`/`TextMarshaler`.<br/>
+⁸ — `go-secrets` stores the secret behind `func() T` closures, which `fmt` never dereferences.<br/>
+⁹ — `go-secrets` marshals the zero value of `T`: redaction exists but is not configurable
+and is only meaningful for JSON.<br/>
+¹⁰ — `rsjethani/secret` handles `string` only, so genericity and type-preservation are moot.<br/>
+¹¹ — `==` compiles but compares the internal `*string` by identity (silently wrong);
+its `Equal` helper must be used instead.<br/>
+¹² — the value lives in a `func`, and `reflect.DeepEqual` treats non-nil funcs as never equal,
+so equal secrets compare unequal.
 
 The `sensitive` legacy column is the deprecated named types (`String`, `Int`, `Bytes`, …).
 They match `go-playground/sensitive` on every interface-based row —
 the project began as a fork of it — but add type-preserving redaction.
 They still lack the structural protection that makes `Ref`/`Handle` leak-proof,
 so prefer those in new code.
+
+`rsjethani/secret` and `andrewbenton/go-secrets` are the two other libraries that
+happen to be structurally protected — the former stores a `*string`, the latter a
+`func() T`, and `fmt` dereferences neither.
+`Ref`/`Handle` differ by combining that protection with correct equality semantics
+(`Handle`'s value `==`, `Ref`'s compile-time rejection, and working `reflect.DeepEqual`),
+type-preserving redaction, and any element type —
+where `rsjethani/secret` is `string`-only with a silently-wrong `==`,
+and `go-secrets` breaks `reflect.DeepEqual`.
 
 ## Redaction output
 
