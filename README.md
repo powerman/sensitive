@@ -185,55 +185,32 @@ to catch the leaks statically.
 
 ## Comparison with other libraries
 
-| Feature                                               | `sensitive` `Ref`/`Handle` | `rsjethani/secret` | `andrewbenton/go-secrets` | `sensitive` `String`… (legacy) | `go-playground/sensitive` | `negrel/secrecy` | `angusgmorrison/logfusc` |
-| ----------------------------------------------------- | -------------------------- | ------------------ | ------------------------- | ------------------------------ | ------------------------- | ---------------- | ------------------------ |
-| Structural protection (survives unexported / pointer) | ✓                          | ✓⁷                 | ✓⁸                        | ✗                              | ✗                         | ✗                | ✗                        |
-| Redacts under **all** `fmt` verbs (`fmt.Formatter`)   | ✓                          | ✓⁷                 | ✓⁸                        | ✓                              | ✓                         | ✗¹               | ✗¹                       |
-| JSON redaction                                        | ✓                          | ✓                  | ✓⁹                        | ✓                              | ✓                         | ✓                | ✓                        |
-| `encoding.TextMarshaler` redaction                    | ✓                          | ✓                  | ✗                         | ✓                              | ✓                         | ✓                | ✗                        |
-| Type-preserving redaction (number stays a number)     | ✓                          | —¹⁰                | ~⁹                        | ✓                              | ✗                         | ✗                | ✗                        |
-| Customizable redaction output                         | ✓                          | ✓                  | ✗                         | ✓                              | ✓                         | ~²               | ✗                        |
-| Ingest via `json.Unmarshaler`/`TextUnmarshaler`       | ✓                          | ~¹³                | ~¹⁴                       | ✗                              | ✗                         | ~¹⁴              | ~¹⁴                      |
-| DB read via `database/sql.Scanner`                    | ✓                          | ✗                  | ✗                         | ✗                              | ✗                         | ✗                | ✗                        |
-| DB write via `driver.Valuer`                          | ✓¹⁵                        | ✗                  | ✗                         | ✗                              | ✗                         | ✗                | ✗                        |
-| Value `==` equality                                   | `Handle` ✓ / `Ref` ✗³      | ✗¹¹                | ✗                         | ✓⁶                             | ✓                         | ✗                | ✗                        |
-| Valid map key                                         | `Handle` ✓ / `Ref` ✗       | ✗¹¹                | ✗                         | ✓⁶                             | ✓                         | ✗                | ✗                        |
-| Works with `reflect.DeepEqual`                        | ✓                          | ✓                  | ✗¹²                       | ✓                              | ✓                         | ✓                | ✓                        |
-| Any element type (generic)                            | ✓                          | ✗¹⁰                | ✓                         | ✗⁴                             | ✗⁴                        | ✓                | ✓                        |
-| Memory zeroization                                    | ✗⁵                         | ✗                  | ✗                         | ✗                              | ✗                         | ✓                | ✗                        |
+| Feature                                                 | `sensitive` `Ref`/`Handle` | `rsjethani/secret` | `andrewbenton/go-secrets` | `go-playground/sensitive` | `negrel/secrecy` | `angusgmorrison/logfusc` |
+| ------------------------------------------------------- | -------------------------- | ------------------ | ------------------------- | ------------------------- | ---------------- | ------------------------ |
+| Structural protection (survives unexported / pointer)   | ✓                          | ✓                  | ✓                         | ✗                         | ✗                | ✗                        |
+| Redacts under **all** `fmt` verbs (`fmt.Formatter`)     | ✓                          | ✓                  | ✓                         | ✓                         | ✗                | ✗                        |
+| Redacts under `%v`/`%s`/`%#v` (`Stringer`/`GoStringer`) | ✓                          | ✓                  | ✓                         | ✓                         | ✓                | ✓                        |
+| JSON redaction                                          | ✓                          | ✓                  | ✓¹                        | ✓                         | ✓                | ✓                        |
+| `encoding.TextMarshaler` redaction                      | ✓                          | ✓                  | ✗                         | ✓                         | ✓                | ✗                        |
+| Type-preserving redaction (number stays a number)       | ✓                          | —                  | ~¹                        | ✗                         | ✗                | ✗                        |
+| Customizable redaction output                           | ✓                          | ✓                  | ✗                         | ✓                         | ✓                | ✗                        |
+| Ingest via `json.Unmarshaler`                           | ✓                          | ~²                 | ✓                         | ✗                         | ✓                | ✓                        |
+| Ingest via `encoding.TextUnmarshaler`                   | ✓                          | ✓                  | ✗                         | ✗                         | ✗                | ✗                        |
+| DB read via `database/sql.Scanner`                      | ✓                          | ✗                  | ✗                         | ✗                         | ✗                | ✗                        |
+| DB write via `driver.Valuer`                            | ✓                          | ✗                  | ✗                         | ✗                         | ✗                | ✗                        |
+| Value `==` equality                                     | `Handle` ✓ / `Ref` ✗       | ✗³                 | ✗                         | ✓                         | ✗                | ✗                        |
+| Valid map key                                           | `Handle` ✓ / `Ref` ✗       | ✗³                 | ✗                         | ✓                         | ✗                | ✗                        |
+| Works with `reflect.DeepEqual`                          | ✓                          | ✓                  | ✗                         | ✓                         | ✓                | ✓                        |
+| Any element type (generic)                              | ✓                          | ✗                  | ✓                         | ✗                         | ✓                | ✓                        |
+| Memory zeroization                                      | ✗⁴                         | ✗                  | ✗                         | ✗                         | ✓                | ✗                        |
 
-¹ — only `fmt.Stringer`/`GoStringer`, so `%v`/`%s`/`%#v` redact but verbs they do not cover
-can still print the raw value.<br/>
-² — a single global marker string, not per-type or per-verb.<br/>
-³ — `Ref` rejects `==` at compile time **on purpose**, so accidental comparisons fail loudly.<br/>
-⁴ — a fixed set of named types only.<br/>
-⁵ — deferred by design, see [Memory zeroization](#memory-zeroization).<br/>
-⁶ — `String`/`Int`/… compare by value; `Bytes` and `Decimal` do not.<br/>
-⁷ — `rsjethani/secret` stores the secret behind a `*string`, which `fmt` prints as an address,
-so its protection is structural even though it also implements `Stringer`/`TextMarshaler`.<br/>
-⁸ — `go-secrets` stores the secret behind `func() T` closures, which `fmt` never dereferences.<br/>
-⁹ — `go-secrets` marshals the zero value of `T`: redaction exists but is not configurable
+¹ — `go-secrets` marshals the zero value of `T`: redaction exists but is not configurable
 and is only meaningful for JSON.<br/>
-¹⁰ — `rsjethani/secret` handles `string` only, so genericity and type-preservation are moot.<br/>
-¹¹ — `==` compiles but compares the internal `*string` by identity (silently wrong);
+² — `encoding/json` picks up its `TextUnmarshaler` for string fields,
+so JSON ingest works for strings only.<br/>
+³ — `==` compiles but compares the internal `*string` by identity (silently wrong);
 its `Equal` helper must be used instead.<br/>
-¹² — the value lives in a `func`, and `reflect.DeepEqual` treats non-nil funcs as never equal,
-so equal secrets compare unequal.
-¹³ — `rsjethani/secret` implements `encoding.TextUnmarshaler` (string only);
-`encoding/json` picks it up for string fields, so JSON ingest works for strings,
-but there is no generic `json.Unmarshaler`.
-¹⁴ — `go-secrets`, `negrel/secrecy`, and `angusgmorrison/logfusc` implement
-`json.Unmarshaler` only (no `TextUnmarshaler`), so ingest works for JSON
-but not for text-based formats that rely on `TextUnmarshaler`.
-¹⁵ — `Ref`/`Handle` do not implement `driver.Valuer` directly:
-the secret is exposed to the driver only through the explicit
-`ExposeSecretValuer()` wrapper, so the expose is visible at the call site.
-
-The `sensitive` legacy column is the deprecated named types (`String`, `Int`, `Bytes`, …).
-They match `go-playground/sensitive` on every interface-based row —
-the project began as a fork of it — but add type-preserving redaction.
-They still lack the structural protection that makes `Ref`/`Handle` leak-proof,
-so prefer those in new code.
+⁴ — deferred by design, see [Memory zeroization](#memory-zeroization).
 
 `rsjethani/secret` and `andrewbenton/go-secrets` are the two other libraries that
 happen to be structurally protected — the former stores a `*string`, the latter a
