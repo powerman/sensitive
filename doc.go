@@ -36,6 +36,28 @@
 // A struct containing a Ref field is itself non-comparable —
 // which is what you want for a struct holding secrets.
 //
+// # How protection works
+//
+// Protection has several independent layers, but only one carries the guarantee.
+//
+// The [json.Marshaler] and [encoding.TextMarshaler] methods
+// are the sole defense against serialization: encoders walk only exported fields,
+// so structural protection never engages, but these methods always run.
+//
+// Structural protection is the real defense against fmt:
+// both [Ref] and [Handle] keep the value behind a pointer that fmt reflection never follows,
+// so it can only ever reach a pointer address, never the secret.
+//
+// The [fmt.Formatter] method, by contrast, is only cosmetic,
+// adding readable REDACTED output on the clean paths where fmt can reach the value.
+//
+// In-memory encryption is an add-on for string and []byte only:
+// those are stored as ciphertext under a random per-process AES-256 key,
+// raising the bar against deep-reflection tools (go-spew, custom **T serializers)
+// that bypass the structural protection against fmt.
+// It is not a memory-disclosure defense — the key lives in ordinary Go memory,
+// unlike a mlock/guarded-page approach such as memguard.
+//
 // # Why not the plain named types (String, Int, Bytes, …)
 //
 // The [String]/[Int]/[Bytes]/… types are deprecated legacy types kept only for compatibility.
