@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] - 2026-07-03
+
+### 📚 Documentation
+
+- Add protection-layer documentation to package doc by @powerman in [1e51fa8]
+
+[0.3.1]: https://github.com/powerman/sensitive/compare/v0.3.0..v0.3.1
+[1e51fa8]: https://github.com/powerman/sensitive/commit/1e51fa8116c42c257534fcb704878f39a36cfcfa
+
 ## [0.3.0] - 2026-07-02
 
 ### 🚀 Added
