@@ -1,6 +1,7 @@
 package sensitive
 
 import (
+	"database/sql"
 	"database/sql/driver"
 	"encoding"
 	"encoding/json"
@@ -13,48 +14,52 @@ import (
 )
 
 var (
-	_ driver.Valuer          = SecretValuer[any]{}
-	_ json.Marshaler         = SecretValuer[any]{}
-	_ encoding.TextMarshaler = SecretValuer[any]{}
-	_ slog.LogValuer         = SecretValuer[any]{}
+	_ driver.Valuer            = SecretValuer[any]{}
+	_ json.Marshaler           = SecretValuer[any]{}
+	_ encoding.TextMarshaler   = SecretValuer[any]{}
+	_ slog.LogValuer           = SecretValuer[any]{}
+	_ fmt.Formatter            = SecretValuer[any]{}
+	_ json.Unmarshaler         = (*SecretValuer[any])(nil)
+	_ encoding.TextUnmarshaler = (*SecretValuer[any])(nil)
+	_ sql.Scanner              = (*SecretValuer[any])(nil)
 )
 
-// SecretValuer wraps [Ref][T] to implement EXPOSING secret value
-// [driver.Valuer], [json.Marshaler], and [encoding.TextMarshaler].
+// SecretValuer wraps a [Ref][T] to implement EXPOSING secret value
+// [driver.Valuer], [json.Marshaler], and [encoding.TextMarshaler],
+// while remaining redaction-safe under [fmt] and structured logging ([slog]).
 //
-// It is the explicit way to pass a Ref secret to a trusted sink:
+// It is the explicit way to pass a secret to a trusted sink:
 // a database driver, JSON serialization for the wire, or text encoding.
-// SecretValuer is redaction-safe under [fmt] and structured logging ([slog]):
-//   - [fmt.Formatter] is promoted from [Ref] and produces redacted output.
-//   - [slog.LogValuer] (defined directly on this type) returns a redacted value,
-//     so neither [slog.JSONHandler] nor [slog.TextHandler] can leak the secret,
-//     even though this same type also exposes the secret under
-//     [json.Marshal]/[encoding.TextMarshaler].
-//
 // The secret is exposed ONLY when one of the following is called:
 //   - [driver.Valuer.Value]                — database driver.
 //   - [json.Marshaler.MarshalJSON]         — JSON serialization.
 //   - [encoding.TextMarshaler.MarshalText] — text encoding.
 //
-// Because [*Ref]'s ingress methods
-// ([json.Unmarshaler], [encoding.TextUnmarshaler], [database/sql.Scanner])
-// are promoted onto SecretValuer, it also works as a combined egress+ingress DTO:
-// data arrives through Unmarshal/Scan, is held protected by the embedded [Ref],
-// and leaves through Marshal/Value.
-// This avoids materializing the secret as a plain string in application code.
+// SecretValuer is redaction-safe under [fmt] and [slog]:
+//   - [fmt.Formatter.Format] produces redacted output.
+//   - [slog.LogValuer.LogValue] returns a type-preserving redacted value,
+//     so neither [slog.JSONHandler] nor [slog.TextHandler] can leak the secret,
+//     even though this same type also exposes it under [json.Marshal]
+//     and [encoding.TextMarshaler].
 //
-// Do NOT place a live SecretValuer inside a value that is logged
-// or stored in an unpredictable sink (HTTP body, cache, error message).
+// Ingress methods ([json.Unmarshaler], [encoding.TextUnmarshaler],
+// [database/sql.Scanner]) receive and protect the secret just like [Ref],
+// making SecretValuer suitable for combined egress+ingress (round-trip) DTOs.
+//
+// SecretValuer is INERT: it never exposes the raw secret directly.
+// To leave the egress/round-trip boundary, call [SecretValuer.ToRef].
+// Keep SecretValuer confined to the egress/round-trip DTO;
+// do not carry it deeper into the application.
 // Unlike [driver.Valuer], [json.Marshal] and [encoding.TextMarshaler]
 // are called by any encoder that finds this type on an exported field —
 // not only the intended one.
-// Use [Ref] or [Handle] for fields that should never serialize in plaintext;
-// keep SecretValuer confined to the egress/round-trip DTO.
-type SecretValuer[T any] struct{ Ref[T] }
+type SecretValuer[T any] struct {
+	ref Ref[T]
+}
 
 // Value implements [driver.Valuer].
 func (sv SecretValuer[T]) Value() (driver.Value, error) {
-	v := sv.ExposeSecret()
+	v := sv.ref.ExposeSecret()
 	if vr, ok := any(v).(driver.Valuer); ok {
 		return vr.Value()
 	}
@@ -99,13 +104,13 @@ func (sv SecretValuer[T]) Value() (driver.Value, error) {
 //
 //lint:ignore errchkjson // Delegates to json.Marshal which is already checked.
 func (sv SecretValuer[T]) MarshalJSON() ([]byte, error) {
-	return json.Marshal(sv.ExposeSecret())
+	return json.Marshal(sv.ref.ExposeSecret())
 }
 
 // MarshalText implements [encoding.TextMarshaler].
 // It exposes the underlying secret as text.
 func (sv SecretValuer[T]) MarshalText() ([]byte, error) {
-	v := sv.ExposeSecret()
+	v := sv.ref.ExposeSecret()
 	if tm, ok := any(v).(encoding.TextMarshaler); ok {
 		return tm.MarshalText()
 	}
@@ -149,7 +154,7 @@ func (sv SecretValuer[T]) MarshalText() ([]byte, error) {
 // It returns a type-preserving redacted value so that structured loggers
 // ([slog.JSONHandler], [slog.TextHandler]) never expose the secret.
 func (sv SecretValuer[T]) LogValue() slog.Value {
-	switch any(sv.ExposeSecret()).(type) {
+	switch any(sv.ref.ExposeSecret()).(type) {
 	case bool:
 		return slog.BoolValue(false)
 	case string:
@@ -186,3 +191,23 @@ func (sv SecretValuer[T]) LogValue() slog.Value {
 		return slog.StringValue("REDACTED")
 	}
 }
+
+// Format implements [fmt.Formatter].
+func (sv SecretValuer[T]) Format(f fmt.State, c rune) { sv.ref.Format(f, c) }
+
+// IsZero reports whether the underlying [Ref] holds the zero value.
+func (sv SecretValuer[T]) IsZero() bool { return sv.ref.IsZero() }
+
+// ToRef returns the secret held as a redaction-safe [Ref],
+// the explicit way to leave the egress/ingress boundary.
+// To obtain a [Handle], use [Make](sv.ToRef().ExposeSecret()).
+func (sv SecretValuer[T]) ToRef() Ref[T] { return sv.ref }
+
+// UnmarshalJSON implements [json.Unmarshaler].
+func (sv *SecretValuer[T]) UnmarshalJSON(b []byte) error { return sv.ref.UnmarshalJSON(b) }
+
+// UnmarshalText implements [encoding.TextUnmarshaler].
+func (sv *SecretValuer[T]) UnmarshalText(text []byte) error { return sv.ref.UnmarshalText(text) }
+
+// Scan implements [database/sql.Scanner].
+func (sv *SecretValuer[T]) Scan(src any) error { return sv.ref.Scan(src) }

@@ -179,16 +179,20 @@ _, err := db.Exec(`UPDATE users SET password = ? WHERE id = ?`,
 so the same wrapper can be used for JSON/text serialization to the wire.
 It implements `slog.LogValuer` to redact under structured logging,
 so neither `slog.JSONHandler` nor `slog.TextHandler` can leak the secret.
-`fmt.Formatter` is promoted from `Ref` and redacts under all `fmt` verbs.
+`fmt.Formatter` redacts under all `fmt` verbs.
 The secret is exposed **only** through `driver.Valuer`, `json.Marshaler`,
 and `encoding.TextMarshaler` — the intended trusted sinks.
 
-Because `*Ref`'s ingress methods
-(`json.Unmarshaler`, `encoding.TextUnmarshaler`, `database/sql.Scanner`)
-are promoted onto `SecretValuer`, it also works as a combined egress+ingress DTO:
-data arrives through Unmarshal/Scan, is held protected by the embedded `Ref`,
+Because `*SecretValuer` also implements
+`json.Unmarshaler`, `encoding.TextUnmarshaler`, and `database/sql.Scanner`,
+it works as a combined egress+ingress DTO:
+data arrives through Unmarshal/Scan, is held protected,
 and leaves through Marshal/Value.
 This avoids materializing the secret as a plain string in application code.
+
+`SecretValuer` is **inert**: it never exposes the raw secret directly.
+To leave the egress/round-trip boundary, call `ToRef()` to get a `Ref`.
+Keep it confined to the egress/round-trip DTO and do not carry it deeper into the application.
 
 > **Keep it confined to the egress/round-trip DTO.**
 > Unlike `driver.Valuer`, `MarshalJSON`/`MarshalText` have an open consumer set

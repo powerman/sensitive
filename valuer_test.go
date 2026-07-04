@@ -428,6 +428,114 @@ func TestHandleValuer_exposes(tt *testing.T) {
 	})
 }
 
+func TestSecretValuer_ToRef(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
+
+	t.Run("from_ref", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		const want = "secret"
+		sv := sensitive.New(want).ExposeSecretValuer()
+		got := sv.ToRef().ExposeSecret()
+		t.Equal(got, want)
+	})
+
+	t.Run("from_handle", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		const want = "token"
+		sv := sensitive.Make(want).ExposeSecretValuer()
+		got := sv.ToRef().ExposeSecret()
+		t.Equal(got, want)
+	})
+
+	t.Run("zero_ref", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var r sensitive.Ref[string]
+		sv := r.ExposeSecretValuer()
+		t.Equal(sv.ToRef().ExposeSecret(), "")
+	})
+
+	t.Run("zero_handle", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		var h sensitive.Handle[string]
+		sv := h.ExposeSecretValuer()
+		t.Equal(sv.ToRef().ExposeSecret(), "")
+	})
+
+	t.Run("not_secret", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		sv := sensitive.New("x").ExposeSecretValuer()
+		_, ok := any(sv).(sensitive.Secret[string])
+		t.False(ok, "SecretValuer must not implement Secret[T]")
+	})
+}
+
+func TestSecretValuer_roundtrip(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
+
+	t.Run("json", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		sv := sensitive.New("roundtrip-secret").ExposeSecretValuer()
+		b, err := json.Marshal(sv)
+		t.Nil(err)
+
+		var got sensitive.SecretValuer[string]
+		err = json.Unmarshal(b, &got)
+		t.Nil(err)
+		t.Equal(got.ToRef().ExposeSecret(), "roundtrip-secret")
+	})
+
+	t.Run("text", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		sv := sensitive.New("text-roundtrip").ExposeSecretValuer()
+		b, err := sv.MarshalText()
+		t.Nil(err)
+
+		var got sensitive.SecretValuer[string]
+		err = got.UnmarshalText(b)
+		t.Nil(err)
+		t.Equal(got.ToRef().ExposeSecret(), "text-roundtrip")
+	})
+
+	t.Run("after_ingest_redacts_fmt", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		const secret = "ingested-secret"
+		b, err := json.Marshal(sensitive.New(secret).ExposeSecretValuer())
+		t.Nil(err)
+
+		var sv sensitive.SecretValuer[string]
+		t.Nil(json.Unmarshal(b, &sv))
+		t.NotContains(fmt.Sprintf("%v", sv), secret,
+			"SecretValuer must redact under fmt after ingest")
+	})
+
+	t.Run("after_ingest_redacts_slog", func(tt *testing.T) {
+		tt.Parallel()
+		t := check.T(tt)
+		const secret = "ingested-slog-secret"
+		b, err := json.Marshal(sensitive.New(secret).ExposeSecretValuer())
+		t.Nil(err)
+
+		var sv sensitive.SecretValuer[string]
+		t.Nil(json.Unmarshal(b, &sv))
+
+		var buf bytes.Buffer
+		logger := slog.New(slog.NewJSONHandler(&buf, nil))
+		logger.Info("Test", "valuer", sv)
+		out := buf.String()
+		t.NotContains(out, secret, "SecretValuer must redact under slog after ingest")
+	})
+}
+
 func TestHandleValuer_slog_redacts(tt *testing.T) {
 	tt.Parallel()
 	t := check.T(tt).MustAll()

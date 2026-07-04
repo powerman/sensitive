@@ -444,5 +444,5 @@ func (r *Ref[T]) Scan(src any) error {
 // ExposeSecretValuer returns a [SecretValuer] that implements [database/sql/driver.Valuer].
 // Use this at the call site to pass the secret to a database driver explicitly.
 func (r Ref[T]) ExposeSecretValuer() SecretValuer[T] {
-	return SecretValuer[T]{Ref: r}
+	return SecretValuer[T]{ref: r}
 }
