@@ -12,7 +12,7 @@
 //
 //  1. == does NOT compare by value
 //     → [Ref]: []byte (compile error),
-//       decimal.Decimal (pointer identity, silently wrong), composite structs.
+//     decimal.Decimal (pointer identity, silently wrong), composite structs.
 //     These are exactly what [Comparable] rejects, so they cannot be a [Handle].
 //
 //  2. == compares by value
@@ -20,16 +20,16 @@
 //     exactly what [Comparable] accepts)
 //     → ask whether using == is HARMFUL:
 //
-//       - harmful (passwords, hashes — compared constant-time,
-//         never with ==) → [Ref].
+//     - harmful (passwords, hashes — compared constant-time,
+//     never with ==) → [Ref].
 //
-//       - otherwise (tokens, IDs, API keys) → [Handle].
+//     - otherwise (tokens, IDs, API keys) → [Handle].
 //
 //  3. For ingress/egress DTO — the secret crosses a system boundary:
 //     database, JSON/text serialization.
 //     → [SecretValuer], a combined egress+ingress type
-//       that exposes the secret to trusted sinks
-//       while staying redaction-safe under [fmt] and [slog].
+//     that exposes the secret to trusted sinks
+//     while staying redaction-safe under [fmt] and [slog].
 //
 // Behavioral analogy: [Handle] behaves like string (value ==, valid map key);
 // [Ref] behaves like []byte (== and map keys are compile errors).
