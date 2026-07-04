@@ -169,7 +169,7 @@ func TestSecretValuer_Value(tt *testing.T) {
 	t.Run("float32", func(tt *testing.T) {
 		tt.Parallel()
 		t := check.T(tt)
-		sv := sensitive.New(float32(3.14)).ExposeSecretValuer()
+		sv := sensitive.New(float32(1.5)).ExposeSecretValuer()
 		v, err := sv.Value()
 		t.Nil(err)
 		_, isFloat64 := v.(float64)
@@ -324,10 +324,10 @@ func TestSecretValuer_exposes(tt *testing.T) {
 		t.Run("float32", func(tt *testing.T) {
 			tt.Parallel()
 			t := check.T(tt)
-			sv := sensitive.New(float32(3.14)).ExposeSecretValuer()
+			sv := sensitive.New(float32(1.5)).ExposeSecretValuer()
 			text, err := sv.MarshalText()
 			t.Nil(err)
-			t.Equal(string(text), "3.14")
+			t.Equal(string(text), "1.5")
 		})
 
 		t.Run("float64", func(tt *testing.T) {
@@ -760,19 +760,19 @@ func TestSecretValuer_slog_perTypeSentinels(tt *testing.T) {
 		{
 			name:     "int8",
 			valuer:   sensitive.New(int8(-100)).ExposeSecretValuer(),
-			secret:   `-100`,
+			secret:   `"valuer":-100`,
 			sentinel: "-128", // math.MinInt8
 		},
 		{
 			name:     "int16",
 			valuer:   sensitive.New(int16(-30000)).ExposeSecretValuer(),
-			secret:   `-30000`,
+			secret:   `"valuer":-30000`,
 			sentinel: "-32768", // math.MinInt16
 		},
 		{
 			name:     "int32",
 			valuer:   sensitive.New(int32(-20000000)).ExposeSecretValuer(),
-			secret:   `-20000000`,
+			secret:   `"valuer":-20000000`,
 			sentinel: "-2147483648", // math.MinInt32
 		},
 		{
@@ -784,43 +784,43 @@ func TestSecretValuer_slog_perTypeSentinels(tt *testing.T) {
 		{
 			name:     "uint",
 			valuer:   sensitive.New(uint(100)).ExposeSecretValuer(),
-			secret:   `100`,
+			secret:   `"valuer":100`,
 			sentinel: "4294967295", // math.MaxUint32
 		},
 		{
 			name:     "uint8",
 			valuer:   sensitive.New(uint8(100)).ExposeSecretValuer(),
-			secret:   `100`,
+			secret:   `"valuer":100`,
 			sentinel: "255", // math.MaxUint8
 		},
 		{
 			name:     "uint16",
 			valuer:   sensitive.New(uint16(1000)).ExposeSecretValuer(),
-			secret:   `1000`,
+			secret:   `"valuer":1000`,
 			sentinel: "65535", // math.MaxUint16
 		},
 		{
 			name:     "uint32",
 			valuer:   sensitive.New(uint32(100000)).ExposeSecretValuer(),
-			secret:   `100000`,
+			secret:   `"valuer":100000`,
 			sentinel: "4294967295", // math.MaxUint32
 		},
 		{
 			name:     "uint64",
 			valuer:   sensitive.New(uint64(100)).ExposeSecretValuer(),
-			secret:   `100`,
+			secret:   `"valuer":100`,
 			sentinel: "18446744073709551615", // math.MaxUint64
 		},
 		{
 			name:     "float32",
-			valuer:   sensitive.New(float32(3.14)).ExposeSecretValuer(),
-			secret:   "3.14",
+			valuer:   sensitive.New(float32(1.5)).ExposeSecretValuer(),
+			secret:   `"valuer":1.5`,
 			sentinel: "NaN", // LogValue returns NaN for float32
 		},
 		{
 			name:     "float64",
 			valuer:   sensitive.New(2.718).ExposeSecretValuer(),
-			secret:   "2.718",
+			secret:   `"valuer":2.718`,
 			sentinel: "NaN", // LogValue returns NaN for float64
 		},
 	}
