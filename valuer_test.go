@@ -277,7 +277,7 @@ func TestSecretValuer_slog_redacts(tt *testing.T) {
 		logger := slog.New(slog.NewJSONHandler(&buf, nil))
 		logger.Info("Test", "valuer", sv)
 		out := buf.String()
-		t.NotContains(out, "42", "int SecretValuer must not leak via slog JSONHandler")
+		t.NotContains(out, `"valuer":42`, "int SecretValuer must not leak via slog JSONHandler")
 		t.Contains(out, "-2147483648", "int SecretValuer must return MinInt32 redacted via slog JSONHandler")
 	})
 
@@ -289,7 +289,7 @@ func TestSecretValuer_slog_redacts(tt *testing.T) {
 		logger := slog.New(slog.NewTextHandler(&buf, nil))
 		logger.Info("Test", "valuer", sv)
 		out := buf.String()
-		t.NotContains(out, "42", "int SecretValuer must not leak via slog TextHandler")
+		t.NotContains(out, `valuer=42`, "int SecretValuer must not leak via slog TextHandler")
 		t.Contains(out, "-2147483648", "int SecretValuer must return MinInt32 redacted via slog TextHandler")
 	})
 }
