@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] - 2026-07-04
+
+### 📚 Documentation
+
+- Improve package docs, add method-level doc comments, fix godoc references by @powerman in [9bae2f1]
+- Fix semantic linefeeds in package doc list formatting by @powerman in [2e9250a]
+
+[0.5.1]: https://github.com/powerman/sensitive/compare/v0.5.0..v0.5.1
+[9bae2f1]: https://github.com/powerman/sensitive/commit/9bae2f1019b10242c7d231af562b1b1e58c7dd9b
+[2e9250a]: https://github.com/powerman/sensitive/commit/2e9250ae8a54d845a4e7417f57a91efa611bf71f
+
 ## [0.5.0] - 2026-07-04
 
 ### 🔔 Changed
