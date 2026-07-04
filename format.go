@@ -4,6 +4,28 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/shopspring/decimal"
+)
+
+//nolint:gochecknoglobals,godoclint // By design.
+var (
+	FormatBoolFn    = func(_ bool, _ fmt.State, _ rune) {}
+	FormatBytesFn   = func(_ []byte, _ fmt.State, _ rune) {}
+	FormatDecimalFn = func(_ decimal.Decimal, _ fmt.State, _ rune) {}
+	FormatFloat32Fn = func(_ float32, _ fmt.State, _ rune) {}
+	FormatFloat64Fn = func(_ float64, _ fmt.State, _ rune) {}
+	FormatIntFn     = func(_ int, _ fmt.State, _ rune) {}
+	FormatInt8Fn    = func(_ int8, _ fmt.State, _ rune) {}
+	FormatInt16Fn   = func(_ int16, _ fmt.State, _ rune) {}
+	FormatInt32Fn   = func(_ int32, _ fmt.State, _ rune) {}
+	FormatInt64Fn   = func(_ int64, _ fmt.State, _ rune) {}
+	FormatStringFn  = func(_ string, _ fmt.State, _ rune) {}
+	FormatUintFn    = func(_ uint, _ fmt.State, _ rune) {}
+	FormatUint8Fn   = func(_ uint8, _ fmt.State, _ rune) {}
+	FormatUint16Fn  = func(_ uint16, _ fmt.State, _ rune) {}
+	FormatUint32Fn  = func(_ uint32, _ fmt.State, _ rune) {}
+	FormatUint64Fn  = func(_ uint64, _ fmt.State, _ rune) {}
 )
 
 // Format outputs value accordingly to formatting options.
@@ -11,10 +33,10 @@ import (
 // It is useful in case you'll redefine some Format<type>Fn to output
 // redacted value using formatting applied to original value.
 //
-//	sensitive.FormatStringFn = func(s sensitive.String, f fmt.State, c rune) {
+//	sensitive.FormatStringFn = func(s string, f fmt.State, c rune) {
 //	    sensitive.Format(f, c, "REDACTED")
 //	}
-//	sensitive.FormatBytesFn = func(s sensitive.Bytes, f fmt.State, c rune) {
+//	sensitive.FormatBytesFn = func(s []byte, f fmt.State, c rune) {
 //	    sensitive.Format(f, c, []byte{0xDE, 0xFA, 0xCE})
 //	}
 func Format(f fmt.State, c rune, value any) {

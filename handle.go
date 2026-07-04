@@ -101,33 +101,33 @@ func (h Handle[T]) IsZero() bool {
 func (h Handle[T]) Format(f fmt.State, c rune) {
 	switch v := any(h.ExposeSecret()).(type) {
 	case bool:
-		FormatBoolFn(Bool(v), f, c)
+		FormatBoolFn(v, f, c)
 	case float32:
-		FormatFloat32Fn(Float32(v), f, c)
+		FormatFloat32Fn(v, f, c)
 	case float64:
-		FormatFloat64Fn(Float64(v), f, c)
+		FormatFloat64Fn(v, f, c)
 	case int:
-		FormatIntFn(Int(v), f, c)
+		FormatIntFn(v, f, c)
 	case int8:
-		FormatInt8Fn(Int8(v), f, c)
+		FormatInt8Fn(v, f, c)
 	case int16:
-		FormatInt16Fn(Int16(v), f, c)
+		FormatInt16Fn(v, f, c)
 	case int32:
-		FormatInt32Fn(Int32(v), f, c)
+		FormatInt32Fn(v, f, c)
 	case int64:
-		FormatInt64Fn(Int64(v), f, c)
+		FormatInt64Fn(v, f, c)
 	case string:
-		FormatStringFn(String(v), f, c)
+		FormatStringFn(v, f, c)
 	case uint:
-		FormatUintFn(Uint(v), f, c)
+		FormatUintFn(v, f, c)
 	case uint8:
-		FormatUint8Fn(Uint8(v), f, c)
+		FormatUint8Fn(v, f, c)
 	case uint16:
-		FormatUint16Fn(Uint16(v), f, c)
+		FormatUint16Fn(v, f, c)
 	case uint32:
-		FormatUint32Fn(Uint32(v), f, c)
+		FormatUint32Fn(v, f, c)
 	case uint64:
-		FormatUint64Fn(Uint64(v), f, c)
+		FormatUint64Fn(v, f, c)
 	default:
 		var z T
 		Format(f, c, z)
@@ -141,33 +141,33 @@ func (h Handle[T]) Format(f fmt.State, c rune) {
 func (h Handle[T]) MarshalJSON() ([]byte, error) {
 	switch v := any(h.ExposeSecret()).(type) {
 	case bool:
-		return Bool(v).MarshalJSON()
+		return marshalJSONBool(v)
 	case float32:
-		return Float32(v).MarshalJSON()
+		return marshalJSONFloat32(v)
 	case float64:
-		return Float64(v).MarshalJSON()
+		return marshalJSONFloat64(v)
 	case int:
-		return Int(v).MarshalJSON()
+		return marshalJSONInt(v)
 	case int8:
-		return Int8(v).MarshalJSON()
+		return marshalJSONInt8(v)
 	case int16:
-		return Int16(v).MarshalJSON()
+		return marshalJSONInt16(v)
 	case int32:
-		return Int32(v).MarshalJSON()
+		return marshalJSONInt32(v)
 	case int64:
-		return Int64(v).MarshalJSON()
+		return marshalJSONInt64(v)
 	case string:
-		return String(v).MarshalJSON()
+		return marshalJSONString(v)
 	case uint:
-		return Uint(v).MarshalJSON()
+		return marshalJSONUint(v)
 	case uint8:
-		return Uint8(v).MarshalJSON()
+		return marshalJSONUint8(v)
 	case uint16:
-		return Uint16(v).MarshalJSON()
+		return marshalJSONUint16(v)
 	case uint32:
-		return Uint32(v).MarshalJSON()
+		return marshalJSONUint32(v)
 	case uint64:
-		return Uint64(v).MarshalJSON()
+		return marshalJSONUint64(v)
 	default:
 		return nil, nil
 	}
@@ -178,33 +178,33 @@ func (h Handle[T]) MarshalJSON() ([]byte, error) {
 func (h Handle[T]) MarshalText() (text []byte, err error) {
 	switch v := any(h.ExposeSecret()).(type) {
 	case bool:
-		return Bool(v).MarshalText()
+		return marshalTextBool(v), nil
 	case float32:
-		return Float32(v).MarshalText()
+		return marshalTextFloat32(v), nil
 	case float64:
-		return Float64(v).MarshalText()
+		return marshalTextFloat64(v), nil
 	case int:
-		return Int(v).MarshalText()
+		return marshalTextInt(v), nil
 	case int8:
-		return Int8(v).MarshalText()
+		return marshalTextInt8(v), nil
 	case int16:
-		return Int16(v).MarshalText()
+		return marshalTextInt16(v), nil
 	case int32:
-		return Int32(v).MarshalText()
+		return marshalTextInt32(v), nil
 	case int64:
-		return Int64(v).MarshalText()
+		return marshalTextInt64(v), nil
 	case string:
-		return String(v).MarshalText()
+		return marshalTextString(v), nil
 	case uint:
-		return Uint(v).MarshalText()
+		return marshalTextUint(v), nil
 	case uint8:
-		return Uint8(v).MarshalText()
+		return marshalTextUint8(v), nil
 	case uint16:
-		return Uint16(v).MarshalText()
+		return marshalTextUint16(v), nil
 	case uint32:
-		return Uint32(v).MarshalText()
+		return marshalTextUint32(v), nil
 	case uint64:
-		return Uint64(v).MarshalText()
+		return marshalTextUint64(v), nil
 	default:
 		return nil, nil
 	}

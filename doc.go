@@ -2,10 +2,6 @@
 // fmt, encoding/json, other packages that use [encoding.TextMarshaler],
 // and from silent bugs caused by comparing secrets that hold indirections.
 //
-// Use only [Handle], [Ref], [SecretValuer] and the [Secret] interface for new code.
-// All other types in this package are deprecated legacy types
-// kept for compatibility — see the "Why not the plain named types" section.
-//
 // # Choosing a type
 //
 // The choice is driven by how == should behave on the secret:
@@ -71,15 +67,6 @@
 // that bypass the structural protection against fmt.
 // It is not a memory-disclosure defense — the key lives in ordinary Go memory,
 // unlike a mlock/guarded-page approach such as memguard.
-//
-// # Why not the plain named types (String, Int, Bytes, …)
-//
-// The [String]/[Int]/[Bytes]/… types are deprecated legacy types kept only for compatibility.
-// They redact through their [fmt.Formatter] methods,
-// which fmt skips the moment it descends through an unexported struct field or a pointer —
-// the raw value then leaks.
-// If you have to use them, then use https://github.com/powerman/lint-sensitive/
-// to detect accidental exposure through fmt.
 //
 // # Why typed redacted values
 //

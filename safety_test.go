@@ -47,20 +47,7 @@ type (
 	safetyWhPtrR    struct{ T *safetyInnerPtrR }
 )
 
-// --- Control types proving the WrapT leak is real ---
-
-// safetyCtrlSec holds an exported sensitive.String field.
-// sensitive.String is a Formatter (value receiver),
-// but *safetyCtrlSec is NOT a Formatter.
-// Under "bad verbs" (%s/%q) fmt skips Format on the
-// String field reached through this non-Formatter pointer,
-// causing the secret to leak.
-type (
-	safetyCtrlSec   struct{ secret sensitive.String }
-	safetyCtrlWrapT struct{ T *safetyCtrlSec }
-)
-
-// TestSafety_noLeak is the main regression matrix:
+// --- Redact-mode subprocess test ---
 // 10 container shapes × {Handle, Ref (minus map-key)} × {fmt, json, xml, slog}.
 // Every assertion checks the secret is absent; expectAddr shapes additionally
 // verify that the structural backstop (an 0x address) fires.
@@ -244,40 +231,6 @@ func TestSafety_noLeak(tt *testing.T) {
 		}
 	}
 }
-
-// TestSafety_controlStringWrapLeak proves that the non-Formatter pointer
-// path truly leaks a plain sensitive.String, so Handle/Ref surviving
-// it is a meaningful safety property, not a vacuous test.
-func TestSafety_controlStringWrapLeak(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
-
-	secret := safetySecret
-	ctl := safetyCtrlWrapT{T: &safetyCtrlSec{secret: sensitive.String(secret)}}
-
-	// Under %s/%q, *safetyCtrlSec is a non-Formatter pointer,
-	// so fmt skips safetyCtrlSec.secret's Format and prints the raw value.
-	for _, verb := range []string{"%s", "%q"} {
-		t.Run("verb_"+verb, func(tt *testing.T) {
-			tt.Parallel()
-			t := check.T(tt)
-			out := fmt.Sprintf(verb, ctl)
-			t.Contains(out, secret,
-				"control: sensitive.String MUST leak through *safetyCtrlWrapT under "+verb)
-		})
-	}
-
-	// Under %v, Format IS called (no badVerb), so no leak.
-	t.Run("verb_%v", func(tt *testing.T) {
-		tt.Parallel()
-		t := check.T(tt)
-		out := fmt.Sprintf("%v", ctl)
-		t.NotContains(out, secret,
-			"control: sensitive.String must NOT leak under %%v")
-	})
-}
-
-// --- Redact-mode subprocess test ---
 
 // testSafetyRedactMode is invoked as a subprocess entry point.
 //

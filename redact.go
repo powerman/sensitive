@@ -19,22 +19,22 @@ import (
 //	Bytes:   0xDEFACE
 //	Decimal: NaN
 func Redact() {
-	FormatBoolFn = func(_ Bool, f fmt.State, _ rune) { Format(f, 's', "FALSE") }
-	FormatFloat32Fn = func(_ Float32, f fmt.State, c rune) { Format(f, c, float32(math.NaN())) }
-	FormatFloat64Fn = func(_ Float64, f fmt.State, c rune) { Format(f, c, math.NaN()) }
-	FormatInt8Fn = func(_ Int8, f fmt.State, c rune) { Format(f, c, int8(math.MinInt8)) }
-	FormatInt16Fn = func(_ Int16, f fmt.State, c rune) { Format(f, c, int16(math.MinInt16)) }
-	FormatInt32Fn = func(_ Int32, f fmt.State, c rune) { Format(f, c, int32(math.MinInt32)) }
-	FormatInt64Fn = func(_ Int64, f fmt.State, c rune) { Format(f, c, int64(math.MinInt64)) }
-	FormatIntFn = func(_ Int, f fmt.State, c rune) { Format(f, c, int(math.MinInt32)) }
-	FormatUint8Fn = func(_ Uint8, f fmt.State, c rune) { Format(f, c, uint8(math.MaxUint8)) }
-	FormatUint16Fn = func(_ Uint16, f fmt.State, c rune) { Format(f, c, uint16(math.MaxUint16)) }
-	FormatUint32Fn = func(_ Uint32, f fmt.State, c rune) { Format(f, c, uint32(math.MaxUint32)) }
-	FormatUint64Fn = func(_ Uint64, f fmt.State, c rune) { Format(f, c, uint64(math.MaxUint64)) }
-	FormatUintFn = func(_ Uint, f fmt.State, c rune) { Format(f, c, uint(math.MaxUint32)) }
-	FormatStringFn = func(_ String, f fmt.State, c rune) { Format(f, c, "REDACTED") }
-	FormatBytesFn = func(_ Bytes, f fmt.State, c rune) { Format(f, c, []byte{0xDE, 0xFA, 0xCE}) }
-	FormatDecimalFn = func(_ Decimal, f fmt.State, c rune) { Format(f, c, math.NaN()) }
+	FormatBoolFn = func(_ bool, f fmt.State, _ rune) { Format(f, 's', "FALSE") }
+	FormatFloat32Fn = func(_ float32, f fmt.State, c rune) { Format(f, c, float32(math.NaN())) }
+	FormatFloat64Fn = func(_ float64, f fmt.State, c rune) { Format(f, c, math.NaN()) }
+	FormatInt8Fn = func(_ int8, f fmt.State, c rune) { Format(f, c, int8(math.MinInt8)) }
+	FormatInt16Fn = func(_ int16, f fmt.State, c rune) { Format(f, c, int16(math.MinInt16)) }
+	FormatInt32Fn = func(_ int32, f fmt.State, c rune) { Format(f, c, int32(math.MinInt32)) }
+	FormatInt64Fn = func(_ int64, f fmt.State, c rune) { Format(f, c, int64(math.MinInt64)) }
+	FormatIntFn = func(_ int, f fmt.State, c rune) { Format(f, c, int(math.MinInt32)) }
+	FormatUint8Fn = func(_ uint8, f fmt.State, c rune) { Format(f, c, uint8(math.MaxUint8)) }
+	FormatUint16Fn = func(_ uint16, f fmt.State, c rune) { Format(f, c, uint16(math.MaxUint16)) }
+	FormatUint32Fn = func(_ uint32, f fmt.State, c rune) { Format(f, c, uint32(math.MaxUint32)) }
+	FormatUint64Fn = func(_ uint64, f fmt.State, c rune) { Format(f, c, uint64(math.MaxUint64)) }
+	FormatUintFn = func(_ uint, f fmt.State, c rune) { Format(f, c, uint(math.MaxUint32)) }
+	FormatStringFn = func(_ string, f fmt.State, c rune) { Format(f, c, "REDACTED") }
+	FormatBytesFn = func(_ []byte, f fmt.State, c rune) { Format(f, c, []byte{0xDE, 0xFA, 0xCE}) }
+	FormatDecimalFn = func(_ decimal.Decimal, f fmt.State, c rune) { Format(f, c, math.NaN()) }
 }
 
 // Disable protection of sensitive values.
@@ -56,20 +56,20 @@ func Disable() {
 	if !strings.HasSuffix(name, ".test") || os.Getenv("GO_TEST_DISABLE_SENSITIVE") == "" {
 		return
 	}
-	FormatBoolFn = func(s Bool, f fmt.State, c rune) { Format(f, c, bool(s)) }
-	FormatFloat32Fn = func(s Float32, f fmt.State, c rune) { Format(f, c, float32(s)) }
-	FormatFloat64Fn = func(s Float64, f fmt.State, c rune) { Format(f, c, float64(s)) }
-	FormatInt8Fn = func(s Int8, f fmt.State, c rune) { Format(f, c, int8(s)) }
-	FormatInt16Fn = func(s Int16, f fmt.State, c rune) { Format(f, c, int16(s)) }
-	FormatInt32Fn = func(s Int32, f fmt.State, c rune) { Format(f, c, int32(s)) }
-	FormatInt64Fn = func(s Int64, f fmt.State, c rune) { Format(f, c, int64(s)) }
-	FormatIntFn = func(s Int, f fmt.State, c rune) { Format(f, c, int(s)) }
-	FormatUint8Fn = func(s Uint8, f fmt.State, c rune) { Format(f, c, uint8(s)) }
-	FormatUint16Fn = func(s Uint16, f fmt.State, c rune) { Format(f, c, uint16(s)) }
-	FormatUint32Fn = func(s Uint32, f fmt.State, c rune) { Format(f, c, uint32(s)) }
-	FormatUint64Fn = func(s Uint64, f fmt.State, c rune) { Format(f, c, uint64(s)) }
-	FormatUintFn = func(s Uint, f fmt.State, c rune) { Format(f, c, uint(s)) }
-	FormatStringFn = func(s String, f fmt.State, c rune) { Format(f, c, string(s)) }
-	FormatBytesFn = func(s Bytes, f fmt.State, c rune) { Format(f, c, []byte(s)) }
-	FormatDecimalFn = func(s Decimal, f fmt.State, c rune) { Format(f, c, decimal.Decimal(s)) }
+	FormatBoolFn = func(s bool, f fmt.State, c rune) { Format(f, c, s) }
+	FormatFloat32Fn = func(s float32, f fmt.State, c rune) { Format(f, c, s) }
+	FormatFloat64Fn = func(s float64, f fmt.State, c rune) { Format(f, c, s) }
+	FormatInt8Fn = func(s int8, f fmt.State, c rune) { Format(f, c, s) }
+	FormatInt16Fn = func(s int16, f fmt.State, c rune) { Format(f, c, s) }
+	FormatInt32Fn = func(s int32, f fmt.State, c rune) { Format(f, c, s) }
+	FormatInt64Fn = func(s int64, f fmt.State, c rune) { Format(f, c, s) }
+	FormatIntFn = func(s int, f fmt.State, c rune) { Format(f, c, s) }
+	FormatUint8Fn = func(s uint8, f fmt.State, c rune) { Format(f, c, s) }
+	FormatUint16Fn = func(s uint16, f fmt.State, c rune) { Format(f, c, s) }
+	FormatUint32Fn = func(s uint32, f fmt.State, c rune) { Format(f, c, s) }
+	FormatUint64Fn = func(s uint64, f fmt.State, c rune) { Format(f, c, s) }
+	FormatUintFn = func(s uint, f fmt.State, c rune) { Format(f, c, s) }
+	FormatStringFn = func(s string, f fmt.State, c rune) { Format(f, c, s) }
+	FormatBytesFn = func(s []byte, f fmt.State, c rune) { Format(f, c, s) }
+	FormatDecimalFn = func(s decimal.Decimal, f fmt.State, c rune) { Format(f, c, s) }
 }

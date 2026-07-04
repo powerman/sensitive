@@ -10,14 +10,14 @@ import (
 )
 
 func init() {
-	// Override the default redaction. This drives String as well as
-	// Ref[string]/Handle[string], since they all delegate to FormatStringFn.
-	sensitive.FormatStringFn = func(s sensitive.String, f fmt.State, c rune) {
+	// Override the default redaction. This drives Ref[string] and
+	// Handle[string], since they both delegate to FormatStringFn.
+	sensitive.FormatStringFn = func(s string, f fmt.State, c rune) {
 		switch c {
 		default:
 			sensitive.Format(f, c, "redacted")
 		case 'v':
-			sensitive.Format(f, c, string(s)[:4]+"*******")
+			sensitive.Format(f, c, s[:4]+"*******")
 		}
 	}
 }

@@ -22,10 +22,6 @@ so the secret stays protected **regardless of how it is reached** —
 even through an unexported struct field or a pointer,
 where interface-based redaction silently gives up.
 
-> The legacy named types (`String`, `Int`, `Bytes`, …) are **deprecated** and
-> kept only for compatibility. They rely on interfaces alone and can leak — see
-> [Deprecated legacy types](#deprecated-legacy-types).
-
 ## Quick start
 
 ```go
@@ -262,8 +258,8 @@ Pick a policy at startup:
 - Override an individual `Format<Type>Fn` for custom output (e.g. show the first few characters):
 
   ```go
-  sensitive.FormatStringFn = func(s sensitive.String, f fmt.State, c rune) {
-      sensitive.Format(f, c, s.ExposeSecret()[:4]+"…")
+  sensitive.FormatStringFn = func(s string, f fmt.State, c rune) {
+      sensitive.Format(f, c, s[:4]+"…")
   }
   ```
 
@@ -273,16 +269,6 @@ Pick a policy at startup:
 - `sensitive.Disable()` — print the real value, for tests only.
   It is a no-op unless the binary name ends in `.test` and `GO_TEST_DISABLE_SENSITIVE` is set,
   minimizing the chance of disabling protection in production.
-
-## Deprecated legacy types
-
-`Bool`, `Bytes`, `Decimal`, `Float32/64`, `Int/8/16/32/64`, `String`, `Uint/8/16/32/64`
-are kept only for backward compatibility.
-They redact through their `fmt.Formatter` method,
-which `fmt` skips the moment it descends through an unexported struct field or a pointer —
-the raw secret then leaks.
-Prefer `Ref` and `Handle` in new code; if you must keep these, guard them with
-[lint-sensitive](https://github.com/powerman/lint-sensitive).
 
 ## Memory zeroization
 
@@ -299,8 +285,3 @@ Runnable programs live in [`_examples/`](_examples/):
 - [`basic`](_examples/basic/main.go) — `Ref` with `Redact()`.
 - [`custom`](_examples/custom/main.go) — custom redaction via `FormatStringFn`.
 - [`handle`](_examples/handle/main.go) — `Handle` value equality and map keys.
-
----
-
-_Inspired by and started as a fork of
-[go-playground/sensitive](https://github.com/go-playground/sensitive)._

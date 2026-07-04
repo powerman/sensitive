@@ -29,6 +29,27 @@ func equal(a, b any) bool {
 	return reflect.DeepEqual(a, b)
 }
 
+// resetFormatFns restores all Format<Type>Fn to their default no-op state.
+// Useful in t.Cleanup after tests that mutate global Format<Type>Fn.
+func resetFormatFns() {
+	sensitive.FormatBoolFn = func(_ bool, _ fmt.State, _ rune) {}
+	sensitive.FormatBytesFn = func(_ []byte, _ fmt.State, _ rune) {}
+	sensitive.FormatDecimalFn = func(_ decimal.Decimal, _ fmt.State, _ rune) {}
+	sensitive.FormatFloat32Fn = func(_ float32, _ fmt.State, _ rune) {}
+	sensitive.FormatFloat64Fn = func(_ float64, _ fmt.State, _ rune) {}
+	sensitive.FormatIntFn = func(_ int, _ fmt.State, _ rune) {}
+	sensitive.FormatInt8Fn = func(_ int8, _ fmt.State, _ rune) {}
+	sensitive.FormatInt16Fn = func(_ int16, _ fmt.State, _ rune) {}
+	sensitive.FormatInt32Fn = func(_ int32, _ fmt.State, _ rune) {}
+	sensitive.FormatInt64Fn = func(_ int64, _ fmt.State, _ rune) {}
+	sensitive.FormatStringFn = func(_ string, _ fmt.State, _ rune) {}
+	sensitive.FormatUintFn = func(_ uint, _ fmt.State, _ rune) {}
+	sensitive.FormatUint8Fn = func(_ uint8, _ fmt.State, _ rune) {}
+	sensitive.FormatUint16Fn = func(_ uint16, _ fmt.State, _ rune) {}
+	sensitive.FormatUint32Fn = func(_ uint32, _ fmt.State, _ rune) {}
+	sensitive.FormatUint64Fn = func(_ uint64, _ fmt.State, _ rune) {}
+}
+
 // structWithUnexportedRef holds Ref values in unexported fields.
 type structWithUnexportedRef struct {
 	s  sensitive.Ref[string]
@@ -221,6 +242,84 @@ func TestRef_json(tt *testing.T) {
 	result, err = json.Marshal(empty)
 	t.Nil(err)
 	t.Equal(string(result), "null")
+}
+
+func TestRef_marshalText(tt *testing.T) {
+	// Must not be parallel — modifies global Format<Type>Fn.
+	// Must be in .test binary with GO_TEST_DISABLE_SENSITIVE set
+	// so MarshalText exercises the marshalText* helpers with real values.
+	t := check.T(tt).MustAll()
+
+	tt.Setenv("GO_TEST_DISABLE_SENSITIVE", "1")
+	sensitive.Disable()
+	// Restore defaults so other tests still see redacted output.
+	t.Cleanup(resetFormatFns)
+
+	tests := []struct {
+		name  string
+		value any
+		want  string
+	}{
+		{name: "bool", value: sensitive.New(true), want: "true"},
+		{name: "bytes", value: sensitive.New([]byte("raw")), want: "726177"},
+		{name: "float32", value: sensitive.New(float32(3.14)), want: "3.14"},
+		{name: "float64", value: sensitive.New(3.14), want: "3.14"},
+		{name: "int", value: sensitive.New(42), want: "42"},
+		{name: "int8", value: sensitive.New(int8(42)), want: "42"},
+		{name: "int16", value: sensitive.New(int16(42)), want: "42"},
+		{name: "int32", value: sensitive.New(int32(42)), want: "42"},
+		{name: "int64", value: sensitive.New(int64(42)), want: "42"},
+		{name: "string", value: sensitive.New("hello"), want: "hello"},
+		{name: "uint", value: sensitive.New(uint(42)), want: "42"},
+		{name: "uint8", value: sensitive.New(uint8(42)), want: "42"},
+		{name: "uint16", value: sensitive.New(uint16(42)), want: "42"},
+		{name: "uint32", value: sensitive.New(uint32(42)), want: "42"},
+		{name: "uint64", value: sensitive.New(uint64(42)), want: "42"},
+		{name: "decimal", value: sensitive.New(decimal.NewFromFloat(1.5)), want: "1.5"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(tt *testing.T) {
+			// Not parallel — global Format<Type>Fn modification.
+			t := check.T(tt)
+
+			tm, ok := tc.value.(encoding.TextMarshaler)
+			t.True(ok, "Ref should implement encoding.TextMarshaler")
+			got, err := tm.MarshalText()
+			t.Nil(err, "MarshalText should not error")
+			t.Equal(string(got), tc.want)
+		})
+	}
+}
+
+//nolint:paralleltest // modifies global Format<Type>Fn
+func TestRef_jsonRedactedNaN(tt *testing.T) {
+	// Must not be parallel — modifies global Format<Type>Fn.
+	t := check.T(tt).MustAll()
+
+	sensitive.Redact()
+	t.Cleanup(resetFormatFns)
+
+	t.Run("float32", func(tt *testing.T) {
+		t := check.T(tt)
+		b, err := json.Marshal(sensitive.New(float32(1.0)))
+		t.Nil(err)
+		t.Equal(string(b), "null")
+	})
+
+	t.Run("float64", func(tt *testing.T) {
+		t := check.T(tt)
+		b, err := json.Marshal(sensitive.New(1.0))
+		t.Nil(err)
+		t.Equal(string(b), "null")
+	})
+
+	t.Run("decimal", func(tt *testing.T) {
+		t := check.T(tt)
+		b, err := json.Marshal(sensitive.New(decimal.NewFromFloat(1.5)))
+		t.Nil(err)
+		t.Equal(string(b), "null")
+	})
 }
 
 func TestRef_zeroValue(tt *testing.T) {

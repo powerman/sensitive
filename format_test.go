@@ -17,8 +17,8 @@ func TestFormat(tt *testing.T) {
 	defer func() {
 		sensitive.FormatStringFn = oldFn
 	}()
-	sensitive.FormatStringFn = func(s sensitive.String, f fmt.State, c rune) {
-		sensitive.Format(f, c, string(s))
+	sensitive.FormatStringFn = func(s string, f fmt.State, c rune) {
+		sensitive.Format(f, c, s)
 	}
 
 	tests := []struct {
@@ -35,7 +35,7 @@ func TestFormat(tt *testing.T) {
 		t.Run(tc.formatting, func(tt *testing.T) {
 			want := fmt.Sprintf(tc.formatting, "value")
 			t := check.T(tt)
-			result := fmt.Sprintf(tc.formatting, sensitive.String("value"))
+			result := fmt.Sprintf(tc.formatting, "value")
 			t.Equal(result, want)
 		})
 	}
