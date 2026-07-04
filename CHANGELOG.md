@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-07-04
+
+### ➖ Removed
+
+- **⚠️ BREAKING!** Remove deprecated legacy named types by @powerman in [602383c]
+
+[0.6.0]: https://github.com/powerman/sensitive/compare/v0.5.1..v0.6.0
+[602383c]: https://github.com/powerman/sensitive/commit/602383cdb586e694ba1f9f6441d6159f47e22343
+
 ## [0.5.1] - 2026-07-04
 
 ### 📚 Documentation
