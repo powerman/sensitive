@@ -175,9 +175,25 @@ _, err := db.Exec(`UPDATE users SET password = ? WHERE id = ?`,
     cfg.Password.ExposeSecretValuer(), id)
 ```
 
-`SecretValuer` is structurally protected and redacts under `fmt`/`json`,
-so even if the wrapper is logged by accident the secret does not leak —
-the plaintext reaches only the database driver.
+`SecretValuer` also implements `json.Marshaler` and `encoding.TextMarshaler`,
+so the same wrapper can be used for JSON/text serialization to the wire.
+It implements `slog.LogValuer` to redact under structured logging,
+so neither `slog.JSONHandler` nor `slog.TextHandler` can leak the secret.
+`fmt.Formatter` is promoted from `Ref` and redacts under all `fmt` verbs.
+The secret is exposed **only** through `driver.Valuer`, `json.Marshaler`,
+and `encoding.TextMarshaler` — the intended trusted sinks.
+
+Because `*Ref`'s ingress methods
+(`json.Unmarshaler`, `encoding.TextUnmarshaler`, `database/sql.Scanner`)
+are promoted onto `SecretValuer`, it also works as a combined egress+ingress DTO:
+data arrives through Unmarshal/Scan, is held protected by the embedded `Ref`,
+and leaves through Marshal/Value.
+This avoids materializing the secret as a plain string in application code.
+
+> **Keep it confined to the egress/round-trip DTO.**
+> Unlike `driver.Valuer`, `MarshalJSON`/`MarshalText` have an open consumer set
+> (HTTP body, cache).
+> Do not `json.Marshal` a struct that holds a live `SecretValuer` into a log or error message.
 
 ## When interface-only redaction breaks
 
