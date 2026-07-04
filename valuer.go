@@ -58,6 +58,7 @@ type SecretValuer[T any] struct {
 }
 
 // Value implements [driver.Valuer].
+// It exposes the underlying secret as a database driver value.
 func (sv SecretValuer[T]) Value() (driver.Value, error) {
 	v := sv.ref.ExposeSecret()
 	if vr, ok := any(v).(driver.Valuer); ok {
@@ -100,7 +101,7 @@ func (sv SecretValuer[T]) Value() (driver.Value, error) {
 }
 
 // MarshalJSON implements [json.Marshaler].
-// It exposes the underlying secret by delegating to [json.Marshal].
+// It exposes the underlying secret as JSON.
 //
 //lint:ignore errchkjson // Delegates to json.Marshal which is already checked.
 func (sv SecretValuer[T]) MarshalJSON() ([]byte, error) {
@@ -193,6 +194,7 @@ func (sv SecretValuer[T]) LogValue() slog.Value {
 }
 
 // Format implements [fmt.Formatter].
+// It produces redacted output so the secret never appears in formatted strings.
 func (sv SecretValuer[T]) Format(f fmt.State, c rune) { sv.ref.Format(f, c) }
 
 // IsZero reports whether the underlying [Ref] holds the zero value.

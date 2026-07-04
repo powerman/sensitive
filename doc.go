@@ -2,7 +2,7 @@
 // fmt, encoding/json, other packages that use [encoding.TextMarshaler],
 // and from silent bugs caused by comparing secrets that hold indirections.
 //
-// Use only [Handle], [Ref], and the [Secret] interface for new code.
+// Use only [Handle], [Ref], [SecretValuer] and the [Secret] interface for new code.
 // All other types in this package are deprecated legacy types
 // kept for compatibility — see the "Why not the plain named types" section.
 //
@@ -10,13 +10,26 @@
 //
 // The choice is driven by how == should behave on the secret:
 //
-//  1. == does NOT compare by value → [Ref]: []byte (compile error),
-//     decimal.Decimal (pointer identity, silently wrong), composite structs.
-//     (These are exactly what [Comparable] rejects, so they cannot be a Handle.)
-//  2. == compares by value (string, bool, int*, uint*, float*, and named types
-//     over them — exactly what [Comparable] accepts) → ask whether using == is HARMFUL:
-//     harmful (passwords, hashes — compared constant-time, never with ==) → [Ref].
-//     otherwise (tokens, IDs, API keys) → [Handle].
+//  1. == does NOT compare by value
+//     → [Ref]: []byte (compile error),
+//       decimal.Decimal (pointer identity, silently wrong), composite structs.
+//     These are exactly what [Comparable] rejects, so they cannot be a [Handle].
+//
+//  2. == compares by value
+//     (string, bool, int*, uint*, float*, and named types over them —
+//     exactly what [Comparable] accepts)
+//     → ask whether using == is HARMFUL:
+//
+//       - harmful (passwords, hashes — compared constant-time,
+//         never with ==) → [Ref].
+//
+//       - otherwise (tokens, IDs, API keys) → [Handle].
+//
+//  3. For ingress/egress DTO — the secret crosses a system boundary:
+//     database, JSON/text serialization.
+//     → [SecretValuer], a combined egress+ingress type
+//       that exposes the secret to trusted sinks
+//       while staying redaction-safe under [fmt] and [slog].
 //
 // Behavioral analogy: [Handle] behaves like string (value ==, valid map key);
 // [Ref] behaves like []byte (== and map keys are compile errors).
@@ -29,6 +42,7 @@
 // # Comparing and indexing
 //
 // With [Handle], == and map keys work by value, just like string.
+//
 // With [Ref], == is a compile-time error (as it is for []byte),
 // so an accidental comparison fails loudly instead of silently returning false;
 // compare values explicitly with [bytes.Equal] / [decimal.Equal] / a constant-time compare,
@@ -44,12 +58,12 @@
 // are the sole defense against serialization: encoders walk only exported fields,
 // so structural protection never engages, but these methods always run.
 //
+// The [fmt.Formatter] method, by contrast, is only cosmetic,
+// adding readable REDACTED output on the clean paths where fmt can reach the value.
+//
 // Structural protection is the real defense against fmt:
 // both [Ref] and [Handle] keep the value behind a pointer that fmt reflection never follows,
 // so it can only ever reach a pointer address, never the secret.
-//
-// The [fmt.Formatter] method, by contrast, is only cosmetic,
-// adding readable REDACTED output on the clean paths where fmt can reach the value.
 //
 // In-memory encryption is an add-on for string and []byte only:
 // those are stored as ciphertext under a random per-process AES-256 key,

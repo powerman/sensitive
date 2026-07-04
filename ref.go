@@ -79,6 +79,8 @@ func (r Ref[T]) IsZero() bool {
 }
 
 // Format implements [fmt.Formatter].
+// It produces redacted text output
+// controlled by the Format<Type>Fn package-level variables.
 func (r Ref[T]) Format(f fmt.State, c rune) {
 	switch v := any(r.ExposeSecret()).(type) {
 	case bool:
@@ -120,6 +122,7 @@ func (r Ref[T]) Format(f fmt.State, c rune) {
 }
 
 // MarshalJSON implements [json.Marshaler].
+// It exposes the underlying secret as JSON.
 //
 //lint:ignore errchkjson // Delegates to existing marshalers.
 func (r Ref[T]) MarshalJSON() ([]byte, error) {
@@ -162,6 +165,7 @@ func (r Ref[T]) MarshalJSON() ([]byte, error) {
 }
 
 // MarshalText implements [encoding.TextMarshaler].
+// It exposes the underlying secret as text.
 func (r Ref[T]) MarshalText() (text []byte, err error) {
 	switch v := any(r.ExposeSecret()).(type) {
 	case bool:
@@ -441,8 +445,9 @@ func (r *Ref[T]) Scan(src any) error {
 	return nil
 }
 
-// ExposeSecretValuer returns a [SecretValuer] that implements [database/sql/driver.Valuer].
-// Use this at the call site to pass the secret to a database driver explicitly.
+// ExposeSecretValuer returns a [SecretValuer] that exposes the secret
+// to trusted egress sinks: database drivers, JSON/text serialization.
+// Use this at the call site to pass the secret to those sinks explicitly.
 func (r Ref[T]) ExposeSecretValuer() SecretValuer[T] {
 	return SecretValuer[T]{ref: r}
 }

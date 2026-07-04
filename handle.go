@@ -55,7 +55,7 @@ var (
 // == on them is an anti-pattern (compare hashes constant-time), so use [Ref].
 //
 // Equal values are canonicalized to a single pointer via the runtime's
-// unique-handle intern pool, so == and map lookups work by value.
+// [unique.Handle] intern pool, so == and map lookups work by value.
 // Making a Handle inserts the value into a process-global intern table;
 // the entry is held weakly and is reclaimed when no Handle refers to it.
 //
@@ -69,7 +69,7 @@ type Handle[T Comparable] struct{ h unique.Handle[T] }
 
 // Make returns a [Handle] holding v.
 // Equal values are canonicalized to a single pointer via
-// the runtime's unique-handle intern pool,
+// the runtime's [unique.Handle] intern pool,
 // so == and map lookups work by value.
 // Making a Handle inserts v into a process-global weak intern table;
 // the entry is reclaimed when no Handle refers to it.
@@ -96,6 +96,8 @@ func (h Handle[T]) IsZero() bool {
 }
 
 // Format implements [fmt.Formatter].
+// It produces redacted text output
+// controlled by the Format<Type>Fn package-level variables.
 func (h Handle[T]) Format(f fmt.State, c rune) {
 	switch v := any(h.ExposeSecret()).(type) {
 	case bool:
@@ -133,6 +135,7 @@ func (h Handle[T]) Format(f fmt.State, c rune) {
 }
 
 // MarshalJSON implements [json.Marshaler].
+// It exposes the underlying secret as JSON.
 //
 //lint:ignore errchkjson // Delegates to existing marshalers.
 func (h Handle[T]) MarshalJSON() ([]byte, error) {
@@ -171,6 +174,7 @@ func (h Handle[T]) MarshalJSON() ([]byte, error) {
 }
 
 // MarshalText implements [encoding.TextMarshaler].
+// It exposes the underlying secret as text.
 func (h Handle[T]) MarshalText() (text []byte, err error) {
 	switch v := any(h.ExposeSecret()).(type) {
 	case bool:
@@ -433,8 +437,9 @@ func (h *Handle[T]) Scan(src any) error {
 	return nil
 }
 
-// ExposeSecretValuer returns a [SecretValuer] that implements [database/sql/driver.Valuer].
-// Use this at the call site to pass the secret to a database driver explicitly.
+// ExposeSecretValuer returns a [SecretValuer] that exposes the secret
+// to trusted egress sinks: database drivers, JSON/text serialization.
+// Use this at the call site to pass the secret to those sinks explicitly.
 func (h Handle[T]) ExposeSecretValuer() SecretValuer[T] {
 	return SecretValuer[T]{ref: New(h.ExposeSecret())}
 }
