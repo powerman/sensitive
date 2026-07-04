@@ -2,6 +2,7 @@ package sensitive
 
 import (
 	"bytes"
+	"reflect"
 	"testing"
 
 	"github.com/powerman/check"
@@ -152,4 +153,57 @@ func TestCrypt_nonStringUnchanged(tt *testing.T) {
 		t.Nil(**r.pp, "nil []byte must be stored and returned as nil")
 		t.Nil(r.ExposeSecret(), "ExposeSecret must return nil for nil input")
 	})
+}
+
+// TestCrypt_decryptBytesShort verifies that decryptBytes returns input
+// unchanged when ciphertext is shorter than aes.BlockSize.
+func TestCrypt_decryptBytesShort(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
+
+	input := []byte{1, 2, 3}
+	result := decryptBytes(input)
+	t.True(bytes.Equal(result, input), "decryptBytes of short input must return it unchanged")
+}
+
+// TestCrypt_getCryptoKey verifies that getCryptoKey returns a 32-byte key.
+func TestCrypt_getCryptoKey(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
+
+	key := getCryptoKey()
+	t.NotPanic(func() { _ = key[0] }, "crypto key must be accessible")
+	t.Equal(len(key), 32, "crypto key must be 32 bytes")
+}
+
+// TestCrypt_nonUint8Slice verifies that encryptT/decryptT pass through
+// a non-uint8 slice ([]int) unchanged.
+func TestCrypt_nonUint8Slice(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
+
+	input := []int{1, 2, 3}
+	encrypted := encryptT(input)
+	t.True(reflect.DeepEqual(encrypted, input), "encryptT must pass through non-uint8 slice unchanged")
+
+	decrypted := decryptT(encrypted)
+	t.True(reflect.DeepEqual(decrypted, input), "decryptT must return non-uint8 slice unchanged")
+}
+
+// namedBytes is a named type over []byte, used to test that
+// encryptT/decryptT work correctly with named byte slice types.
+type namedBytes []byte
+
+// TestCrypt_namedBytesRoundTrip verifies that a named []byte type
+// round-trips through encryptT+decryptT correctly.
+func TestCrypt_namedBytesRoundTrip(tt *testing.T) {
+	tt.Parallel()
+	t := check.T(tt).MustAll()
+
+	input := namedBytes("hello")
+	encrypted := encryptT(input)
+	t.NotEqual(string(encrypted), "hello", "named []byte must be encrypted")
+
+	decrypted := decryptT(encrypted)
+	t.Equal(string(decrypted), "hello", "named []byte must decrypt to original value")
 }
