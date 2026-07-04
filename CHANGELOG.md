@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-07-04
+
+### 🔔 Changed
+
+- Broaden SecretValuer to expose secrets for JSON/Text serialization by @powerman in [43fe8a7]
+- Make SecretValuer an inert non-embedding egress+ingress type by @powerman in [165a585]
+
+[0.5.0]: https://github.com/powerman/sensitive/compare/v0.4.0..v0.5.0
+[43fe8a7]: https://github.com/powerman/sensitive/commit/43fe8a78d1c280d40874d46efa3ef8f5c9c89000
+[165a585]: https://github.com/powerman/sensitive/commit/165a585ad7afb7b1f78965bf3f45f4d6dca0fa73
+
 ## [0.4.0] - 2026-07-04
 
 ### 🚀 Added
