@@ -88,6 +88,13 @@ func (h Handle[T]) ExposeSecret() T {
 	return decryptT(h.h.Value())
 }
 
+// IsZero reports whether h holds the zero T value.
+// It returns true both for the zero [Handle] and for a Handle created with [Make](zero T).
+func (h Handle[T]) IsZero() bool {
+	var z T
+	return h.ExposeSecret() == z
+}
+
 // Format implements [fmt.Formatter].
 func (h Handle[T]) Format(f fmt.State, c rune) {
 	switch v := any(h.ExposeSecret()).(type) {

@@ -5,6 +5,7 @@ import (
 	"encoding"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strconv"
 
 	"github.com/shopspring/decimal"
@@ -66,6 +67,15 @@ func (r Ref[T]) ExposeSecret() T {
 		return z
 	}
 	return decryptT(**r.pp)
+}
+
+// IsZero reports whether r holds the zero T value.
+// It returns true both for the zero [Ref] and for a Ref created with [New](zero T).
+func (r Ref[T]) IsZero() bool {
+	rv := reflect.ValueOf(r.ExposeSecret())
+	// ExposeSecret can return a nil interface value when T=any and r is zero.
+	// reflect.Value.IsZero panics on the zero Value, so guard against that.
+	return !rv.IsValid() || rv.IsZero()
 }
 
 // Format implements [fmt.Formatter].
