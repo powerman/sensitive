@@ -47,9 +47,8 @@ func fieldNotInJSON(data []byte, field string) bool {
 	return !fieldInJSON(data, field)
 }
 
-func TestJSONTags_omitempty_omitzero(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestJSONTags_omitempty_omitzero(t *testing.T) {
+	t.Parallel()
 
 	// Expected behavior after adding IsZero() to Ref and Handle:
 	//   - omitempty  -> never omits struct fields
@@ -58,7 +57,7 @@ func TestJSONTags_omitempty_omitzero(tt *testing.T) {
 
 	t.Run("uninitialized_zero_value", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var v jsonTagged
 		b, err := json.Marshal(v)
 		t.Nil(err)
@@ -80,7 +79,7 @@ func TestJSONTags_omitempty_omitzero(tt *testing.T) {
 
 	t.Run("empty_value_new_make_emptystring", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		v := jsonTagged{
 			RefEmpty:     sensitive.New(""),
 			RefEmptyZ:    sensitive.New(""),
@@ -109,7 +108,7 @@ func TestJSONTags_omitempty_omitzero(tt *testing.T) {
 
 	t.Run("nonempty_value_new_make_value", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		v := jsonTagged{
 			RefValue:     sensitive.New("hello"),
 			RefValueZ:    sensitive.New("hello"),
@@ -130,7 +129,7 @@ func TestJSONTags_omitempty_omitzero(tt *testing.T) {
 
 	t.Run("ref_bytes_nil", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		v := jsonTagged{
 			RefBytesNil:  sensitive.New([]byte(nil)),
 			RefBytesNilZ: sensitive.New([]byte(nil)),
@@ -147,7 +146,7 @@ func TestJSONTags_omitempty_omitzero(tt *testing.T) {
 
 	t.Run("ref_bytes_empty", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		v := jsonTagged{
 			RefBytesEmpty:  sensitive.New([]byte{}),
 			RefBytesEmptyZ: sensitive.New([]byte{}),

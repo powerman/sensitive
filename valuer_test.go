@@ -15,13 +15,12 @@ import (
 	"github.com/powerman/sensitive"
 )
 
-func TestSecretValuer_Value(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestSecretValuer_Value(t *testing.T) {
+	t.Parallel()
 
 	t.Run("string", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		sv := sensitive.New("secret").ExposeSecretValuer()
 		v, err := sv.Value()
 		t.Nil(err)
@@ -30,7 +29,7 @@ func TestSecretValuer_Value(tt *testing.T) {
 
 	t.Run("bytes", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		sv := sensitive.New([]byte("raw")).ExposeSecretValuer()
 		v, err := sv.Value()
 		t.Nil(err)
@@ -41,7 +40,7 @@ func TestSecretValuer_Value(tt *testing.T) {
 
 	t.Run("bool", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		sv := sensitive.New(true).ExposeSecretValuer()
 		v, err := sv.Value()
 		t.Nil(err)
@@ -50,7 +49,7 @@ func TestSecretValuer_Value(tt *testing.T) {
 
 	t.Run("int", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		sv := sensitive.New(42).ExposeSecretValuer()
 		v, err := sv.Value()
 		t.Nil(err)
@@ -59,7 +58,7 @@ func TestSecretValuer_Value(tt *testing.T) {
 
 	t.Run("float64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		sv := sensitive.New(2.718).ExposeSecretValuer()
 		v, err := sv.Value()
 		t.Nil(err)
@@ -68,7 +67,7 @@ func TestSecretValuer_Value(tt *testing.T) {
 
 	t.Run("decimal_via_Valuer", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		d := decimal.NewFromFloat(1.5)
 		sv := sensitive.New(d).ExposeSecretValuer()
 		v, err := sv.Value()
@@ -78,7 +77,7 @@ func TestSecretValuer_Value(tt *testing.T) {
 
 	t.Run("unsupported_type_error_not_panic", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		sv := sensitive.New(testStruct{A: "x", B: 1}).ExposeSecretValuer()
 		var err error
 		t.NotPanic(func() { _, err = sv.Value() })
@@ -87,7 +86,7 @@ func TestSecretValuer_Value(tt *testing.T) {
 
 	t.Run("zero_ref", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[string]
 		v, err := r.ExposeSecretValuer().Value()
 		t.Nil(err)
@@ -96,7 +95,7 @@ func TestSecretValuer_Value(tt *testing.T) {
 
 	t.Run("int8", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		sv := sensitive.New(int8(-128)).ExposeSecretValuer()
 		v, err := sv.Value()
 		t.Nil(err)
@@ -105,7 +104,7 @@ func TestSecretValuer_Value(tt *testing.T) {
 
 	t.Run("int16", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		sv := sensitive.New(int16(32767)).ExposeSecretValuer()
 		v, err := sv.Value()
 		t.Nil(err)
@@ -114,7 +113,7 @@ func TestSecretValuer_Value(tt *testing.T) {
 
 	t.Run("int32", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		sv := sensitive.New(int32(math.MinInt32)).ExposeSecretValuer()
 		v, err := sv.Value()
 		t.Nil(err)
@@ -123,7 +122,7 @@ func TestSecretValuer_Value(tt *testing.T) {
 
 	t.Run("int64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		sv := sensitive.New(int64(math.MinInt64)).ExposeSecretValuer()
 		v, err := sv.Value()
 		t.Nil(err)
@@ -132,7 +131,7 @@ func TestSecretValuer_Value(tt *testing.T) {
 
 	t.Run("uint", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		sv := sensitive.New(uint(0)).ExposeSecretValuer()
 		v, err := sv.Value()
 		t.Nil(err)
@@ -141,7 +140,7 @@ func TestSecretValuer_Value(tt *testing.T) {
 
 	t.Run("uint8", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		sv := sensitive.New(uint8(255)).ExposeSecretValuer()
 		v, err := sv.Value()
 		t.Nil(err)
@@ -150,7 +149,7 @@ func TestSecretValuer_Value(tt *testing.T) {
 
 	t.Run("uint16", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		sv := sensitive.New(uint16(65535)).ExposeSecretValuer()
 		v, err := sv.Value()
 		t.Nil(err)
@@ -159,7 +158,7 @@ func TestSecretValuer_Value(tt *testing.T) {
 
 	t.Run("uint32", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		sv := sensitive.New(uint32(math.MaxUint32)).ExposeSecretValuer()
 		v, err := sv.Value()
 		t.Nil(err)
@@ -168,7 +167,7 @@ func TestSecretValuer_Value(tt *testing.T) {
 
 	t.Run("float32", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		sv := sensitive.New(float32(1.5)).ExposeSecretValuer()
 		v, err := sv.Value()
 		t.Nil(err)
@@ -177,16 +176,15 @@ func TestSecretValuer_Value(tt *testing.T) {
 	})
 }
 
-func TestSecretValuer_redacts(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestSecretValuer_redacts(t *testing.T) {
+	t.Parallel()
 
 	const secret = "mysecretvalue"
 	sv := sensitive.New(secret).ExposeSecretValuer()
 
 	t.Run("fmt_verbs", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		for _, verb := range []string{"%v", "%+v", "%#v", "%s", "%q"} {
 			t.NotContains(fmt.Sprintf(verb, sv), secret,
 				"SecretValuer must not leak via %s", verb)
@@ -194,28 +192,26 @@ func TestSecretValuer_redacts(tt *testing.T) {
 	})
 }
 
-func TestSecretValuer_exposes(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestSecretValuer_exposes(t *testing.T) {
+	t.Parallel()
 
 	const secret = "mysecretvalue"
 
 	t.Run("json_marshal", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		sv := sensitive.New(secret).ExposeSecretValuer()
 		b, err := json.Marshal(sv)
 		t.Nil(err)
 		t.Contains(string(b), secret, "SecretValuer must expose secret via json.Marshal")
 	})
 
-	t.Run("marshal_text", func(tt *testing.T) {
-		tt.Parallel()
-		t := check.T(tt)
+	t.Run("marshal_text", func(t *testing.T) {
+		t.Parallel()
 
 		t.Run("string", func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			sv := sensitive.New("mytext").ExposeSecretValuer()
 			text, err := sv.MarshalText()
 			t.Nil(err)
@@ -224,7 +220,7 @@ func TestSecretValuer_exposes(tt *testing.T) {
 
 		t.Run("bytes", func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			sv := sensitive.New([]byte("raw")).ExposeSecretValuer()
 			text, err := sv.MarshalText()
 			t.Nil(err)
@@ -233,7 +229,7 @@ func TestSecretValuer_exposes(tt *testing.T) {
 
 		t.Run("bool", func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			sv := sensitive.New(true).ExposeSecretValuer()
 			text, err := sv.MarshalText()
 			t.Nil(err)
@@ -242,7 +238,7 @@ func TestSecretValuer_exposes(tt *testing.T) {
 
 		t.Run("int", func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			sv := sensitive.New(42).ExposeSecretValuer()
 			text, err := sv.MarshalText()
 			t.Nil(err)
@@ -251,7 +247,7 @@ func TestSecretValuer_exposes(tt *testing.T) {
 
 		t.Run("int8", func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			sv := sensitive.New(int8(-42)).ExposeSecretValuer()
 			text, err := sv.MarshalText()
 			t.Nil(err)
@@ -260,7 +256,7 @@ func TestSecretValuer_exposes(tt *testing.T) {
 
 		t.Run("int16", func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			sv := sensitive.New(int16(32767)).ExposeSecretValuer()
 			text, err := sv.MarshalText()
 			t.Nil(err)
@@ -269,7 +265,7 @@ func TestSecretValuer_exposes(tt *testing.T) {
 
 		t.Run("int32", func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			sv := sensitive.New(int32(math.MinInt32)).ExposeSecretValuer()
 			text, err := sv.MarshalText()
 			t.Nil(err)
@@ -278,7 +274,7 @@ func TestSecretValuer_exposes(tt *testing.T) {
 
 		t.Run("int64", func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			sv := sensitive.New(int64(-1)).ExposeSecretValuer()
 			text, err := sv.MarshalText()
 			t.Nil(err)
@@ -287,7 +283,7 @@ func TestSecretValuer_exposes(tt *testing.T) {
 
 		t.Run("uint", func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			sv := sensitive.New(uint(0)).ExposeSecretValuer()
 			text, err := sv.MarshalText()
 			t.Nil(err)
@@ -296,7 +292,7 @@ func TestSecretValuer_exposes(tt *testing.T) {
 
 		t.Run("uint8", func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			sv := sensitive.New(uint8(255)).ExposeSecretValuer()
 			text, err := sv.MarshalText()
 			t.Nil(err)
@@ -305,7 +301,7 @@ func TestSecretValuer_exposes(tt *testing.T) {
 
 		t.Run("uint16", func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			sv := sensitive.New(uint16(65535)).ExposeSecretValuer()
 			text, err := sv.MarshalText()
 			t.Nil(err)
@@ -314,7 +310,7 @@ func TestSecretValuer_exposes(tt *testing.T) {
 
 		t.Run("uint32", func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			sv := sensitive.New(uint32(math.MaxUint32)).ExposeSecretValuer()
 			text, err := sv.MarshalText()
 			t.Nil(err)
@@ -323,7 +319,7 @@ func TestSecretValuer_exposes(tt *testing.T) {
 
 		t.Run("float32", func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			sv := sensitive.New(float32(1.5)).ExposeSecretValuer()
 			text, err := sv.MarshalText()
 			t.Nil(err)
@@ -332,7 +328,7 @@ func TestSecretValuer_exposes(tt *testing.T) {
 
 		t.Run("float64", func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			sv := sensitive.New(2.718).ExposeSecretValuer()
 			text, err := sv.MarshalText()
 			t.Nil(err)
@@ -341,7 +337,7 @@ func TestSecretValuer_exposes(tt *testing.T) {
 
 		t.Run("decimal_via_TextMarshaler", func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			d := decimal.NewFromFloat(1.5)
 			sv := sensitive.New(d).ExposeSecretValuer()
 			text, err := sv.MarshalText()
@@ -351,7 +347,7 @@ func TestSecretValuer_exposes(tt *testing.T) {
 
 		t.Run("unsupported_type_error_not_panic", func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			sv := sensitive.New(testStruct{A: "x", B: 1}).ExposeSecretValuer()
 			var err error
 			t.NotPanic(func() { _, err = sv.MarshalText() })
@@ -360,7 +356,7 @@ func TestSecretValuer_exposes(tt *testing.T) {
 
 		t.Run("zero_ref", func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			var r sensitive.Ref[string]
 			text, err := r.ExposeSecretValuer().MarshalText()
 			t.Nil(err)
@@ -369,16 +365,15 @@ func TestSecretValuer_exposes(tt *testing.T) {
 	})
 }
 
-func TestSecretValuer_slog_redacts(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestSecretValuer_slog_redacts(t *testing.T) {
+	t.Parallel()
 
 	const secret = "mysecretvalue"
 	sv := sensitive.New(secret).ExposeSecretValuer()
 
 	t.Run("json_handler", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var buf bytes.Buffer
 		logger := slog.New(slog.NewJSONHandler(&buf, nil))
 		logger.Info("Test", "valuer", sv)
@@ -389,7 +384,7 @@ func TestSecretValuer_slog_redacts(tt *testing.T) {
 
 	t.Run("text_handler", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var buf bytes.Buffer
 		logger := slog.New(slog.NewTextHandler(&buf, nil))
 		logger.Info("Test", "valuer", sv)
@@ -400,7 +395,7 @@ func TestSecretValuer_slog_redacts(tt *testing.T) {
 
 	t.Run("from_make_json_handler", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		const token = "s3cr3t-t0k3n"
 		hv := sensitive.Make(token).ExposeSecretValuer()
 		var buf bytes.Buffer
@@ -413,7 +408,7 @@ func TestSecretValuer_slog_redacts(tt *testing.T) {
 
 	t.Run("from_make_text_handler", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		const token = "s3cr3t-t0k3n"
 		hv := sensitive.Make(token).ExposeSecretValuer()
 		var buf bytes.Buffer
@@ -426,7 +421,7 @@ func TestSecretValuer_slog_redacts(tt *testing.T) {
 
 	t.Run("int_json_handler", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		sv := sensitive.New(42).ExposeSecretValuer()
 		var buf bytes.Buffer
 		logger := slog.New(slog.NewJSONHandler(&buf, nil))
@@ -438,7 +433,7 @@ func TestSecretValuer_slog_redacts(tt *testing.T) {
 
 	t.Run("int_text_handler", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		sv := sensitive.New(42).ExposeSecretValuer()
 		var buf bytes.Buffer
 		logger := slog.New(slog.NewTextHandler(&buf, nil))
@@ -449,13 +444,12 @@ func TestSecretValuer_slog_redacts(tt *testing.T) {
 	})
 }
 
-func TestHandleValuer_Value(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestHandleValuer_Value(t *testing.T) {
+	t.Parallel()
 
 	t.Run("string", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		hv := sensitive.Make("token").ExposeSecretValuer()
 		v, err := hv.Value()
 		t.Nil(err)
@@ -464,7 +458,7 @@ func TestHandleValuer_Value(tt *testing.T) {
 
 	t.Run("bool", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		hv := sensitive.Make(true).ExposeSecretValuer()
 		v, err := hv.Value()
 		t.Nil(err)
@@ -473,7 +467,7 @@ func TestHandleValuer_Value(tt *testing.T) {
 
 	t.Run("int64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		hv := sensitive.Make(int64(99)).ExposeSecretValuer()
 		v, err := hv.Value()
 		t.Nil(err)
@@ -482,7 +476,7 @@ func TestHandleValuer_Value(tt *testing.T) {
 
 	t.Run("float32_widens_to_float64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		hv := sensitive.Make(float32(1.5)).ExposeSecretValuer()
 		v, err := hv.Value()
 		t.Nil(err)
@@ -492,7 +486,7 @@ func TestHandleValuer_Value(tt *testing.T) {
 
 	t.Run("zero_handle", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[string]
 		v, err := h.ExposeSecretValuer().Value()
 		t.Nil(err)
@@ -500,16 +494,15 @@ func TestHandleValuer_Value(tt *testing.T) {
 	})
 }
 
-func TestHandleValuer_redacts(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestHandleValuer_redacts(t *testing.T) {
+	t.Parallel()
 
 	const secret = "mytokenvalue"
 	hv := sensitive.Make(secret).ExposeSecretValuer()
 
 	t.Run("fmt_verbs", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		for _, verb := range []string{"%v", "%+v", "%#v", "%s", "%q"} {
 			t.NotContains(fmt.Sprintf(verb, hv), secret,
 				"HandleValuer must not leak via %s", verb)
@@ -517,28 +510,26 @@ func TestHandleValuer_redacts(tt *testing.T) {
 	})
 }
 
-func TestHandleValuer_exposes(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestHandleValuer_exposes(t *testing.T) {
+	t.Parallel()
 
 	const secret = "mytokenvalue"
 
 	t.Run("json_marshal", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		hv := sensitive.Make(secret).ExposeSecretValuer()
 		b, err := json.Marshal(hv)
 		t.Nil(err)
 		t.Contains(string(b), secret, "HandleValuer must expose secret via json.Marshal")
 	})
 
-	t.Run("marshal_text", func(tt *testing.T) {
-		tt.Parallel()
-		t := check.T(tt)
+	t.Run("marshal_text", func(t *testing.T) {
+		t.Parallel()
 
 		t.Run("string", func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			hv := sensitive.Make("token").ExposeSecretValuer()
 			text, err := hv.MarshalText()
 			t.Nil(err)
@@ -547,7 +538,7 @@ func TestHandleValuer_exposes(tt *testing.T) {
 
 		t.Run("bool", func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			hv := sensitive.Make(true).ExposeSecretValuer()
 			text, err := hv.MarshalText()
 			t.Nil(err)
@@ -556,7 +547,7 @@ func TestHandleValuer_exposes(tt *testing.T) {
 
 		t.Run("int", func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			hv := sensitive.Make(42).ExposeSecretValuer()
 			text, err := hv.MarshalText()
 			t.Nil(err)
@@ -565,7 +556,7 @@ func TestHandleValuer_exposes(tt *testing.T) {
 
 		t.Run("float64", func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			hv := sensitive.Make(3.14).ExposeSecretValuer()
 			text, err := hv.MarshalText()
 			t.Nil(err)
@@ -574,7 +565,7 @@ func TestHandleValuer_exposes(tt *testing.T) {
 
 		t.Run("zero_handle", func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			var h sensitive.Handle[string]
 			text, err := h.ExposeSecretValuer().MarshalText()
 			t.Nil(err)
@@ -583,13 +574,12 @@ func TestHandleValuer_exposes(tt *testing.T) {
 	})
 }
 
-func TestSecretValuer_ToRef(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestSecretValuer_ToRef(t *testing.T) {
+	t.Parallel()
 
 	t.Run("from_ref", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		const want = "secret"
 		sv := sensitive.New(want).ExposeSecretValuer()
 		got := sv.ToRef().ExposeSecret()
@@ -598,7 +588,7 @@ func TestSecretValuer_ToRef(tt *testing.T) {
 
 	t.Run("from_handle", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		const want = "token"
 		sv := sensitive.Make(want).ExposeSecretValuer()
 		got := sv.ToRef().ExposeSecret()
@@ -607,7 +597,7 @@ func TestSecretValuer_ToRef(tt *testing.T) {
 
 	t.Run("zero_ref", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[string]
 		sv := r.ExposeSecretValuer()
 		t.Equal(sv.ToRef().ExposeSecret(), "")
@@ -615,7 +605,7 @@ func TestSecretValuer_ToRef(tt *testing.T) {
 
 	t.Run("zero_handle", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[string]
 		sv := h.ExposeSecretValuer()
 		t.Equal(sv.ToRef().ExposeSecret(), "")
@@ -623,20 +613,19 @@ func TestSecretValuer_ToRef(tt *testing.T) {
 
 	t.Run("not_secret", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		sv := sensitive.New("x").ExposeSecretValuer()
 		_, ok := any(sv).(sensitive.Secret[string])
 		t.False(ok, "SecretValuer must not implement Secret[T]")
 	})
 }
 
-func TestSecretValuer_roundtrip(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestSecretValuer_roundtrip(t *testing.T) {
+	t.Parallel()
 
 	t.Run("json", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		sv := sensitive.New("roundtrip-secret").ExposeSecretValuer()
 		b, err := json.Marshal(sv)
 		t.Nil(err)
@@ -649,7 +638,7 @@ func TestSecretValuer_roundtrip(tt *testing.T) {
 
 	t.Run("text", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		sv := sensitive.New("text-roundtrip").ExposeSecretValuer()
 		b, err := sv.MarshalText()
 		t.Nil(err)
@@ -662,7 +651,7 @@ func TestSecretValuer_roundtrip(tt *testing.T) {
 
 	t.Run("after_ingest_redacts_fmt", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		const secret = "ingested-secret"
 		b, err := json.Marshal(sensitive.New(secret).ExposeSecretValuer())
 		t.Nil(err)
@@ -675,7 +664,7 @@ func TestSecretValuer_roundtrip(tt *testing.T) {
 
 	t.Run("after_ingest_redacts_slog", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		const secret = "ingested-slog-secret"
 		b, err := json.Marshal(sensitive.New(secret).ExposeSecretValuer())
 		t.Nil(err)
@@ -691,16 +680,15 @@ func TestSecretValuer_roundtrip(tt *testing.T) {
 	})
 }
 
-func TestHandleValuer_slog_redacts(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestHandleValuer_slog_redacts(t *testing.T) {
+	t.Parallel()
 
 	const secret = "mytokenvalue"
 	hv := sensitive.Make(secret).ExposeSecretValuer()
 
 	t.Run("json_handler", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var buf bytes.Buffer
 		logger := slog.New(slog.NewJSONHandler(&buf, nil))
 		logger.Info("Test", "valuer", hv)
@@ -711,7 +699,7 @@ func TestHandleValuer_slog_redacts(tt *testing.T) {
 
 	t.Run("text_handler", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var buf bytes.Buffer
 		logger := slog.New(slog.NewTextHandler(&buf, nil))
 		logger.Info("Test", "valuer", hv)
@@ -721,9 +709,8 @@ func TestHandleValuer_slog_redacts(tt *testing.T) {
 	})
 }
 
-func TestSecretValuer_slog_perTypeSentinels(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestSecretValuer_slog_perTypeSentinels(t *testing.T) {
+	t.Parallel()
 
 	type testCase struct {
 		name     string
@@ -828,7 +815,7 @@ func TestSecretValuer_slog_perTypeSentinels(tt *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 
 			var buf bytes.Buffer
 			logger := slog.New(slog.NewJSONHandler(&buf, nil))
@@ -841,53 +828,51 @@ func TestSecretValuer_slog_perTypeSentinels(tt *testing.T) {
 	}
 }
 
-func TestSecretValuer_IsZero(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestSecretValuer_IsZero(t *testing.T) {
+	t.Parallel()
 
 	t.Run("zero_string_ref", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[string]
 		t.True(r.ExposeSecretValuer().IsZero(), "zero Ref must produce zero SecretValuer")
 	})
 
 	t.Run("zero_string_handle", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[string]
 		t.True(h.ExposeSecretValuer().IsZero(), "zero Handle must produce zero SecretValuer")
 	})
 
 	t.Run("non_zero_string", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		r := sensitive.New("hello")
 		t.False(r.ExposeSecretValuer().IsZero(), "non-zero SecretValuer must return false for IsZero")
 	})
 
 	t.Run("zero_int", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		r := sensitive.New(0)
 		t.True(r.ExposeSecretValuer().IsZero(), "SecretValuer with zero int must return true for IsZero")
 	})
 
 	t.Run("non_zero_int", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		r := sensitive.New(42)
 		t.False(r.ExposeSecretValuer().IsZero(), "SecretValuer with non-zero int must return false for IsZero")
 	})
 }
 
-func TestSecretValuer_Scan(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestSecretValuer_Scan(t *testing.T) {
+	t.Parallel()
 
 	t.Run("round_trip_string", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var sv sensitive.SecretValuer[string]
 		t.Nil(sv.Scan("scanned-secret"))
 		t.Equal(sv.ToRef().ExposeSecret(), "scanned-secret")
@@ -895,7 +880,7 @@ func TestSecretValuer_Scan(tt *testing.T) {
 
 	t.Run("nil_string", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var sv sensitive.SecretValuer[string]
 		t.Nil(sv.Scan("before"))
 		t.Nil(sv.Scan(nil))
@@ -904,7 +889,7 @@ func TestSecretValuer_Scan(tt *testing.T) {
 
 	t.Run("round_trip_int", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var sv sensitive.SecretValuer[int]
 		t.Nil(sv.Scan(int64(42)))
 		t.Equal(sv.ToRef().ExposeSecret(), 42)

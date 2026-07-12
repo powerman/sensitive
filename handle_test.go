@@ -28,9 +28,8 @@ type structWithInterfaceHoldingHandle struct {
 	v any
 }
 
-func TestHandle_formatting(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestHandle_formatting(t *testing.T) {
+	t.Parallel()
 
 	secret := "my-handle-secret"
 	h := sensitive.Make(secret)
@@ -53,15 +52,14 @@ func TestHandle_formatting(tt *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			t.NotContains(fmt.Sprintf(tc.formatting, tc.value), tc.notWant)
 		})
 	}
 }
 
-func TestHandle_formatting_allTypes(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestHandle_formatting_allTypes(t *testing.T) {
+	t.Parallel()
 
 	verbs := []string{"%v", "%+v", "%#v", "%s", "%q", "%x", "%X"}
 
@@ -92,7 +90,7 @@ func TestHandle_formatting_allTypes(tt *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 
 			for _, verb := range verbs {
 				result := fmt.Sprintf(verb, tc.handle)
@@ -105,7 +103,7 @@ func TestHandle_formatting_allTypes(tt *testing.T) {
 
 func TestHandle_valueEquality(tt *testing.T) {
 	tt.Parallel()
-	t := check.T(tt).MustAll()
+	t := check.Must(tt)
 
 	a := sensitive.Make("hello")
 	b := sensitive.Make("hello")
@@ -117,7 +115,7 @@ func TestHandle_valueEquality(tt *testing.T) {
 
 func TestHandle_mapKey(tt *testing.T) {
 	tt.Parallel()
-	t := check.T(tt).MustAll()
+	t := check.Must(tt)
 
 	m := map[sensitive.Handle[string]]int{
 		sensitive.Make("hello"): 1,
@@ -133,7 +131,7 @@ func TestHandle_mapKey(tt *testing.T) {
 
 func TestHandle_deepEqual(tt *testing.T) {
 	tt.Parallel()
-	t := check.T(tt).MustAll()
+	t := check.Must(tt)
 
 	a := sensitive.Make("x")
 	b := sensitive.Make("x")
@@ -145,13 +143,12 @@ func TestHandle_deepEqual(tt *testing.T) {
 	t.False(equal(a2, b2), "DeepEqual Handle[string] with different values")
 }
 
-func TestHandle_ExposeSecret(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestHandle_ExposeSecret(t *testing.T) {
+	t.Parallel()
 
 	t.Run("round_trip", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		h := sensitive.Make("handle-data")
 		t.Equal(h.ExposeSecret(), "handle-data")
@@ -159,7 +156,7 @@ func TestHandle_ExposeSecret(tt *testing.T) {
 
 	t.Run("zero_value_safe", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		var z sensitive.Handle[string]
 		t.NotPanic(func() { _ = z.ExposeSecret() },
@@ -170,7 +167,7 @@ func TestHandle_ExposeSecret(tt *testing.T) {
 
 func TestHandle_json(tt *testing.T) {
 	tt.Parallel()
-	t := check.T(tt).MustAll()
+	t := check.Must(tt)
 
 	value := sensitive.Make("my-json-value")
 
@@ -179,10 +176,9 @@ func TestHandle_json(tt *testing.T) {
 	t.NotContains(string(result), "my-json-value")
 }
 
-func TestHandle_marshalJSON_exactOutput(tt *testing.T) {
-	t := check.T(tt).MustAll()
-
-	tt.Setenv("GO_TEST_DISABLE_SENSITIVE", "1")
+//nolint:paralleltest // modifies global state via sensitive.Disable() and env.
+func TestHandle_marshalJSON_exactOutput(t *testing.T) {
+	t.Setenv("GO_TEST_DISABLE_SENSITIVE", "1")
 	sensitive.Disable()
 	t.Cleanup(resetFormatFns)
 
@@ -209,7 +205,7 @@ func TestHandle_marshalJSON_exactOutput(tt *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(tt *testing.T) {
-			t := check.T(tt)
+			t := check.Must(tt)
 
 			got, err := json.Marshal(tc.value)
 			t.Nil(err, "MarshalJSON should not error")
@@ -218,10 +214,9 @@ func TestHandle_marshalJSON_exactOutput(tt *testing.T) {
 	}
 }
 
-func TestHandle_marshalText_exactOutput(tt *testing.T) {
-	t := check.T(tt).MustAll()
-
-	tt.Setenv("GO_TEST_DISABLE_SENSITIVE", "1")
+//nolint:paralleltest // modifies global state via sensitive.Disable() and env.
+func TestHandle_marshalText_exactOutput(t *testing.T) {
+	t.Setenv("GO_TEST_DISABLE_SENSITIVE", "1")
 	sensitive.Disable()
 	t.Cleanup(resetFormatFns)
 
@@ -248,7 +243,7 @@ func TestHandle_marshalText_exactOutput(tt *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(tt *testing.T) {
-			t := check.T(tt)
+			t := check.Must(tt)
 
 			tm, ok := tc.value.(encoding.TextMarshaler)
 			t.True(ok, "Handle should implement encoding.TextMarshaler")
@@ -259,9 +254,8 @@ func TestHandle_marshalText_exactOutput(tt *testing.T) {
 	}
 }
 
-func TestHandle_reflectionSafety(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestHandle_reflectionSafety(t *testing.T) {
+	t.Parallel()
 
 	secretStr := "hidden-handle-secret"
 	secretInt := 42
@@ -276,7 +270,7 @@ func TestHandle_reflectionSafety(tt *testing.T) {
 	for _, verb := range verbs {
 		t.Run("unexported_field_"+verb, func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 
 			result := fmt.Sprintf(verb, parent)
 
@@ -286,9 +280,8 @@ func TestHandle_reflectionSafety(tt *testing.T) {
 	}
 }
 
-func TestHandle_interfaceInUnexportedField(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestHandle_interfaceInUnexportedField(t *testing.T) {
+	t.Parallel()
 
 	secret := "hidden-behind-interface-handle"
 	h := sensitive.Make(secret)
@@ -302,7 +295,7 @@ func TestHandle_interfaceInUnexportedField(tt *testing.T) {
 	for _, verb := range verbs {
 		t.Run("interface_unexported_"+verb, func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 
 			result := fmt.Sprintf(verb, parent)
 
@@ -314,7 +307,7 @@ func TestHandle_interfaceInUnexportedField(tt *testing.T) {
 
 func TestHandle_namedType(tt *testing.T) {
 	tt.Parallel()
-	t := check.T(tt).MustAll()
+	t := check.Must(tt)
 
 	v := namedString("my-token")
 	h := sensitive.Make(v)
@@ -323,26 +316,24 @@ func TestHandle_namedType(tt *testing.T) {
 	t.True(sensitive.Make(v) == h, "named types should compare equal by value")
 }
 
-func TestHandle_zeroValue(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestHandle_zeroValue(t *testing.T) {
+	t.Parallel()
 
 	t.Run("format_no_panic", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		t.NotPanic(func() {
 			_ = fmt.Sprintf("%v", sensitive.Handle[string]{})
 		})
 	})
 }
 
-func TestHandle_UnmarshalJSON(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestHandle_UnmarshalJSON(t *testing.T) {
+	t.Parallel()
 
 	t.Run("string", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[string]
 		t.Nil(json.Unmarshal([]byte(`"hello"`), &h))
 		t.Equal(h.ExposeSecret(), "hello")
@@ -350,7 +341,7 @@ func TestHandle_UnmarshalJSON(tt *testing.T) {
 
 	t.Run("int", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[int]
 		t.Nil(json.Unmarshal([]byte(`42`), &h))
 		t.Equal(h.ExposeSecret(), 42)
@@ -358,7 +349,7 @@ func TestHandle_UnmarshalJSON(tt *testing.T) {
 
 	t.Run("bool", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[bool]
 		t.Nil(json.Unmarshal([]byte(`true`), &h))
 		t.Equal(h.ExposeSecret(), true)
@@ -366,19 +357,18 @@ func TestHandle_UnmarshalJSON(tt *testing.T) {
 
 	t.Run("invalid_json", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[string]
 		t.NotNil(json.Unmarshal([]byte(`not json`), &h))
 	})
 }
 
-func TestHandle_UnmarshalText(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestHandle_UnmarshalText(t *testing.T) {
+	t.Parallel()
 
 	t.Run("string", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[string]
 		t.Nil(h.UnmarshalText([]byte("hello")))
 		t.Equal(h.ExposeSecret(), "hello")
@@ -386,7 +376,7 @@ func TestHandle_UnmarshalText(tt *testing.T) {
 
 	t.Run("bool_false", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[bool]
 		t.Nil(h.UnmarshalText([]byte("false")))
 		t.Equal(h.ExposeSecret(), false)
@@ -394,14 +384,14 @@ func TestHandle_UnmarshalText(tt *testing.T) {
 
 	t.Run("bool_invalid", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[bool]
 		t.NotNil(h.UnmarshalText([]byte("notabool")))
 	})
 
 	t.Run("int64_negative", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[int64]
 		t.Nil(h.UnmarshalText([]byte("-9223372036854775808")))
 		t.Equal(h.ExposeSecret(), int64(math.MinInt64))
@@ -409,7 +399,7 @@ func TestHandle_UnmarshalText(tt *testing.T) {
 
 	t.Run("uint64_max", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[uint64]
 		t.Nil(h.UnmarshalText([]byte("18446744073709551615")))
 		t.Equal(h.ExposeSecret(), uint64(math.MaxUint64))
@@ -417,7 +407,7 @@ func TestHandle_UnmarshalText(tt *testing.T) {
 
 	t.Run("float32", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[float32]
 		t.Nil(h.UnmarshalText([]byte("3.14")))
 		t.Equal(h.ExposeSecret(), float32(3.14))
@@ -425,14 +415,14 @@ func TestHandle_UnmarshalText(tt *testing.T) {
 
 	t.Run("float64_invalid", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[float64]
 		t.NotNil(h.UnmarshalText([]byte("not-a-float")))
 	})
 
 	t.Run("int", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[int]
 		t.Nil(h.UnmarshalText([]byte("-7")))
 		t.Equal(h.ExposeSecret(), -7)
@@ -440,14 +430,14 @@ func TestHandle_UnmarshalText(tt *testing.T) {
 
 	t.Run("int_overflow", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[int]
 		t.NotNil(h.UnmarshalText([]byte("abc")))
 	})
 
 	t.Run("int8", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[int8]
 		t.Nil(h.UnmarshalText([]byte("-128")))
 		t.Equal(h.ExposeSecret(), int8(-128))
@@ -455,14 +445,14 @@ func TestHandle_UnmarshalText(tt *testing.T) {
 
 	t.Run("int8_overflow", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[int8]
 		t.NotNil(h.UnmarshalText([]byte("999")))
 	})
 
 	t.Run("int16", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[int16]
 		t.Nil(h.UnmarshalText([]byte("32767")))
 		t.Equal(h.ExposeSecret(), int16(32767))
@@ -470,14 +460,14 @@ func TestHandle_UnmarshalText(tt *testing.T) {
 
 	t.Run("int16_overflow", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[int16]
 		t.NotNil(h.UnmarshalText([]byte("99999")))
 	})
 
 	t.Run("int32", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[int32]
 		t.Nil(h.UnmarshalText([]byte("-2147483648")))
 		t.Equal(h.ExposeSecret(), int32(math.MinInt32))
@@ -485,14 +475,14 @@ func TestHandle_UnmarshalText(tt *testing.T) {
 
 	t.Run("int32_overflow", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[int32]
 		t.NotNil(h.UnmarshalText([]byte("2147483648")))
 	})
 
 	t.Run("uint", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[uint]
 		t.Nil(h.UnmarshalText([]byte("0")))
 		t.Equal(h.ExposeSecret(), uint(0))
@@ -500,14 +490,14 @@ func TestHandle_UnmarshalText(tt *testing.T) {
 
 	t.Run("uint_overflow", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[uint]
 		t.NotNil(h.UnmarshalText([]byte("-1")))
 	})
 
 	t.Run("uint8", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[uint8]
 		t.Nil(h.UnmarshalText([]byte("255")))
 		t.Equal(h.ExposeSecret(), uint8(255))
@@ -515,14 +505,14 @@ func TestHandle_UnmarshalText(tt *testing.T) {
 
 	t.Run("uint8_overflow", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[uint8]
 		t.NotNil(h.UnmarshalText([]byte("256")))
 	})
 
 	t.Run("uint16", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[uint16]
 		t.Nil(h.UnmarshalText([]byte("65535")))
 		t.Equal(h.ExposeSecret(), uint16(65535))
@@ -530,14 +520,14 @@ func TestHandle_UnmarshalText(tt *testing.T) {
 
 	t.Run("uint16_overflow", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[uint16]
 		t.NotNil(h.UnmarshalText([]byte("65536")))
 	})
 
 	t.Run("uint32", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[uint32]
 		t.Nil(h.UnmarshalText([]byte("4294967295")))
 		t.Equal(h.ExposeSecret(), uint32(math.MaxUint32))
@@ -545,27 +535,26 @@ func TestHandle_UnmarshalText(tt *testing.T) {
 
 	t.Run("uint32_overflow", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[uint32]
 		t.NotNil(h.UnmarshalText([]byte("4294967296")))
 	})
 
 	t.Run("float64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[float64]
 		t.Nil(h.UnmarshalText([]byte("3.14")))
 		t.Equal(h.ExposeSecret(), 3.14)
 	})
 }
 
-func TestHandle_Scan(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestHandle_Scan(t *testing.T) {
+	t.Parallel()
 
 	t.Run("string_from_string", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[string]
 		t.Nil(h.Scan("token"))
 		t.Equal(h.ExposeSecret(), "token")
@@ -573,7 +562,7 @@ func TestHandle_Scan(tt *testing.T) {
 
 	t.Run("string_from_bytes", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[string]
 		t.Nil(h.Scan([]byte("token")))
 		t.Equal(h.ExposeSecret(), "token")
@@ -581,7 +570,7 @@ func TestHandle_Scan(tt *testing.T) {
 
 	t.Run("bool_from_bool", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[bool]
 		t.Nil(h.Scan(false))
 		t.Equal(h.ExposeSecret(), false)
@@ -589,7 +578,7 @@ func TestHandle_Scan(tt *testing.T) {
 
 	t.Run("bool_from_int64_zero", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[bool]
 		t.Nil(h.Scan(int64(0)))
 		t.Equal(h.ExposeSecret(), false)
@@ -597,7 +586,7 @@ func TestHandle_Scan(tt *testing.T) {
 
 	t.Run("int64_from_int64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[int64]
 		t.Nil(h.Scan(int64(-99)))
 		t.Equal(h.ExposeSecret(), int64(-99))
@@ -605,7 +594,7 @@ func TestHandle_Scan(tt *testing.T) {
 
 	t.Run("float64_from_float64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[float64]
 		t.Nil(h.Scan(float64(1.23)))
 		t.Equal(h.ExposeSecret(), 1.23)
@@ -613,7 +602,7 @@ func TestHandle_Scan(tt *testing.T) {
 
 	t.Run("nil_yields_zero", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[string]
 		t.Nil(h.Scan("before"))
 		t.Nil(h.Scan(nil))
@@ -622,14 +611,14 @@ func TestHandle_Scan(tt *testing.T) {
 
 	t.Run("type_mismatch_error", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[string]
 		t.NotNil(h.Scan(int64(1)))
 	})
 
 	t.Run("int_from_int64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[int]
 		t.Nil(h.Scan(int64(42)))
 		t.Equal(h.ExposeSecret(), 42)
@@ -637,7 +626,7 @@ func TestHandle_Scan(tt *testing.T) {
 
 	t.Run("int8_from_int64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[int8]
 		t.Nil(h.Scan(int64(-128)))
 		t.Equal(h.ExposeSecret(), int8(-128))
@@ -645,7 +634,7 @@ func TestHandle_Scan(tt *testing.T) {
 
 	t.Run("int8_truncation", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[int8]
 		t.Nil(h.Scan(int64(300)))
 		t.Equal(h.ExposeSecret(), int8(44)) // 300 wraps to 44 for int8
@@ -653,14 +642,14 @@ func TestHandle_Scan(tt *testing.T) {
 
 	t.Run("int8_type_mismatch", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[int8]
 		t.NotNil(h.Scan("not-an-int64"))
 	})
 
 	t.Run("int16_from_int64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[int16]
 		t.Nil(h.Scan(int64(32767)))
 		t.Equal(h.ExposeSecret(), int16(32767))
@@ -668,7 +657,7 @@ func TestHandle_Scan(tt *testing.T) {
 
 	t.Run("int32_from_int64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[int32]
 		t.Nil(h.Scan(int64(math.MinInt32)))
 		t.Equal(h.ExposeSecret(), int32(math.MinInt32))
@@ -676,7 +665,7 @@ func TestHandle_Scan(tt *testing.T) {
 
 	t.Run("uint_from_int64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[uint]
 		t.Nil(h.Scan(int64(0)))
 		t.Equal(h.ExposeSecret(), uint(0))
@@ -684,7 +673,7 @@ func TestHandle_Scan(tt *testing.T) {
 
 	t.Run("uint8_from_int64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[uint8]
 		t.Nil(h.Scan(int64(255)))
 		t.Equal(h.ExposeSecret(), uint8(255))
@@ -692,7 +681,7 @@ func TestHandle_Scan(tt *testing.T) {
 
 	t.Run("uint8_truncation", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[uint8]
 		t.Nil(h.Scan(int64(256)))
 		t.Equal(h.ExposeSecret(), uint8(0)) // 256 wraps to 0 for uint8
@@ -700,7 +689,7 @@ func TestHandle_Scan(tt *testing.T) {
 
 	t.Run("uint16_from_int64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[uint16]
 		t.Nil(h.Scan(int64(65535)))
 		t.Equal(h.ExposeSecret(), uint16(65535))
@@ -708,7 +697,7 @@ func TestHandle_Scan(tt *testing.T) {
 
 	t.Run("uint32_from_int64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[uint32]
 		t.Nil(h.Scan(int64(math.MaxInt32)))
 		t.Equal(h.ExposeSecret(), uint32(math.MaxInt32))
@@ -716,7 +705,7 @@ func TestHandle_Scan(tt *testing.T) {
 
 	t.Run("float32_from_float64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[float32]
 		t.Nil(h.Scan(float64(1.5)))
 		t.Equal(h.ExposeSecret(), float32(1.5))
@@ -724,14 +713,14 @@ func TestHandle_Scan(tt *testing.T) {
 
 	t.Run("float32_type_mismatch", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[float32]
 		t.NotNil(h.Scan("not-a-float64"))
 	})
 
 	t.Run("nil_yields_zero_numeric", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[int8]
 		t.Nil(h.Scan(int64(42)))
 		t.Nil(h.Scan(nil))
@@ -740,7 +729,7 @@ func TestHandle_Scan(tt *testing.T) {
 
 	t.Run("no_panic_on_type_mismatch", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var h sensitive.Handle[float64]
 		t.NotPanic(func() { _ = h.Scan("not-a-float") })
 	})

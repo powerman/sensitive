@@ -11,13 +11,12 @@ import (
 // TestCrypt_storageIsEncrypted verifies that the value stored behind Ref and Handle
 // is the ciphertext, not the plaintext — a deep-reflection traversal (as go-spew or
 // reflect.DeepEqual would do) cannot reveal the secret.
-func TestCrypt_storageIsEncrypted(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestCrypt_storageIsEncrypted(t *testing.T) {
+	t.Parallel()
 
 	t.Run("Ref_string", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		secret := "plaintext-not-stored-in-ref"
 		r := New(secret)
@@ -27,7 +26,7 @@ func TestCrypt_storageIsEncrypted(tt *testing.T) {
 
 	t.Run("Ref_bytes", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		secret := []byte("bytes-not-stored-as-plaintext")
 		r := New(secret)
@@ -37,7 +36,7 @@ func TestCrypt_storageIsEncrypted(tt *testing.T) {
 
 	t.Run("Handle_string", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		secret := "handle-interned-ciphertext"
 		h := Make(secret)
@@ -48,13 +47,12 @@ func TestCrypt_storageIsEncrypted(tt *testing.T) {
 
 // TestCrypt_roundTrip verifies that ExposeSecret correctly decrypts
 // arbitrary content including invalid-UTF-8 byte sequences.
-func TestCrypt_roundTrip(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestCrypt_roundTrip(t *testing.T) {
+	t.Parallel()
 
 	t.Run("invalid_utf8_string", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		secret := string([]byte{0xff, 0xfe, 0x00, 0x41})
 		r := New(secret)
@@ -63,7 +61,7 @@ func TestCrypt_roundTrip(tt *testing.T) {
 
 	t.Run("invalid_utf8_bytes", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		secret := []byte{0xff, 0xfe, 0x00, 0x41}
 		r := New(secret)
@@ -72,7 +70,7 @@ func TestCrypt_roundTrip(tt *testing.T) {
 
 	t.Run("empty_string", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		r := New("")
 		t.Equal(r.ExposeSecret(), "", "empty string must round-trip correctly")
@@ -80,7 +78,7 @@ func TestCrypt_roundTrip(tt *testing.T) {
 
 	t.Run("empty_bytes", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		r := New([]byte{})
 		got := r.ExposeSecret()
@@ -91,13 +89,12 @@ func TestCrypt_roundTrip(tt *testing.T) {
 // TestCrypt_determinism verifies that identical plaintexts always produce
 // identical ciphertexts within a process, ensuring ==, map keys, and
 // reflect.DeepEqual work correctly on the ciphertext.
-func TestCrypt_determinism(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestCrypt_determinism(t *testing.T) {
+	t.Parallel()
 
 	t.Run("Ref_string_same_ciphertext", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		a := New("deterministic-secret")
 		b := New("deterministic-secret")
@@ -106,7 +103,7 @@ func TestCrypt_determinism(tt *testing.T) {
 
 	t.Run("Ref_string_diff_ciphertext", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		a := New("alpha-value")
 		b := New("beta-value")
@@ -115,7 +112,7 @@ func TestCrypt_determinism(tt *testing.T) {
 
 	t.Run("Handle_string_equality", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		a := Make("handle-same")
 		b := Make("handle-same")
@@ -125,13 +122,12 @@ func TestCrypt_determinism(tt *testing.T) {
 
 // TestCrypt_nonStringUnchanged verifies that non-string/[]byte types
 // are stored as plaintext (no encryption overhead for ints, bools, etc.).
-func TestCrypt_nonStringUnchanged(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestCrypt_nonStringUnchanged(t *testing.T) {
+	t.Parallel()
 
 	t.Run("int", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		r := New(42)
 		t.Equal(**r.pp, 42, "int must be stored and returned as-is")
@@ -139,7 +135,7 @@ func TestCrypt_nonStringUnchanged(tt *testing.T) {
 
 	t.Run("bool", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		r := New(true)
 		t.Equal(**r.pp, true, "bool must be stored and returned as-is")
@@ -147,7 +143,7 @@ func TestCrypt_nonStringUnchanged(tt *testing.T) {
 
 	t.Run("nil_bytes", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		r := New([]byte(nil))
 		t.Nil(**r.pp, "nil []byte must be stored and returned as nil")
@@ -159,7 +155,7 @@ func TestCrypt_nonStringUnchanged(tt *testing.T) {
 // unchanged when ciphertext is shorter than aes.BlockSize.
 func TestCrypt_decryptBytesShort(tt *testing.T) {
 	tt.Parallel()
-	t := check.T(tt).MustAll()
+	t := check.Must(tt)
 
 	input := []byte{1, 2, 3}
 	result := decryptBytes(input)
@@ -169,7 +165,7 @@ func TestCrypt_decryptBytesShort(tt *testing.T) {
 // TestCrypt_getCryptoKey verifies that getCryptoKey returns a 32-byte key.
 func TestCrypt_getCryptoKey(tt *testing.T) {
 	tt.Parallel()
-	t := check.T(tt).MustAll()
+	t := check.Must(tt)
 
 	key := getCryptoKey()
 	t.NotPanic(func() { _ = key[0] }, "crypto key must be accessible")
@@ -180,7 +176,7 @@ func TestCrypt_getCryptoKey(tt *testing.T) {
 // a non-uint8 slice ([]int) unchanged.
 func TestCrypt_nonUint8Slice(tt *testing.T) {
 	tt.Parallel()
-	t := check.T(tt).MustAll()
+	t := check.Must(tt)
 
 	input := []int{1, 2, 3}
 	encrypted := encryptT(input)
@@ -198,7 +194,7 @@ type namedBytes []byte
 // round-trips through encryptT+decryptT correctly.
 func TestCrypt_namedBytesRoundTrip(tt *testing.T) {
 	tt.Parallel()
-	t := check.T(tt).MustAll()
+	t := check.Must(tt)
 
 	input := namedBytes("hello")
 	encrypted := encryptT(input)

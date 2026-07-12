@@ -51,9 +51,8 @@ type (
 // 10 container shapes × {Handle, Ref (minus map-key)} × {fmt, json, xml, slog}.
 // Every assertion checks the secret is absent; expectAddr shapes additionally
 // verify that the structural backstop (an 0x address) fires.
-func TestSafety_noLeak(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestSafety_noLeak(t *testing.T) {
+	t.Parallel()
 
 	secret := safetySecret
 
@@ -193,7 +192,7 @@ func TestSafety_noLeak(tt *testing.T) {
 
 				t.Run(c.name+"/"+variant.name+"/"+s.name, func(tt *testing.T) {
 					tt.Parallel()
-					t := check.T(tt)
+					t := check.Must(tt)
 
 					out := s.run(variant.v)
 
@@ -289,7 +288,7 @@ func TestSafety_globalModeHelper(tt *testing.T) {
 	testSafetyRedactMode()
 }
 
-func runSafetySubprocess(t *check.C) {
+func runSafetySubprocess(t *check.TB) {
 	ctx, cancel := context.WithCancel(t.Context())
 	t.Cleanup(cancel)
 
@@ -304,16 +303,15 @@ func runSafetySubprocess(t *check.C) {
 
 func TestSafety_redactMode(tt *testing.T) {
 	tt.Parallel()
-	t := check.T(tt).MustAll()
+	t := check.Must(tt)
 
 	runSafetySubprocess(t)
 }
 
 // TestSafety_postIngestNoLeak verifies that a secret ingested via Unmarshal/Scan
 // still cannot leak through fmt, json, slog, or xml.
-func TestSafety_postIngestNoLeak(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestSafety_postIngestNoLeak(t *testing.T) {
+	t.Parallel()
 
 	const secret = "ingested-secret"
 
@@ -385,13 +383,13 @@ func TestSafety_postIngestNoLeak(tt *testing.T) {
 		for _, s := range sinks {
 			t.Run("Ref/"+c.name+"/"+s.name, func(tt *testing.T) {
 				tt.Parallel()
-				t := check.T(tt)
+				t := check.Must(tt)
 				t.NotContains(s.run(c.ref), secret,
 					"ingested Ref must not leak via %s", s.name)
 			})
 			t.Run("Handle/"+c.name+"/"+s.name, func(tt *testing.T) {
 				tt.Parallel()
-				t := check.T(tt)
+				t := check.Must(tt)
 				t.NotContains(s.run(c.h), secret,
 					"ingested Handle must not leak via %s", s.name)
 			})
@@ -401,9 +399,8 @@ func TestSafety_postIngestNoLeak(tt *testing.T) {
 
 // TestSafety_postIngestDecimalNoLeak verifies that a decimal secret ingested via
 // Unmarshal or Scan still cannot leak through fmt or json.
-func TestSafety_postIngestDecimalNoLeak(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestSafety_postIngestDecimalNoLeak(t *testing.T) {
+	t.Parallel()
 
 	const secretStr = "31415926535"
 
@@ -423,13 +420,13 @@ func TestSafety_postIngestDecimalNoLeak(tt *testing.T) {
 	} {
 		t.Run(name+"/fmt", func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			t.NotContains(fmt.Sprintf("%v", r), secretStr,
 				"ingested Ref[decimal] must not leak via fmt")
 		})
 		t.Run(name+"/json_marshal", func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			b, err := json.Marshal(r)
 			t.Nil(err)
 			t.NotContains(string(b), secretStr,
@@ -443,9 +440,8 @@ func TestSafety_postIngestDecimalNoLeak(tt *testing.T) {
 // unsafe, bypassing fmt.Formatter) does not contain the plaintext secret.
 // This tests the in-memory encryption layer: the stored value is ciphertext,
 // so even tools that bypass Format cannot extract the secret.
-func TestSafety_deepReflectionNoLeak(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestSafety_deepReflectionNoLeak(t *testing.T) {
+	t.Parallel()
 
 	// Use a long, distinctive secret to make a false-positive collision
 	// with a random AES ciphertext astronomically unlikely.
@@ -453,7 +449,7 @@ func TestSafety_deepReflectionNoLeak(tt *testing.T) {
 
 	t.Run("Ref_string", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		r := sensitive.New(secret)
 		dump := spew.Sdump(r)
@@ -465,7 +461,7 @@ func TestSafety_deepReflectionNoLeak(tt *testing.T) {
 
 	t.Run("Handle_string", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		h := sensitive.Make(secret)
 		dump := spew.Sdump(h)
@@ -477,7 +473,7 @@ func TestSafety_deepReflectionNoLeak(tt *testing.T) {
 
 	t.Run("Ref_int_unchanged", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		// Non-string/[]byte types are not encrypted; behavior must be unchanged.
 		r := sensitive.New(12345)
@@ -487,9 +483,8 @@ func TestSafety_deepReflectionNoLeak(tt *testing.T) {
 
 // TestSafety_postIngestUnexportedNoLeak verifies that a secret ingested via Scan
 // into an unexported struct field still cannot leak.
-func TestSafety_postIngestUnexportedNoLeak(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestSafety_postIngestUnexportedNoLeak(t *testing.T) {
+	t.Parallel()
 
 	const secret = "unexported-ingested"
 
@@ -521,13 +516,13 @@ func TestSafety_postIngestUnexportedNoLeak(tt *testing.T) {
 	} {
 		t.Run("Ref/"+s.name, func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			t.NotContains(s.run(inner), secret,
 				"ingested Ref in unexported field must not leak via %s", s.name)
 		})
 		t.Run("Handle/"+s.name, func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			t.NotContains(s.run(innerH), secret,
 				"ingested Handle in unexported field must not leak via %s", s.name)
 		})

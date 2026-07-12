@@ -64,9 +64,8 @@ type structWithInterfaceHoldingRef struct {
 	v any
 }
 
-func TestRef_formatting(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestRef_formatting(t *testing.T) {
+	t.Parallel()
 
 	secret := "my-secret"
 	bSecret := sensitive.New(secret)
@@ -89,15 +88,14 @@ func TestRef_formatting(tt *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 			t.NotContains(fmt.Sprintf(tc.formatting, tc.value), tc.notWant)
 		})
 	}
 }
 
-func TestRef_reflectionSafety(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestRef_reflectionSafety(t *testing.T) {
+	t.Parallel()
 
 	secretStr := "secret-value"
 	secretBytes := []byte("secret-bytes")
@@ -114,7 +112,7 @@ func TestRef_reflectionSafety(tt *testing.T) {
 	for _, verb := range verbs {
 		t.Run("unexported_field_"+verb, func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 
 			result := fmt.Sprintf(verb, parent)
 
@@ -128,9 +126,8 @@ func TestRef_reflectionSafety(tt *testing.T) {
 	}
 }
 
-func TestRef_interfaceInUnexportedField(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestRef_interfaceInUnexportedField(t *testing.T) {
+	t.Parallel()
 
 	secret := "hidden-behind-interface"
 	ref := sensitive.New(secret)
@@ -144,7 +141,7 @@ func TestRef_interfaceInUnexportedField(tt *testing.T) {
 	for _, verb := range verbs {
 		t.Run("interface_unexported_"+verb, func(tt *testing.T) {
 			tt.Parallel()
-			t := check.T(tt)
+			t := check.Must(tt)
 
 			result := fmt.Sprintf(verb, parent)
 
@@ -154,13 +151,12 @@ func TestRef_interfaceInUnexportedField(tt *testing.T) {
 	}
 }
 
-func TestRef_deepEqual(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestRef_deepEqual(t *testing.T) {
+	t.Parallel()
 
 	t.Run("string", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		a := sensitive.New("equal-value")
 		b := sensitive.New("equal-value")
@@ -169,7 +165,7 @@ func TestRef_deepEqual(tt *testing.T) {
 
 	t.Run("bytes", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		a := sensitive.New([]byte("equal-bytes"))
 		b := sensitive.New([]byte("equal-bytes"))
@@ -178,7 +174,7 @@ func TestRef_deepEqual(tt *testing.T) {
 
 	t.Run("struct", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		a := sensitive.New(testStruct{A: "x", B: 1})
 		b := sensitive.New(testStruct{A: "x", B: 1})
@@ -187,7 +183,7 @@ func TestRef_deepEqual(tt *testing.T) {
 
 	t.Run("different", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		a := sensitive.New("alpha")
 		b := sensitive.New("beta")
@@ -195,13 +191,12 @@ func TestRef_deepEqual(tt *testing.T) {
 	})
 }
 
-func TestRef_ExposeSecret(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestRef_ExposeSecret(t *testing.T) {
+	t.Parallel()
 
 	t.Run("round_trip", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		expected := "sensitive-data"
 		b := sensitive.New(expected)
@@ -210,7 +205,7 @@ func TestRef_ExposeSecret(tt *testing.T) {
 
 	t.Run("zero_value_safe", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		var z sensitive.Ref[string]
 		t.NotPanic(func() { _ = z.ExposeSecret() },
@@ -220,7 +215,7 @@ func TestRef_ExposeSecret(tt *testing.T) {
 
 	t.Run("primitive_types", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		t.Equal(sensitive.New(42).ExposeSecret(), 42)
 		t.Equal(sensitive.New(3.14).ExposeSecret(), 3.14)
@@ -230,7 +225,7 @@ func TestRef_ExposeSecret(tt *testing.T) {
 
 func TestRef_json(tt *testing.T) {
 	tt.Parallel()
-	t := check.T(tt).MustAll()
+	t := check.Must(tt)
 
 	value := sensitive.New("my-json-value")
 
@@ -244,13 +239,9 @@ func TestRef_json(tt *testing.T) {
 	t.Equal(string(result), "null")
 }
 
-func TestRef_marshalText(tt *testing.T) {
-	// Must not be parallel — modifies global Format<Type>Fn.
-	// Must be in .test binary with GO_TEST_DISABLE_SENSITIVE set
-	// so MarshalText exercises the marshalText* helpers with real values.
-	t := check.T(tt).MustAll()
-
-	tt.Setenv("GO_TEST_DISABLE_SENSITIVE", "1")
+//nolint:paralleltest // modifies global Format<Type>Fn
+func TestRef_marshalText(t *testing.T) {
+	t.Setenv("GO_TEST_DISABLE_SENSITIVE", "1")
 	sensitive.Disable()
 	// Restore defaults so other tests still see redacted output.
 	t.Cleanup(resetFormatFns)
@@ -281,7 +272,7 @@ func TestRef_marshalText(tt *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(tt *testing.T) {
 			// Not parallel — global Format<Type>Fn modification.
-			t := check.T(tt)
+			t := check.Must(tt)
 
 			tm, ok := tc.value.(encoding.TextMarshaler)
 			t.True(ok, "Ref should implement encoding.TextMarshaler")
@@ -293,42 +284,38 @@ func TestRef_marshalText(tt *testing.T) {
 }
 
 //nolint:paralleltest // modifies global Format<Type>Fn
-func TestRef_jsonRedactedNaN(tt *testing.T) {
-	// Must not be parallel — modifies global Format<Type>Fn.
-	t := check.T(tt).MustAll()
-
+func TestRef_jsonRedactedNaN(t *testing.T) {
 	sensitive.Redact()
 	t.Cleanup(resetFormatFns)
 
 	t.Run("float32", func(tt *testing.T) {
-		t := check.T(tt)
+		t := check.Must(tt)
 		b, err := json.Marshal(sensitive.New(float32(1.0)))
 		t.Nil(err)
 		t.Equal(string(b), "null")
 	})
 
 	t.Run("float64", func(tt *testing.T) {
-		t := check.T(tt)
+		t := check.Must(tt)
 		b, err := json.Marshal(sensitive.New(1.0))
 		t.Nil(err)
 		t.Equal(string(b), "null")
 	})
 
 	t.Run("decimal", func(tt *testing.T) {
-		t := check.T(tt)
+		t := check.Must(tt)
 		b, err := json.Marshal(sensitive.New(decimal.NewFromFloat(1.5)))
 		t.Nil(err)
 		t.Equal(string(b), "null")
 	})
 }
 
-func TestRef_zeroValue(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestRef_zeroValue(t *testing.T) {
+	t.Parallel()
 
 	t.Run("format_no_panic", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		t.NotPanic(func() {
 			_ = fmt.Sprintf("%v", sensitive.Ref[string]{})
 		})
@@ -336,7 +323,7 @@ func TestRef_zeroValue(tt *testing.T) {
 
 	t.Run("expose_secret_no_panic", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		t.NotPanic(func() {
 			_ = sensitive.Ref[string]{}.ExposeSecret()
 		})
@@ -387,28 +374,28 @@ func testRefGlobalMode(mode string) {
 
 func TestRef_defaultMode(tt *testing.T) {
 	tt.Parallel()
-	t := check.T(tt).MustAll()
+	t := check.Must(tt)
 
 	runRefSubprocess(t, "default")
 }
 
 func TestRef_redactMode(tt *testing.T) {
 	tt.Parallel()
-	t := check.T(tt).MustAll()
+	t := check.Must(tt)
 
 	runRefSubprocess(t, "Redact")
 }
 
 func TestRef_disableMode(tt *testing.T) {
 	tt.Parallel()
-	t := check.T(tt).MustAll()
+	t := check.Must(tt)
 
 	runRefSubprocess(t, "Disable")
 }
 
 // runRefSubprocess re-runs this test binary with a special marker
 // to execute testRefGlobalMode with the given mode.
-func runRefSubprocess(t *check.C, mode string) {
+func runRefSubprocess(t *check.TB, mode string) {
 	ctx, cancel := context.WithCancel(t.Context())
 	t.Cleanup(cancel)
 
@@ -436,13 +423,12 @@ func TestRef_globalModeHelper(tt *testing.T) {
 	testRefGlobalMode(mode)
 }
 
-func TestRef_UnmarshalJSON(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestRef_UnmarshalJSON(t *testing.T) {
+	t.Parallel()
 
 	t.Run("string", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[string]
 		t.Nil(json.Unmarshal([]byte(`"hello"`), &r))
 		t.Equal(r.ExposeSecret(), "hello")
@@ -450,7 +436,7 @@ func TestRef_UnmarshalJSON(tt *testing.T) {
 
 	t.Run("int", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[int]
 		t.Nil(json.Unmarshal([]byte(`42`), &r))
 		t.Equal(r.ExposeSecret(), 42)
@@ -458,7 +444,7 @@ func TestRef_UnmarshalJSON(tt *testing.T) {
 
 	t.Run("bool", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[bool]
 		t.Nil(json.Unmarshal([]byte(`true`), &r))
 		t.Equal(r.ExposeSecret(), true)
@@ -466,7 +452,7 @@ func TestRef_UnmarshalJSON(tt *testing.T) {
 
 	t.Run("decimal", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[decimal.Decimal]
 		t.Nil(json.Unmarshal([]byte(`"1.5"`), &r))
 		t.True(r.ExposeSecret().Equal(decimal.NewFromFloat(1.5)))
@@ -474,19 +460,18 @@ func TestRef_UnmarshalJSON(tt *testing.T) {
 
 	t.Run("invalid_json", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[string]
 		t.NotNil(json.Unmarshal([]byte(`not json`), &r))
 	})
 }
 
-func TestRef_UnmarshalText(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestRef_UnmarshalText(t *testing.T) {
+	t.Parallel()
 
 	t.Run("string", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[string]
 		t.Nil(r.UnmarshalText([]byte("hello")))
 		t.Equal(r.ExposeSecret(), "hello")
@@ -494,7 +479,7 @@ func TestRef_UnmarshalText(tt *testing.T) {
 
 	t.Run("bytes", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[[]byte]
 		t.Nil(r.UnmarshalText([]byte("rawbytes")))
 		t.Equal(string(r.ExposeSecret()), "rawbytes")
@@ -502,7 +487,7 @@ func TestRef_UnmarshalText(tt *testing.T) {
 
 	t.Run("bool_true", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[bool]
 		t.Nil(r.UnmarshalText([]byte("true")))
 		t.Equal(r.ExposeSecret(), true)
@@ -510,14 +495,14 @@ func TestRef_UnmarshalText(tt *testing.T) {
 
 	t.Run("bool_invalid", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[bool]
 		t.NotNil(r.UnmarshalText([]byte("notabool")))
 	})
 
 	t.Run("int", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[int]
 		t.Nil(r.UnmarshalText([]byte("-7")))
 		t.Equal(r.ExposeSecret(), -7)
@@ -525,14 +510,14 @@ func TestRef_UnmarshalText(tt *testing.T) {
 
 	t.Run("int_invalid", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[int]
 		t.NotNil(r.UnmarshalText([]byte("abc")))
 	})
 
 	t.Run("uint64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[uint64]
 		t.Nil(r.UnmarshalText([]byte("18446744073709551615")))
 		t.Equal(r.ExposeSecret(), uint64(math.MaxUint64))
@@ -540,7 +525,7 @@ func TestRef_UnmarshalText(tt *testing.T) {
 
 	t.Run("float64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[float64]
 		t.Nil(r.UnmarshalText([]byte("3.14")))
 		t.Equal(r.ExposeSecret(), 3.14)
@@ -548,7 +533,7 @@ func TestRef_UnmarshalText(tt *testing.T) {
 
 	t.Run("decimal_via_TextUnmarshaler", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[decimal.Decimal]
 		t.Nil(r.UnmarshalText([]byte("1.5")))
 		t.True(r.ExposeSecret().Equal(decimal.NewFromFloat(1.5)))
@@ -556,7 +541,7 @@ func TestRef_UnmarshalText(tt *testing.T) {
 
 	t.Run("int8", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[int8]
 		t.Nil(r.UnmarshalText([]byte("-128")))
 		t.Equal(r.ExposeSecret(), int8(-128))
@@ -564,14 +549,14 @@ func TestRef_UnmarshalText(tt *testing.T) {
 
 	t.Run("int8_overflow", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[int8]
 		t.NotNil(r.UnmarshalText([]byte("999")))
 	})
 
 	t.Run("int16", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[int16]
 		t.Nil(r.UnmarshalText([]byte("32767")))
 		t.Equal(r.ExposeSecret(), int16(32767))
@@ -579,14 +564,14 @@ func TestRef_UnmarshalText(tt *testing.T) {
 
 	t.Run("int16_overflow", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[int16]
 		t.NotNil(r.UnmarshalText([]byte("99999")))
 	})
 
 	t.Run("int32", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[int32]
 		t.Nil(r.UnmarshalText([]byte("-2147483648")))
 		t.Equal(r.ExposeSecret(), int32(math.MinInt32))
@@ -594,14 +579,14 @@ func TestRef_UnmarshalText(tt *testing.T) {
 
 	t.Run("int32_overflow", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[int32]
 		t.NotNil(r.UnmarshalText([]byte("2147483648")))
 	})
 
 	t.Run("int64_negative", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[int64]
 		t.Nil(r.UnmarshalText([]byte("-9223372036854775808")))
 		t.Equal(r.ExposeSecret(), int64(math.MinInt64))
@@ -609,7 +594,7 @@ func TestRef_UnmarshalText(tt *testing.T) {
 
 	t.Run("uint", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[uint]
 		t.Nil(r.UnmarshalText([]byte("0")))
 		t.Equal(r.ExposeSecret(), uint(0))
@@ -617,14 +602,14 @@ func TestRef_UnmarshalText(tt *testing.T) {
 
 	t.Run("uint_overflow", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[uint]
 		t.NotNil(r.UnmarshalText([]byte("-1")))
 	})
 
 	t.Run("uint8", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[uint8]
 		t.Nil(r.UnmarshalText([]byte("255")))
 		t.Equal(r.ExposeSecret(), uint8(255))
@@ -632,14 +617,14 @@ func TestRef_UnmarshalText(tt *testing.T) {
 
 	t.Run("uint8_overflow", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[uint8]
 		t.NotNil(r.UnmarshalText([]byte("256")))
 	})
 
 	t.Run("uint16", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[uint16]
 		t.Nil(r.UnmarshalText([]byte("65535")))
 		t.Equal(r.ExposeSecret(), uint16(65535))
@@ -647,14 +632,14 @@ func TestRef_UnmarshalText(tt *testing.T) {
 
 	t.Run("uint16_overflow", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[uint16]
 		t.NotNil(r.UnmarshalText([]byte("65536")))
 	})
 
 	t.Run("uint32", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[uint32]
 		t.Nil(r.UnmarshalText([]byte("4294967295")))
 		t.Equal(r.ExposeSecret(), uint32(math.MaxUint32))
@@ -662,14 +647,14 @@ func TestRef_UnmarshalText(tt *testing.T) {
 
 	t.Run("uint32_overflow", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[uint32]
 		t.NotNil(r.UnmarshalText([]byte("4294967296")))
 	})
 
 	t.Run("float32", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[float32]
 		t.Nil(r.UnmarshalText([]byte("3.14")))
 		t.Equal(r.ExposeSecret(), float32(3.14))
@@ -677,26 +662,25 @@ func TestRef_UnmarshalText(tt *testing.T) {
 
 	t.Run("float32_invalid", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[float32]
 		t.NotNil(r.UnmarshalText([]byte("not-a-float")))
 	})
 
 	t.Run("unsupported_type", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[testStruct]
 		t.NotNil(r.UnmarshalText([]byte("anything")))
 	})
 }
 
-func TestRef_Scan(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func TestRef_Scan(t *testing.T) {
+	t.Parallel()
 
 	t.Run("string_from_string", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[string]
 		t.Nil(r.Scan("secret"))
 		t.Equal(r.ExposeSecret(), "secret")
@@ -704,7 +688,7 @@ func TestRef_Scan(tt *testing.T) {
 
 	t.Run("string_from_bytes", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[string]
 		t.Nil(r.Scan([]byte("secret")))
 		t.Equal(r.ExposeSecret(), "secret")
@@ -712,7 +696,7 @@ func TestRef_Scan(tt *testing.T) {
 
 	t.Run("bytes_from_bytes", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[[]byte]
 		t.Nil(r.Scan([]byte("raw")))
 		t.Equal(string(r.ExposeSecret()), "raw")
@@ -720,7 +704,7 @@ func TestRef_Scan(tt *testing.T) {
 
 	t.Run("bytes_from_string", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[[]byte]
 		t.Nil(r.Scan("raw"))
 		t.Equal(string(r.ExposeSecret()), "raw")
@@ -728,7 +712,7 @@ func TestRef_Scan(tt *testing.T) {
 
 	t.Run("bool_from_bool", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[bool]
 		t.Nil(r.Scan(true))
 		t.Equal(r.ExposeSecret(), true)
@@ -736,7 +720,7 @@ func TestRef_Scan(tt *testing.T) {
 
 	t.Run("bool_from_int64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[bool]
 		t.Nil(r.Scan(int64(1)))
 		t.Equal(r.ExposeSecret(), true)
@@ -744,7 +728,7 @@ func TestRef_Scan(tt *testing.T) {
 
 	t.Run("int_from_int64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[int]
 		t.Nil(r.Scan(int64(42)))
 		t.Equal(r.ExposeSecret(), 42)
@@ -752,7 +736,7 @@ func TestRef_Scan(tt *testing.T) {
 
 	t.Run("float64_from_float64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[float64]
 		t.Nil(r.Scan(float64(2.718)))
 		t.Equal(r.ExposeSecret(), 2.718)
@@ -760,7 +744,7 @@ func TestRef_Scan(tt *testing.T) {
 
 	t.Run("decimal_via_scanner", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[decimal.Decimal]
 		t.Nil(r.Scan("1.5"))
 		t.True(r.ExposeSecret().Equal(decimal.NewFromFloat(1.5)))
@@ -768,7 +752,7 @@ func TestRef_Scan(tt *testing.T) {
 
 	t.Run("nil_yields_zero", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[string]
 		t.Nil(r.Scan("before"))
 		t.Nil(r.Scan(nil))
@@ -777,21 +761,21 @@ func TestRef_Scan(tt *testing.T) {
 
 	t.Run("type_mismatch_error", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[string]
 		t.NotNil(r.Scan(int64(1)))
 	})
 
 	t.Run("unsupported_type_error", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[testStruct]
 		t.NotNil(r.Scan("anything"))
 	})
 
 	t.Run("int8_from_int64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[int8]
 		t.Nil(r.Scan(int64(-128)))
 		t.Equal(r.ExposeSecret(), int8(-128))
@@ -799,7 +783,7 @@ func TestRef_Scan(tt *testing.T) {
 
 	t.Run("int8_truncation", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[int8]
 		t.Nil(r.Scan(int64(300)))
 		t.Equal(r.ExposeSecret(), int8(44)) // 300 wraps to 44 for int8
@@ -807,14 +791,14 @@ func TestRef_Scan(tt *testing.T) {
 
 	t.Run("int8_type_mismatch", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[int8]
 		t.NotNil(r.Scan("not-an-int64"))
 	})
 
 	t.Run("int16_from_int64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[int16]
 		t.Nil(r.Scan(int64(32767)))
 		t.Equal(r.ExposeSecret(), int16(32767))
@@ -822,7 +806,7 @@ func TestRef_Scan(tt *testing.T) {
 
 	t.Run("int16_truncation", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[int16]
 		t.Nil(r.Scan(int64(99999)))
 		t.Equal(r.ExposeSecret(), int16(-31073)) // 99999 wraps to -31073 for int16
@@ -830,7 +814,7 @@ func TestRef_Scan(tt *testing.T) {
 
 	t.Run("int32_from_int64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[int32]
 		t.Nil(r.Scan(int64(math.MinInt32)))
 		t.Equal(r.ExposeSecret(), int32(math.MinInt32))
@@ -838,7 +822,7 @@ func TestRef_Scan(tt *testing.T) {
 
 	t.Run("int64_from_int64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[int64]
 		t.Nil(r.Scan(int64(math.MinInt64)))
 		t.Equal(r.ExposeSecret(), int64(math.MinInt64))
@@ -846,7 +830,7 @@ func TestRef_Scan(tt *testing.T) {
 
 	t.Run("uint_from_int64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[uint]
 		t.Nil(r.Scan(int64(0)))
 		t.Equal(r.ExposeSecret(), uint(0))
@@ -854,7 +838,7 @@ func TestRef_Scan(tt *testing.T) {
 
 	t.Run("uint8_from_int64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[uint8]
 		t.Nil(r.Scan(int64(255)))
 		t.Equal(r.ExposeSecret(), uint8(255))
@@ -862,7 +846,7 @@ func TestRef_Scan(tt *testing.T) {
 
 	t.Run("uint8_truncation", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[uint8]
 		t.Nil(r.Scan(int64(256)))
 		t.Equal(r.ExposeSecret(), uint8(0)) // 256 wraps to 0 for uint8
@@ -870,7 +854,7 @@ func TestRef_Scan(tt *testing.T) {
 
 	t.Run("uint16_from_int64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[uint16]
 		t.Nil(r.Scan(int64(65535)))
 		t.Equal(r.ExposeSecret(), uint16(65535))
@@ -878,7 +862,7 @@ func TestRef_Scan(tt *testing.T) {
 
 	t.Run("uint32_from_int64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[uint32]
 		t.Nil(r.Scan(int64(math.MaxInt32)))
 		t.Equal(r.ExposeSecret(), uint32(math.MaxInt32))
@@ -886,7 +870,7 @@ func TestRef_Scan(tt *testing.T) {
 
 	t.Run("float32_from_float64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[float32]
 		t.Nil(r.Scan(float64(1.5)))
 		t.Equal(r.ExposeSecret(), float32(1.5))
@@ -894,14 +878,14 @@ func TestRef_Scan(tt *testing.T) {
 
 	t.Run("float32_type_mismatch", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[float32]
 		t.NotNil(r.Scan("not-a-float64"))
 	})
 
 	t.Run("nil_yields_zero_numeric", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[int8]
 		t.Nil(r.Scan(int64(42)))
 		t.Nil(r.Scan(nil))
@@ -910,7 +894,7 @@ func TestRef_Scan(tt *testing.T) {
 
 	t.Run("no_panic_on_unsupported", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 		var r sensitive.Ref[testStruct]
 		t.NotPanic(func() { _ = r.Scan("anything") })
 	})

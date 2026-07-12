@@ -10,9 +10,7 @@ import (
 )
 
 //nolint:paralleltest // Modifies global FormatStringFn, so can't be parallel.
-func TestFormat(tt *testing.T) {
-	t := check.T(tt).MustAll()
-
+func TestFormat(t *testing.T) {
 	oldFn := sensitive.FormatStringFn
 	defer func() {
 		sensitive.FormatStringFn = oldFn
@@ -34,7 +32,7 @@ func TestFormat(tt *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.formatting, func(tt *testing.T) {
 			want := fmt.Sprintf(tc.formatting, "value")
-			t := check.T(tt)
+			t := check.Must(tt)
 			result := fmt.Sprintf(tc.formatting, "value")
 			t.Equal(result, want)
 		})

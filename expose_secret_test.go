@@ -9,13 +9,12 @@ import (
 	"github.com/powerman/sensitive"
 )
 
-func Test_exposeSecretInterface(tt *testing.T) {
-	tt.Parallel()
-	t := check.T(tt).MustAll()
+func Test_exposeSecretInterface(t *testing.T) {
+	t.Parallel()
 
 	t.Run("string", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		var ref sensitive.Secret[string] = sensitive.New("ref")
 		var h sensitive.Secret[string] = sensitive.Make("handled")
@@ -26,7 +25,7 @@ func Test_exposeSecretInterface(tt *testing.T) {
 
 	t.Run("bool", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		var ref sensitive.Secret[bool] = sensitive.New(true)
 		var h sensitive.Secret[bool] = sensitive.Make(true)
@@ -37,7 +36,7 @@ func Test_exposeSecretInterface(tt *testing.T) {
 
 	t.Run("int", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		var ref sensitive.Secret[int] = sensitive.New(42)
 		var h sensitive.Secret[int] = sensitive.Make(42)
@@ -48,7 +47,7 @@ func Test_exposeSecretInterface(tt *testing.T) {
 
 	t.Run("int8", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		var ref sensitive.Secret[int8] = sensitive.New(int8(42))
 		var h sensitive.Secret[int8] = sensitive.Make(int8(42))
@@ -59,7 +58,7 @@ func Test_exposeSecretInterface(tt *testing.T) {
 
 	t.Run("int16", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		var ref sensitive.Secret[int16] = sensitive.New(int16(42))
 		var h sensitive.Secret[int16] = sensitive.Make(int16(42))
@@ -70,7 +69,7 @@ func Test_exposeSecretInterface(tt *testing.T) {
 
 	t.Run("int32", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		var ref sensitive.Secret[int32] = sensitive.New(int32(42))
 		var h sensitive.Secret[int32] = sensitive.Make(int32(42))
@@ -81,7 +80,7 @@ func Test_exposeSecretInterface(tt *testing.T) {
 
 	t.Run("int64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		var ref sensitive.Secret[int64] = sensitive.New(int64(42))
 		var h sensitive.Secret[int64] = sensitive.Make(int64(42))
@@ -92,7 +91,7 @@ func Test_exposeSecretInterface(tt *testing.T) {
 
 	t.Run("uint", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		var ref sensitive.Secret[uint] = sensitive.New(uint(42))
 		var h sensitive.Secret[uint] = sensitive.Make(uint(42))
@@ -103,7 +102,7 @@ func Test_exposeSecretInterface(tt *testing.T) {
 
 	t.Run("uint8", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		var ref sensitive.Secret[uint8] = sensitive.New(uint8(42))
 		var h sensitive.Secret[uint8] = sensitive.Make(uint8(42))
@@ -114,7 +113,7 @@ func Test_exposeSecretInterface(tt *testing.T) {
 
 	t.Run("uint16", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		var ref sensitive.Secret[uint16] = sensitive.New(uint16(42))
 		var h sensitive.Secret[uint16] = sensitive.Make(uint16(42))
@@ -125,7 +124,7 @@ func Test_exposeSecretInterface(tt *testing.T) {
 
 	t.Run("uint32", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		var ref sensitive.Secret[uint32] = sensitive.New(uint32(42))
 		var h sensitive.Secret[uint32] = sensitive.Make(uint32(42))
@@ -136,7 +135,7 @@ func Test_exposeSecretInterface(tt *testing.T) {
 
 	t.Run("uint64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		var ref sensitive.Secret[uint64] = sensitive.New(uint64(42))
 		var h sensitive.Secret[uint64] = sensitive.Make(uint64(42))
@@ -147,7 +146,7 @@ func Test_exposeSecretInterface(tt *testing.T) {
 
 	t.Run("float32", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		var ref sensitive.Secret[float32] = sensitive.New(float32(3.14))
 		var h sensitive.Secret[float32] = sensitive.Make(float32(3.14))
@@ -158,7 +157,7 @@ func Test_exposeSecretInterface(tt *testing.T) {
 
 	t.Run("float64", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		var ref sensitive.Secret[float64] = sensitive.New(2.718)
 		var h sensitive.Secret[float64] = sensitive.Make(2.718)
@@ -169,7 +168,7 @@ func Test_exposeSecretInterface(tt *testing.T) {
 
 	t.Run("bytes", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		var ref sensitive.Secret[[]byte] = sensitive.New([]byte("ref-bytes"))
 
@@ -178,7 +177,7 @@ func Test_exposeSecretInterface(tt *testing.T) {
 
 	t.Run("decimal", func(tt *testing.T) {
 		tt.Parallel()
-		t := check.T(tt)
+		t := check.Must(tt)
 
 		d := decimal.NewFromFloat(1.5)
 		var ref sensitive.Secret[decimal.Decimal] = sensitive.New(d)
