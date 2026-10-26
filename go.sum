@@ -1,6 +1,6 @@
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/powerman/check v1.13.0 h1:/uNADrvWRzsRKCN00LEN/Ph0XMlUmtOhZTw2Qr60nNQ=
-github.com/powerman/check v1.13.0/go.mod h1:h7WkuVUhfVN1yl/F6zm+zbZLeOUtx34+JpMA8aA2vR0=
-github.com/shopspring/decimal v1.4.0 h1:bxl37RwXBklmTi0C79JfXCEBD1cqqHt0bbgBAGFp81k=
-github.com/shopspring/decimal v1.4.0/go.mod h1:gawqmDU56v4yIKSwfBSFip1HdCCXN8/+DMd9qYNcwME=
+github.com/powerman/check v1.14.0 h1:K8iOOVCMOcIeeGr/SBvVGJbiq5WAUtW7sIoGfE7+Skc=
+github.com/powerman/check v1.14.0/go.mod h1:SLUFjRHJRso/wokJgRvySca9reNPpC0YG1SvE0sifA0=
+github.com/shopspring/decimal v1.6.0 h1:DcTwjCj4tJPLuGZYsR9W0hyX9pQwMIkdo26Ig1T9xX4=
+github.com/shopspring/decimal v1.6.0/go.mod h1:gawqmDU56v4yIKSwfBSFip1HdCCXN8/+DMd9qYNcwME=
