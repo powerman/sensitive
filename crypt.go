@@ -71,7 +71,7 @@ func decryptBytes(ciphertext []byte) []byte {
 // For all other T, v is returned unchanged.
 func encryptT[T any](v T) T {
 	rv := reflect.ValueOf(v)
-	switch rv.Kind() { //nolint:exhaustive // Only string and []byte kinds are encrypted; all others pass through unchanged.
+	switch rv.Kind() {
 	case reflect.String:
 		result := reflect.New(rv.Type()).Elem()
 		result.SetString(string(encryptBytes([]byte(rv.String()))))
@@ -93,7 +93,7 @@ func encryptT[T any](v T) T {
 // For all other T, v is returned unchanged.
 func decryptT[T any](v T) T {
 	rv := reflect.ValueOf(v)
-	switch rv.Kind() { //nolint:exhaustive // Only string and []byte kinds are decrypted; all others pass through unchanged.
+	switch rv.Kind() {
 	case reflect.String:
 		result := reflect.New(rv.Type()).Elem()
 		result.SetString(string(decryptBytes([]byte(rv.String()))))

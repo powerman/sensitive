@@ -13,7 +13,7 @@ import (
 // jsonTagged holds Ref[string], Ref[[]byte] and Handle[string] fields with
 // omitempty and omitzero struct tags for comparison.
 //
-//nolint:modernize // Intentionally testing omitempty behavior on struct fields.
+
 type jsonTagged struct {
 	RefZero   sensitive.Ref[string] `json:"ref_zero"`
 	RefZeroZ  sensitive.Ref[string] `json:"ref_zeroz,omitzero"`
