@@ -15,21 +15,21 @@ import (
 //
 //nolint:modernize // Intentionally testing omitempty behavior on struct fields.
 type jsonTagged struct {
-	RefZero   sensitive.Ref[string] `json:"ref_zero,omitempty"`
+	RefZero   sensitive.Ref[string] `json:"ref_zero"`
 	RefZeroZ  sensitive.Ref[string] `json:"ref_zeroz,omitzero"`
-	RefEmpty  sensitive.Ref[string] `json:"ref_empty,omitempty"`
+	RefEmpty  sensitive.Ref[string] `json:"ref_empty"`
 	RefEmptyZ sensitive.Ref[string] `json:"ref_emptyz,omitzero"`
-	RefValue  sensitive.Ref[string] `json:"ref_value,omitempty"`
+	RefValue  sensitive.Ref[string] `json:"ref_value"`
 	RefValueZ sensitive.Ref[string] `json:"ref_valuez,omitzero"`
 
-	RefBytesZero   sensitive.Ref[[]byte] `json:"ref_bytes_zero,omitempty"`
+	RefBytesZero   sensitive.Ref[[]byte] `json:"ref_bytes_zero"`
 	RefBytesZeroZ  sensitive.Ref[[]byte] `json:"ref_bytes_zeroz,omitzero"`
-	RefBytesNil    sensitive.Ref[[]byte] `json:"ref_bytes_nil,omitempty"`
+	RefBytesNil    sensitive.Ref[[]byte] `json:"ref_bytes_nil"`
 	RefBytesNilZ   sensitive.Ref[[]byte] `json:"ref_bytes_nilz,omitzero"`
-	RefBytesEmpty  sensitive.Ref[[]byte] `json:"ref_bytes_empty,omitempty"`
+	RefBytesEmpty  sensitive.Ref[[]byte] `json:"ref_bytes_empty"`
 	RefBytesEmptyZ sensitive.Ref[[]byte] `json:"ref_bytes_emptyz,omitzero"`
 
-	HandleZero   sensitive.Handle[string] `json:"handle_zero,omitempty"`
+	HandleZero   sensitive.Handle[string] `json:"handle_zero"`
 	HandleZeroZ  sensitive.Handle[string] `json:"handle_zeroz,omitzero"`
 	HandleEmpty  sensitive.Handle[string] `json:"handle_empty,omitzero"`
 	HandleEmptyZ sensitive.Handle[string] `json:"handle_emptyz,omitzero"`
