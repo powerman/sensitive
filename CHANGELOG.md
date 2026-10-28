@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-10-28
+
+### 🔔 Changed
+
+- Require Go 1.26 by @powerman in [11783f0]
+
+### 📦️ Dependencies
+
+- **(deps)** Upgrade go and golangci-lint by @powerman in [d3fc144]
+- **(deps)** Upgrade go modules by @powerman in [a3dcb16]
+- **(deps)** Upgrade lint-sensitive to v0.5.0 by @powerman in [e8dce0a]
+- **(deps)** Upgrade go and golangci-lint by @powerman in [07ce83d]
+- **(deps)** Mise up by @powerman in [0c5b696]
+
+[0.7.0]: https://github.com/powerman/sensitive/compare/v0.6.1..v0.7.0
+[d3fc144]: https://github.com/powerman/sensitive/commit/d3fc144cc81f1b7b2d89f9f560612b71ed440027
+[a3dcb16]: https://github.com/powerman/sensitive/commit/a3dcb16cc593a4d54587fb85dd22b08853c106aa
+[e8dce0a]: https://github.com/powerman/sensitive/commit/e8dce0afb0f467fab670daca1ebbcc12da676ab9
+[07ce83d]: https://github.com/powerman/sensitive/commit/07ce83df226b89e2a83865b1f70f8e9f57da14b2
+[11783f0]: https://github.com/powerman/sensitive/commit/11783f00b34c19892b493349d5faca5ffef17c37
+[0c5b696]: https://github.com/powerman/sensitive/commit/0c5b6968c2ea2a62d6803bb22d5752dc1695bde6
+
 ## [0.6.1] - 2026-07-12
 
 ### 📦️ Dependencies
