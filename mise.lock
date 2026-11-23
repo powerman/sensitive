@@ -137,51 +137,51 @@ url = "https://github.com/orhun/git-cliff/releases/download/v2.14.2/git-cliff-2.
 url_api = "https://api.github.com/repos/orhun/git-cliff/releases/assets/573487227"
 
 [[tools."github:powerman/lint-sensitive"]]
-version = "0.5.0"
+version = "0.6.0"
 backend = "github:powerman/lint-sensitive"
 specifiers = ["latest"]
 
 [tools."github:powerman/lint-sensitive"."platforms.linux-arm64"]
-checksum = "sha256:486e19a0ebb7170ee90a32777b37bd194043ca420e20fb527f68852502fe2523"
-checksum_source = "mise-versions"
-url = "https://github.com/powerman/lint-sensitive/releases/download/v0.5.0/lint-sensitive-v0.5.0-linux-arm64"
-url_api = "https://api.github.com/repos/powerman/lint-sensitive/releases/assets/648090799"
+checksum = "sha256:17b5245a3a8df3c0422a5d9417c7f7e8bc870b94d30365272a5ed326f216d88d"
+url = "https://github.com/powerman/lint-sensitive/releases/download/v0.6.0/lint-sensitive-v0.6.0-linux-arm64"
+url_api = "https://api.github.com/repos/powerman/lint-sensitive/releases/assets/784753570"
+provenance = "github-attestations"
 
 [tools."github:powerman/lint-sensitive"."platforms.linux-arm64-musl"]
-checksum = "sha256:486e19a0ebb7170ee90a32777b37bd194043ca420e20fb527f68852502fe2523"
-checksum_source = "mise-versions"
-url = "https://github.com/powerman/lint-sensitive/releases/download/v0.5.0/lint-sensitive-v0.5.0-linux-arm64"
-url_api = "https://api.github.com/repos/powerman/lint-sensitive/releases/assets/648090799"
+checksum = "sha256:17b5245a3a8df3c0422a5d9417c7f7e8bc870b94d30365272a5ed326f216d88d"
+url = "https://github.com/powerman/lint-sensitive/releases/download/v0.6.0/lint-sensitive-v0.6.0-linux-arm64"
+url_api = "https://api.github.com/repos/powerman/lint-sensitive/releases/assets/784753570"
+provenance = "github-attestations"
 
 [tools."github:powerman/lint-sensitive"."platforms.linux-x64"]
-checksum = "sha256:2f106fffb07c2915a5a01b3146d6520568a4e8217ca57665574fcdc7c182cbb1"
-checksum_source = "mise-versions"
-url = "https://github.com/powerman/lint-sensitive/releases/download/v0.5.0/lint-sensitive-v0.5.0-linux-amd64"
-url_api = "https://api.github.com/repos/powerman/lint-sensitive/releases/assets/648090449"
+checksum = "sha256:d060b91cfe68016b8d9e56cf80800a3d279a872eb0c5f6b428572185214e2978"
+url = "https://github.com/powerman/lint-sensitive/releases/download/v0.6.0/lint-sensitive-v0.6.0-linux-amd64"
+url_api = "https://api.github.com/repos/powerman/lint-sensitive/releases/assets/784752543"
+provenance = "github-attestations"
 
 [tools."github:powerman/lint-sensitive"."platforms.linux-x64-musl"]
-checksum = "sha256:2f106fffb07c2915a5a01b3146d6520568a4e8217ca57665574fcdc7c182cbb1"
-checksum_source = "mise-versions"
-url = "https://github.com/powerman/lint-sensitive/releases/download/v0.5.0/lint-sensitive-v0.5.0-linux-amd64"
-url_api = "https://api.github.com/repos/powerman/lint-sensitive/releases/assets/648090449"
+checksum = "sha256:d060b91cfe68016b8d9e56cf80800a3d279a872eb0c5f6b428572185214e2978"
+url = "https://github.com/powerman/lint-sensitive/releases/download/v0.6.0/lint-sensitive-v0.6.0-linux-amd64"
+url_api = "https://api.github.com/repos/powerman/lint-sensitive/releases/assets/784752543"
+provenance = "github-attestations"
 
 [tools."github:powerman/lint-sensitive"."platforms.macos-arm64"]
-checksum = "sha256:8ddc1f33720ca35302a5854963d11374e759586afab723ce175a1c8906cecb37"
-checksum_source = "mise-versions"
-url = "https://github.com/powerman/lint-sensitive/releases/download/v0.5.0/lint-sensitive-v0.5.0-darwin-arm64"
-url_api = "https://api.github.com/repos/powerman/lint-sensitive/releases/assets/648090630"
+checksum = "sha256:376c54f3354353a7b00acb569c1ce9102c783f54579c04cf2d40a05ccaed2ae4"
+url = "https://github.com/powerman/lint-sensitive/releases/download/v0.6.0/lint-sensitive-v0.6.0-darwin-arm64"
+url_api = "https://api.github.com/repos/powerman/lint-sensitive/releases/assets/784751985"
+provenance = "github-attestations"
 
 [tools."github:powerman/lint-sensitive"."platforms.macos-x64"]
-checksum = "sha256:502f8b1464a1500fa065dcb438d58c3bf668c0ddeb156dd95a10387cb65687f6"
-checksum_source = "mise-versions"
-url = "https://github.com/powerman/lint-sensitive/releases/download/v0.5.0/lint-sensitive-v0.5.0-darwin-amd64"
-url_api = "https://api.github.com/repos/powerman/lint-sensitive/releases/assets/648090495"
+checksum = "sha256:131cfad957acd67f04f96ce3ad5e231f739301f87c99e804188ca0d9506ad305"
+url = "https://github.com/powerman/lint-sensitive/releases/download/v0.6.0/lint-sensitive-v0.6.0-darwin-amd64"
+url_api = "https://api.github.com/repos/powerman/lint-sensitive/releases/assets/784752035"
+provenance = "github-attestations"
 
 [tools."github:powerman/lint-sensitive"."platforms.windows-x64"]
-checksum = "sha256:875bfbf78f59bde079512ec5f46cbf72095a787574263e0b07f067b3803efb63"
-checksum_source = "mise-versions"
-url = "https://github.com/powerman/lint-sensitive/releases/download/v0.5.0/lint-sensitive-v0.5.0-windows-amd64.exe"
-url_api = "https://api.github.com/repos/powerman/lint-sensitive/releases/assets/648090645"
+checksum = "sha256:a9aca5a17473cebd3ff5d06f357083703fd91d97bb207916d8d5460e5a3436c0"
+url = "https://github.com/powerman/lint-sensitive/releases/download/v0.6.0/lint-sensitive-v0.6.0-windows-amd64.exe"
+url_api = "https://api.github.com/repos/powerman/lint-sensitive/releases/assets/784752381"
+provenance = "github-attestations"
 
 [[tools.go]]
 version = "1.27.4"
