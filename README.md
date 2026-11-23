@@ -286,6 +286,6 @@ and support is deferred until it stabilizes.
 
 Runnable programs live in [`_examples/`](_examples/):
 
-- [`basic`](_examples/basic/main.go) — `Ref` with `Redact()`.
+- [`basic`](_examples/basic/main.go) — `Ref` with the default redaction.
 - [`custom`](_examples/custom/main.go) — custom redaction via `FormatStringFn`.
 - [`handle`](_examples/handle/main.go) — `Handle` value equality and map keys.

@@ -10,8 +10,6 @@ import (
 )
 
 func main() {
-	sensitive.Redact()
-
 	password := sensitive.New(os.Args[1]) // Ref[string]
 
 	fmt.Printf("%s\n", password)
