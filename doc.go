@@ -35,17 +35,6 @@
 // Both satisfy [Secret] via ExposeSecret, and both work with [reflect.DeepEqual],
 // so tests comparing whole structs keep working without per-field helpers.
 //
-// # Comparing and indexing
-//
-// With [Handle], == and map keys work by value, just like string.
-//
-// With [Ref], == is a compile-time error (as it is for []byte),
-// so an accidental comparison fails loudly instead of silently returning false;
-// compare values explicitly with [bytes.Equal] / [decimal.Equal] / a constant-time compare,
-// or compare whole structs in tests with [reflect.DeepEqual].
-// A struct containing a Ref field is itself non-comparable —
-// which is what you want for a struct holding secrets.
-//
 // # How protection works
 //
 // Protection has several independent layers, but only one carries the guarantee.
@@ -68,30 +57,11 @@
 // The encryption is deterministic (equal plaintexts give equal ciphertexts),
 // so a memory dump also reveals which secrets are equal and how long they are.
 //
-// # Why typed redacted values
+// # Redaction output
 //
-// By default (as if [Redact] was called), each sensitive type is replaced with a visible but
-// safe value that preserves the original's type:
-//
-//	Bool    → false               (still a bool in JSON)
-//	Float*  → 123                 (still a number in JSON)
-//	Int*    → 123                 (still a number in JSON)
-//	Uint*   → 123                 (still a number in JSON)
-//	String  → "REDACTED"          (still a string in JSON)
-//	Bytes   → 0xDEFACE            (base64 string "3vrO" in JSON, DEFACE in text)
-//	Decimal → 123                 (decimal's own JSON form: "123" or 123,
-//	                               see decimal.MarshalJSONWithoutQuotes)
-//
-// Keeping the original's type means that if a secret accidentally ends up in JSON output,
-// the JSON structure stays valid and parseable — a numeric field remains a number,
-// a boolean field remains a boolean. Text log parsers that expect specific field types
-// (such as structured loggers emitting typed values)
-// likewise keep working instead of failing on a type mismatch.
-//
-// All numbers share one short sentinel, 123:
-// it is easy to spot and to assert in tests,
-// unlike 0 it does not claim a false fact (balance=0),
-// and it is exactly representable in any numeric type (int8, float32, decimal).
+// By default each secret is replaced with a visible value of the original type, see [Redact].
+// Replace any Format<Type>Fn variable to customize the output,
+// or call [Disable] in tests to output the real values.
 //
 // # Custom named secret types
 //
@@ -105,4 +75,6 @@
 //
 // For a composite secret (e.g. credentials with two sensitive fields),
 // give each field its own Handle/Ref.
+// A Ref of the whole struct protects it too,
+// but it is printed and marshaled as nil, see [Ref].
 package sensitive

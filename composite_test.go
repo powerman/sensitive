@@ -13,7 +13,7 @@ import (
 
 type creds struct{ User, Pass string }
 
-// A composite T cannot be redacted by a Format<type>Fn,
+// A composite T cannot be redacted by a Format<Type>Fn,
 // so every egress is nil and none of them breaks the surrounding document.
 func TestRef_compositeEgressIsNil(t *testing.T) {
 	t.Parallel()

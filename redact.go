@@ -11,25 +11,26 @@ import (
 //nolint:gochecknoinits // Secure-by-default: redaction is the initial policy.
 func init() { Redact() }
 
-// Redact sets all Format<type>Fn to output visible, type-preserving values:
+// Redact sets all Format<Type>Fn to output visible values of the original type,
+// so JSON output stays valid and log parsers keep working:
 //
 //	Bool:    false
 //	Float*:  123
 //	Int*:    123
 //	Uint*:   123
 //	String:  "REDACTED"
-//	Bytes:   0xDEFACE
-//	Decimal: 123
+//	Bytes:   0xDEFACE  (DEFACE as text, base64 "3vrO" in JSON)
+//	Decimal: 123       (quoted in JSON unless decimal.MarshalJSONWithoutQuotes is set)
 //
-// The same short number is used for every numeric type on purpose:
+// All numbers share one short sentinel:
 // it is easy to spot and to assert in tests,
+// unlike 0 it does not claim a false fact (balance=0),
 // and it is exactly representable in any numeric type (int8, float32, decimal).
 //
-// Redaction is active by default (see package initialization),
-// so calling Redact explicitly is optional and idempotent.
-// It is useful to restore the default policy after overriding Format<type>Fn or calling Disable.
+// Redaction is active by default.
+// Call Redact to restore it after overriding Format<Type>Fn or calling [Disable].
 //
-// It overwrites the package-level Format<type>Fn variables without synchronization,
+// It overwrites the package-level Format<Type>Fn variables without synchronization,
 // so call it only before starting goroutines which use sensitive values
 // (e.g. in init or TestMain):
 // a concurrent call and any use of those variables is a data race.
@@ -54,20 +55,20 @@ func Redact() {
 	FormatDecimalFn = func(_ decimal.Decimal, f fmt.State, c rune) { Format(f, c, float64(sentinel)) }
 }
 
-// Disable protection of sensitive values.
+// Disable sets all Format<Type>Fn to output the real values.
+// It is meant for tests, to make it easier to compare got/want values.
 //
-// This is designed to be used only in tests to make it easier to compare
-// got/want values. To make Disable actually works it's not enough to just
-// call it, there are a couple of extra requirements to minimize a chance
-// to get disabled sensitive in production:
-//   - Current binary name should have ".test" suffix
-//     (or ".test.exe" on Windows).
-//   - Environment variable GO_TEST_DISABLE_SENSITIVE should not be empty.
+// To minimize the chance of disabling protection in production,
+// Disable is a no-op unless both conditions hold:
+//   - the binary name has the ".test" suffix (or ".test.exe" on Windows);
+//   - the environment variable GO_TEST_DISABLE_SENSITIVE is not empty.
 //
-// It is recommended to call it from TestMain or non-Parallel tests
-// because it is not safe to call from simultaneous goroutines.
+// It overwrites the package-level Format<Type>Fn variables without synchronization,
+// so call it only before starting goroutines which use sensitive values
+// (e.g. in TestMain):
+// a concurrent call and any use of those variables is a data race.
 //
-// Calling Redact after Disable will re-enable protection of sensitive values.
+// Call [Redact] to restore protection.
 func Disable() {
 	name := strings.TrimSuffix(os.Args[0], ".exe")
 	if !strings.HasSuffix(name, ".test") || os.Getenv("GO_TEST_DISABLE_SENSITIVE") == "" {

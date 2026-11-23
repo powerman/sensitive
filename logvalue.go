@@ -10,13 +10,13 @@ import (
 )
 
 // logValue returns the value to log for the secret v
-// according to the current Format<type>Fn policy.
+// according to the current Format<Type>Fn policy.
 //
-// The value is parsed back from the text printed by Format<type>Fn,
+// The value is parsed back from the text printed by Format<Type>Fn,
 // so the policy is the same as for fmt and the marshalers.
 // Exactness is not required here (logs are not an egress sink),
 // but the JSON type of the field is preserved when the text is a literal of the type.
-// Text which is not such a literal (a custom Format<type>Fn output) is logged as a string.
+// Text which is not such a literal (a custom Format<Type>Fn output) is logged as a string.
 // NaN, Inf and an unsupported type are logged as nil:
 // [slog.Float64Value](NaN) would make [slog.JSONHandler] fail with !ERROR.
 //

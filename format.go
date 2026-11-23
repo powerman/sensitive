@@ -8,7 +8,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-// Format<type>Fn define how each sensitive type is printed by fmt, marshalers and slog.
+// Format<Type>Fn define how each sensitive type is printed by fmt, marshalers and slog.
 // Initially they are set by [Redact] from package init.
 // Replace any of them to customize output, or call [Disable] in tests.
 //
@@ -39,10 +39,8 @@ var (
 	FormatUint64Fn  func(uint64, fmt.State, rune)
 )
 
-// Format outputs value accordingly to formatting options.
-//
-// It is useful in case you'll redefine some Format<type>Fn to output
-// redacted value using formatting applied to original value.
+// Format outputs value according to the formatting options of f and c.
+// Use it in a custom Format<Type>Fn to apply the original formatting to the redacted value.
 //
 //	sensitive.FormatStringFn = func(s string, f fmt.State, c rune) {
 //	    sensitive.Format(f, c, "REDACTED")

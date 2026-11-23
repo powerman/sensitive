@@ -80,7 +80,7 @@ func marshalJSONFloat32(v float32) ([]byte, error) {
 	ff := float32(f)
 	// Standard JSON cannot represent NaN or Inf, and json.Marshal would fail
 	// the whole surrounding document, so output null for them.
-	// Redact never produces them; they come from Disable or a custom Format<type>Fn.
+	// Redact never produces them; they come from Disable or a custom Format<Type>Fn.
 	if math.IsNaN(float64(ff)) || math.IsInf(float64(ff), 0) {
 		return json.Marshal(nil)
 	}
@@ -104,7 +104,7 @@ func marshalJSONFloat64(v float64) ([]byte, error) {
 	}
 	// Standard JSON cannot represent NaN or Inf, and json.Marshal would fail
 	// the whole surrounding document, so output null for them.
-	// Redact never produces them; they come from Disable or a custom Format<type>Fn.
+	// Redact never produces them; they come from Disable or a custom Format<Type>Fn.
 	if math.IsNaN(f) || math.IsInf(f, 0) {
 		return json.Marshal(nil)
 	}

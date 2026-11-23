@@ -54,7 +54,7 @@ Redaction has three independent layers.
   `Ref`/`Handle` also implement `fmt.Formatter`, `json.Marshaler`, `encoding.TextMarshaler`,
   and `slog.LogValuer`.
   When `fmt` can reach the value on a clean path, these replace the address noise
-  with a readable `REDACTED` and, crucially, **preserve the redacted value's type**:
+  with a readable `REDACTED` and **preserve the redacted value's type**:
   a numeric secret stays a number, a bool stays a bool. That keeps JSON output valid
   and text-log parsers working instead of emitting a type they cannot parse.
   `slog.LogValuer` keeps this output under `slog` handlers
@@ -78,10 +78,6 @@ Redaction has three independent layers.
   so a memory dump also reveals which secrets are equal and how long they are.
   It raises the bar against accidental output from tools that bypass the structural layer.
 
-The primary guarantee that the secret never reaches your logs comes from the structural
-layer alone.
-The interface layer adds readable output in normal use;
-the encryption layer protects the stored bytes against deep-reflection tools.
 When the interface layer is bypassed, structural protection still holds:
 
 ```go
@@ -99,26 +95,14 @@ fmt.Printf("%+v\n", Server{cfg: cfg})
 The choice is driven by how `==` should behave on the secret:
 
 - **`Ref[T]`** — when comparing the secret with `==` is wrong or harmful:
-  - the type's `==` does not compare by value: `[]byte` (compile error),
-    `decimal.Decimal` (pointer identity, silently wrong), composite structs; or
-  - `==` works but must not be used: passwords and hashes are compared constant-time,
-    never with `==`.
-
+  the type's `==` does not compare by value (`[]byte`, `decimal.Decimal`, composite structs),
+  or the secret is a password or a hash, which must be compared constant-time.
   `Ref` makes `==` a **compile-time error**,
   so an accidental comparison fails loudly instead of silently returning `false`.
-  It is non-comparable and not a valid map key; compare values explicitly
-  (`bytes.Equal`, `decimal.Decimal.Equal`, a constant-time compare)
-  or whole structs in tests with `reflect.DeepEqual`.
-  A composite struct has no redacted form,
-  so it is printed and marshaled as nil (`<nil>`, JSON `null`) instead of failing the document.
 
 - **`Handle[T]`** — for value-comparable primitive secrets where `==` is fine:
   bearer tokens, session IDs, API keys.
   `==` compares by value and a `Handle` is a valid map key.
-  `T` is restricted to primitive comparable types
-  (string, bool, integers, floats, and named types over them).
-  Floats keep their NaN semantics: `Make(math.NaN()) != Make(math.NaN())`,
-  and `reflect.DeepEqual` of two separately created `Ref`s or `Handle`s holding NaN is false too.
 
 Both are structurally protected, both work with `reflect.DeepEqual`,
 and both satisfy the `Secret[T]` interface via `ExposeSecret`.
@@ -131,73 +115,31 @@ type AccessToken struct{ sensitive.Handle[string] } // safe to compare → Handl
 
 ## Ingesting and persisting secrets
 
-A secret often arrives from JSON/YAML config or a database row
-and later has to be written back to a database.
-`Ref` and `Handle` implement the interfaces that let the secret land
-**directly** in the protected field and leave it through the driver
-**explicitly** — never materialized as a plain `string`/`[]byte`
-in application code, where it could be logged by accident.
-
-### Ingest: unmarshal and scan into a Ref/Handle
-
 `*Ref[T]` and `*Handle[T]` implement `json.Unmarshaler`,
 `encoding.TextUnmarshaler`, and `database/sql.Scanner`,
-so external data can be deserialized straight into a protected field:
-
-```go
-type Config struct {
-    Password sensitive.Ref[string]
-    TenantID sensitive.Handle[int]
-}
-
-var cfg Config
-_ = json.Unmarshal(configBytes, &cfg) // lands in Ref/Handle, never a plain string
-```
-
-Reading a secret column from the database works the same way:
+so a secret from a config or a database row lands **directly** in a protected field
+and is never materialized as a plain `string`/`[]byte` which could be logged by accident:
 
 ```go
 var pw sensitive.Ref[string]
 err := db.QueryRow(`SELECT password FROM users WHERE id = ?`, id).Scan(&pw)
 ```
 
-Prefer this over scanning into a plain `string` and then calling `sensitive.New`:
-the intermediate plain value has no structural protection and can be logged
-by any `fmt.Printf` added to that code path later.
-
-### Persist: write to the database with ExposeSecretValuer
-
-`Ref`/`Handle` do **not** implement `driver.Valuer` directly —
-that would let the secret flow to the driver through an implicit interface
-call with no visible `ExposeSecret*` at the call site.
-Instead, call `ExposeSecretValuer()` to get a `SecretValuer[T]`
-that implements `driver.Valuer` while staying redaction-safe everywhere else:
+`Ref`/`Handle` do **not** implement `driver.Valuer`,
+so the secret cannot reach the driver without a visible `ExposeSecret*` at the call site:
 
 ```go
 _, err := db.Exec(`UPDATE users SET password = ? WHERE id = ?`,
     cfg.Password.ExposeSecretValuer(), id)
 ```
 
-`SecretValuer` also implements `json.Marshaler` and `encoding.TextMarshaler`,
-so the same wrapper can be used for JSON/text serialization to the wire.
-It implements `slog.LogValuer` to redact under structured logging,
-so neither `slog.JSONHandler` nor `slog.TextHandler` can leak the secret.
-`fmt.Formatter` redacts under all `fmt` verbs.
-The secret is exposed **only** through `driver.Valuer`, `json.Marshaler`,
-and `encoding.TextMarshaler` — the intended trusted sinks.
+`ExposeSecretValuer` returns a `SecretValuer[T]`,
+which exposes the secret only to `driver.Valuer`, `json.Marshaler` and `encoding.TextMarshaler`,
+while `fmt` and `slog` output stays redacted.
+It also implements the same ingest interfaces,
+so it works as a round-trip DTO for the database or the wire.
 
-Because `*SecretValuer` also implements
-`json.Unmarshaler`, `encoding.TextUnmarshaler`, and `database/sql.Scanner`,
-it works as a combined egress+ingress DTO:
-data arrives through Unmarshal/Scan, is held protected,
-and leaves through Marshal/Value.
-This avoids materializing the secret as a plain string in application code.
-
-`SecretValuer` is **inert**: it never exposes the raw secret directly.
-To leave the egress/round-trip boundary, call `ToRef()` to get a `Ref`.
-Keep it confined to the egress/round-trip DTO and do not carry it deeper into the application.
-
-> **Keep it confined to the egress/round-trip DTO.**
+> **Keep `SecretValuer` confined to the DTO.**
 > Unlike `driver.Valuer`, `MarshalJSON`/`MarshalText` have an open consumer set
 > (HTTP body, cache).
 > Do not `json.Marshal` a struct that holds a live `SecretValuer` into a log or error message.
@@ -247,15 +189,6 @@ its `Equal` helper must be used instead.<br/>
 `%#v` and other verbs print internal pointers or closures instead of a redacted value.
 This is structurally safe (the secret does not leak), but it is not redaction.
 
-`rsjethani/secret` and `andrewbenton/go-secrets` are the two other libraries that
-happen to be structurally protected — the former stores a `*string`, the latter a
-`func() T`, and `fmt` dereferences neither.
-`Ref`/`Handle` differ by combining that protection with correct equality semantics
-(`Handle`'s value `==`, `Ref`'s compile-time rejection, and working `reflect.DeepEqual`),
-type-preserving redaction, and any element type —
-where `rsjethani/secret` is `string`-only with a silently-wrong `==`,
-and `go-secrets` breaks `reflect.DeepEqual`.
-
 ## Redaction output
 
 `Redact()` is the default policy, so no setup is needed.
@@ -265,11 +198,10 @@ Change the policy at startup if you need a different one:
   sentinel: `"REDACTED"` for strings, `0xDEFACE` for bytes
   (`DEFACE` as text, base64 `3vrO` in JSON), `false` for bool,
   and the same number `123` for every int, uint, float and decimal.
-  A short number is easy to spot and to assert in tests,
-  and it is exactly representable in any numeric type.
-  This is the default; call it explicitly to restore default behavior.
+  Call it to restore the default policy after a change.
 - `sensitive.Disable()` — print the real value, for tests only.
-  It is a no-op unless the binary name ends in `.test` and `GO_TEST_DISABLE_SENSITIVE` is set,
+  It is a no-op unless the binary name ends in `.test`
+  and `GO_TEST_DISABLE_SENSITIVE` is not empty,
   minimizing the chance of disabling protection in production.
 - Override an individual `Format<Type>Fn` for custom output (e.g. show the first few characters):
 

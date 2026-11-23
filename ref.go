@@ -22,24 +22,10 @@ var (
 	_ sql.Scanner              = (*Ref[any])(nil)
 )
 
-// Ref holds a secret value that fmt reflection cannot reach,
-// and behaves like []byte for equality: == is a compile-time error,
-// so an accidental comparison fails loudly instead of silently returning false.
-//
-// Use Ref in two cases:
-//   - the element type's == does not compare by value: []byte, [decimal.Decimal],
-//     composite structs.
-//     These cannot be a [Handle] element, so they belong here by construction.
-//   - the element type's == DOES work by value, but using it is harmful:
-//     passwords and hashes are compared constant-time (against another hash),
-//     never with ==, so deny == by using Ref[string].
+// Ref holds a secret value that fmt reflection cannot reach.
+// See the package documentation for choosing between Ref and [Handle].
 //
 // The zero value is safe: [Ref.ExposeSecret] returns the zero T.
-//
-// A composite T has no redacted form, so Format, MarshalJSON, MarshalText and LogValue
-// output nil for it ("<nil>", null) rather than an error,
-// which would break the surrounding document.
-// UnmarshalText, Scan and [SecretValuer.Value] still report an error for it.
 //
 // == on a Ref, or on any struct containing a Ref field, is a compile-time error.
 // Compare values explicitly when needed — [bytes.Equal] for []byte,
@@ -47,6 +33,11 @@ var (
 // or compare whole structs in tests with [reflect.DeepEqual],
 // which reads through Ref and compares by value
 // (as usual, a NaN float is never equal to another NaN).
+//
+// A composite T has no redacted form, so Format, MarshalJSON, MarshalText and LogValue
+// output nil for it ("<nil>", null) rather than an error,
+// which would break the surrounding document.
+// UnmarshalText, Scan and [SecretValuer.Value] still report an error for it.
 type Ref[T any] struct {
 	// Disable ==.
 	_ [0]func()
@@ -59,8 +50,6 @@ type Ref[T any] struct {
 }
 
 // New returns a [Ref] holding a copy of v.
-// For string and []byte kinds (including named types), the value is encrypted
-// with a random per-process key so a deep-reflection dump reveals only ciphertext.
 //
 // New(zero T) returns the zero Ref, so it is [reflect.DeepEqual] to Ref[T]{}.
 // A non-nil empty []byte is not a zero T, so it is kept as is.
@@ -75,8 +64,7 @@ func New[T any](v T) Ref[T] {
 	return Ref[T]{pp: &p}
 }
 
-// ExposeSecret returns the stored value,
-// or the zero T if the Ref is nil or was created with the zero value.
+// ExposeSecret returns the stored value.
 func (r Ref[T]) ExposeSecret() T {
 	if r.pp == nil || *r.pp == nil {
 		var z T
@@ -468,7 +456,6 @@ func (r *Ref[T]) Scan(src any) error {
 
 // ExposeSecretValuer returns a [SecretValuer] that exposes the secret
 // to trusted egress sinks: database drivers, JSON/text serialization.
-// Use this at the call site to pass the secret to those sinks explicitly.
 func (r Ref[T]) ExposeSecretValuer() SecretValuer[T] {
 	return SecretValuer[T]{ref: r}
 }

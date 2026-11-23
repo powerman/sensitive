@@ -11,8 +11,9 @@ import (
 )
 
 // Comparable is the element-type constraint for [Handle]:
-// the primitive comparable types whose native == compares by value.
-// It excludes [decimal.Decimal], []byte, and composite structs on purpose — see [Handle].
+// the primitive types whose native == compares by value.
+// [decimal.Decimal], []byte and composite structs are excluded,
+// because their == does not compare by value; use [Ref] for them.
 type Comparable interface {
 	// Besides enabling value ==, this constraint is a fmt-safety invariant.
 	// [Handle] stores T behind a single *T (via [unique.Handle]);
@@ -46,25 +47,13 @@ var (
 	_ sql.Scanner              = (*Handle[string])(nil)
 )
 
-// Handle holds a secret value that behaves like string for equality:
-// == compares by value and a Handle is a valid map key,
-// while the value stays unreachable by fmt reflection.
+// Handle holds a secret value that fmt reflection cannot reach.
+// == compares by value and a Handle is a valid map key.
+// See the package documentation for choosing between [Ref] and Handle.
 //
-// Use Handle for value-comparable secrets where == is not harmful:
-// bearer tokens, session IDs, refresh tokens, API keys —
-// anything you would naturally hold as a string or number and might compare or index.
-// Do NOT use Handle for passwords or hashes even though they are strings:
-// == on them is an anti-pattern (compare hashes constant-time), so use [Ref].
-//
-// Equal values are canonicalized to a single pointer via the runtime's
-// [unique.Handle] intern pool, so == and map lookups work by value.
-// Making a Handle inserts the value into a process-global intern table;
+// Handle is built on [unique.Handle]:
+// making a Handle inserts the value into a process-global intern table;
 // the entry is held weakly and is reclaimed when no Handle refers to it.
-//
-// T must be one of the primitive comparable types listed in [Comparable]
-// (string, bool, integers, floats, and named types over them).
-// [decimal.Decimal], []byte, and composite structs are rejected at compile time
-// because their native == compares pointer identity, not value — use [Ref] for those.
 //
 // Floats keep their NaN semantics: Make(NaN) != Make(NaN),
 // so such handles are never found by value as map keys,
@@ -74,14 +63,6 @@ var (
 type Handle[T Comparable] struct{ h unique.Handle[T] }
 
 // Make returns a [Handle] holding v.
-// Equal values are canonicalized to a single pointer via
-// the runtime's [unique.Handle] intern pool,
-// so == and map lookups work by value.
-// Making a Handle inserts v into a process-global weak intern table;
-// the entry is reclaimed when no Handle refers to it.
-// For string kinds (including named types), the interned value is encrypted
-// with a random per-process key so a deep-reflection dump reveals only ciphertext.
-// Make(NaN) != Make(NaN), see [Handle].
 //
 // Make(zero T) returns the zero Handle, so it is == to Handle[T]{}.
 func Make[T Comparable](v T) Handle[T] {
@@ -92,7 +73,7 @@ func Make[T Comparable](v T) Handle[T] {
 	return Handle[T]{h: unique.Make(encryptT(v))}
 }
 
-// ExposeSecret returns the stored value, or the zero T for the zero-value Handle.
+// ExposeSecret returns the stored value.
 func (h Handle[T]) ExposeSecret() T {
 	// A raw [unique.Handle.Value] panics on the zero value;
 	// Handle guards against this so its zero value is safe, matching [Ref].
@@ -459,7 +440,6 @@ func (h *Handle[T]) Scan(src any) error {
 
 // ExposeSecretValuer returns a [SecretValuer] that exposes the secret
 // to trusted egress sinks: database drivers, JSON/text serialization.
-// Use this at the call site to pass the secret to those sinks explicitly.
 func (h Handle[T]) ExposeSecretValuer() SecretValuer[T] {
 	return SecretValuer[T]{ref: New(h.ExposeSecret())}
 }

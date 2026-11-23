@@ -21,35 +21,16 @@ var (
 	_ sql.Scanner              = (*SecretValuer[any])(nil)
 )
 
-// SecretValuer wraps a [Ref][T] to implement EXPOSING secret value
-// [driver.Valuer], [json.Marshaler], and [encoding.TextMarshaler],
-// while remaining redaction-safe under [fmt] and structured logging ([slog]).
+// SecretValuer is the explicit way to pass a secret to a trusted sink.
+// It exposes the secret only to [driver.Valuer], [json.Marshaler] and [encoding.TextMarshaler],
+// while [fmt] and [slog] output stays redacted.
+// Its ingress methods ([json.Unmarshaler], [encoding.TextUnmarshaler], [database/sql.Scanner])
+// work like those of [Ref], so it suits combined egress+ingress (round-trip) DTOs.
 //
-// It is the explicit way to pass a secret to a trusted sink:
-// a database driver, JSON serialization for the wire, or text encoding.
-// The secret is exposed ONLY when one of the following is called:
-//   - [driver.Valuer.Value]                — database driver.
-//   - [json.Marshaler.MarshalJSON]         — JSON serialization.
-//   - [encoding.TextMarshaler.MarshalText] — text encoding.
-//
-// SecretValuer is redaction-safe under [fmt] and [slog]:
-//   - [fmt.Formatter.Format] produces redacted output.
-//   - [slog.LogValuer.LogValue] returns a type-preserving redacted value,
-//     so neither [slog.JSONHandler] nor [slog.TextHandler] can leak the secret,
-//     even though this same type also exposes it under [json.Marshal]
-//     and [encoding.TextMarshaler].
-//
-// Ingress methods ([json.Unmarshaler], [encoding.TextUnmarshaler],
-// [database/sql.Scanner]) receive and protect the secret just like [Ref],
-// making SecretValuer suitable for combined egress+ingress (round-trip) DTOs.
-//
-// SecretValuer is INERT: it never exposes the raw secret directly.
-// To leave the egress/round-trip boundary, call [SecretValuer.ToRef].
-// Keep SecretValuer confined to the egress/round-trip DTO;
-// do not carry it deeper into the application.
-// Unlike [driver.Valuer], [json.Marshal] and [encoding.TextMarshaler]
-// are called by any encoder that finds this type on an exported field —
-// not only the intended one.
+// It has no ExposeSecret; call [SecretValuer.ToRef] to get the secret out of the DTO.
+// Keep SecretValuer confined to the DTO:
+// unlike [driver.Valuer], its JSON and text marshalers are called by any encoder
+// which finds it on an exported field, e.g. when logging the whole DTO as JSON.
 type SecretValuer[T any] struct {
 	ref Ref[T]
 }
