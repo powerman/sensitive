@@ -35,6 +35,8 @@
 // Both satisfy [Secret] via ExposeSecret, and both work with [reflect.DeepEqual],
 // so tests comparing whole structs keep working without per-field helpers.
 //
+// Comparing such structs with go-cmp requires an option, see [CmpExporter].
+//
 // # How protection works
 //
 // Protection has several independent layers, but only one carries the guarantee.
