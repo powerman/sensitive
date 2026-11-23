@@ -319,6 +319,35 @@ func TestRef_jsonRedacted(t *testing.T) {
 	})
 }
 
+//nolint:paralleltest // modifies global Format<Type>Fn
+func TestRef_jsonNonLiteralHook(t *testing.T) {
+	t.Cleanup(resetFormatFns)
+
+	// A hook for a numeric, bool or decimal type must print a literal of that type.
+	notLiteral := func(f fmt.State, c rune) { sensitive.Format(f, c, "***") }
+	empty := func(fmt.State, rune) {}
+	for name, hook := range map[string]func(fmt.State, rune){"not a literal": notLiteral, "empty": empty} {
+		t.Run(name, func(tt *testing.T) {
+			t := check.Must(tt)
+			t.Cleanup(resetFormatFns)
+
+			sensitive.FormatIntFn = func(_ int, f fmt.State, c rune) { hook(f, c) }
+			_, err := json.Marshal(sensitive.New(1))
+			t.NotNil(err)
+			_, err = json.Marshal(sensitive.Make(1))
+			t.NotNil(err)
+
+			sensitive.FormatBoolFn = func(_ bool, f fmt.State, c rune) { hook(f, c) }
+			_, err = json.Marshal(sensitive.New(true))
+			t.NotNil(err)
+
+			sensitive.FormatDecimalFn = func(_ decimal.Decimal, f fmt.State, c rune) { hook(f, c) }
+			_, err = json.Marshal(sensitive.New(decimal.NewFromFloat(1.5)))
+			t.NotNil(err)
+		})
+	}
+}
+
 func TestRef_zeroValue(t *testing.T) {
 	t.Parallel()
 

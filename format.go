@@ -12,6 +12,8 @@ import (
 // Initially they are set by [Redact] from package init.
 // Replace any of them to customize output, or call [Disable] in tests.
 //
+// The output must be a valid literal of the type.
+//
 // Change them only before starting goroutines which use sensitive values
 // (e.g. in init or TestMain):
 // they are accessed without synchronization,
