@@ -75,6 +75,9 @@
 // that bypass the structural protection against fmt.
 // It is not a memory-disclosure defense — the key lives in ordinary Go memory,
 // unlike a mlock/guarded-page approach such as memguard.
+// The encryption is deterministic (equal plaintexts give equal ciphertexts),
+// because [Handle] interns its values and [reflect.DeepEqual] must keep working on both types.
+// So a memory dump also reveals which secrets are equal and how long they are.
 //
 // # Why typed redacted values
 //

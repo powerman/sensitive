@@ -80,6 +80,9 @@ Redaction has three independent layers.
   (e.g. `go-spew`, a custom serializer that follows `**T`) finds ciphertext,
   not the original value.
   This is not a memory-disclosure defense: the key lives in ordinary Go memory.
+  The encryption is deterministic (equal plaintexts give equal ciphertexts),
+  because `Handle` interns its values and `reflect.DeepEqual` must keep working on both types.
+  So a memory dump also reveals which secrets are equal and how long they are.
   It raises the bar against accidental output from tools that bypass the structural layer.
 
 The primary guarantee that the secret never reaches your logs comes from the structural
