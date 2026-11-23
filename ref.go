@@ -130,7 +130,8 @@ func (r Ref[T]) Format(f fmt.State, c rune) {
 func (r Ref[T]) LogValue() slog.Value { return logValue(r.ExposeSecret()) }
 
 // MarshalJSON implements [json.Marshaler].
-// It exposes the underlying secret as JSON.
+// It writes the redacted value as JSON,
+// controlled by the Format<Type>Fn package-level variables.
 //
 //lint:ignore errchkjson // Delegates to existing marshalers.
 func (r Ref[T]) MarshalJSON() ([]byte, error) {
@@ -173,7 +174,8 @@ func (r Ref[T]) MarshalJSON() ([]byte, error) {
 }
 
 // MarshalText implements [encoding.TextMarshaler].
-// It exposes the underlying secret as text.
+// It writes the redacted value as text,
+// controlled by the Format<Type>Fn package-level variables.
 func (r Ref[T]) MarshalText() (text []byte, err error) {
 	switch v := any(r.ExposeSecret()).(type) {
 	case bool:

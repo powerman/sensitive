@@ -86,15 +86,20 @@
 //	Int*    → 123                 (still a number in JSON)
 //	Uint*   → 123                 (still a number in JSON)
 //	String  → "REDACTED"          (still a string in JSON)
-//	Bytes   → 0xDEFACE            (still a byte slice)
+//	Bytes   → 0xDEFACE            (base64 string "3vrO" in JSON, DEFACE in text)
 //	Decimal → 123                 (decimal's own JSON form: "123" or 123,
 //	                               see decimal.MarshalJSONWithoutQuotes)
 //
-// Using type-specific sentinels means that if a secret accidentally ends up in JSON output,
+// Keeping the original's type means that if a secret accidentally ends up in JSON output,
 // the JSON structure stays valid and parseable — a numeric field remains a number,
 // a boolean field remains a boolean. Text log parsers that expect specific field types
 // (such as structured loggers emitting typed values)
 // likewise keep working instead of failing on a type mismatch.
+//
+// All numbers share one short sentinel, 123:
+// it is easy to spot and to assert in tests,
+// unlike 0 it does not claim a false fact (balance=0),
+// and it is exactly representable in any numeric type (int8, float32, decimal).
 //
 // # Custom named secret types
 //

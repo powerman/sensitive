@@ -23,10 +23,9 @@ func init() { Redact() }
 //
 // The same short number is used for every numeric type on purpose:
 // it is easy to spot and to assert in tests,
-// and it is exactly representable in any numeric type (int8, float32, decimal),
-// so a redacted number never turns into NaN or null.
+// and it is exactly representable in any numeric type (int8, float32, decimal).
 //
-// Redaction is already active by default (see package initialization),
+// Redaction is active by default (see package initialization),
 // so calling Redact explicitly is optional and idempotent.
 // It is useful to restore the default policy after overriding Format<type>Fn or calling Disable.
 func Redact() {

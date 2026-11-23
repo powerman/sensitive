@@ -71,7 +71,7 @@ Redaction has three independent layers.
   `Handle[T]` stores it behind a single `*T` (via the runtime's `unique.Handle`).
   `fmt` reflection never dereferences these, so it can only ever print a pointer address,
   never the secret — even when the value sits behind an unexported field or a pointer,
-  where the interface methods below are silently skipped.
+  where the interface methods above are silently skipped.
 
 - **In-memory encryption — last-ditch defense for string and `[]byte`.**
   `string` and `[]byte` secrets are encrypted with a random per-process AES-256 key
@@ -260,14 +260,15 @@ and `go-secrets` breaks `reflect.DeepEqual`.
 
 ## Redaction output
 
-By default `Redact()` is already active, so no setup is needed.
+`Redact()` is the default policy, so no setup is needed.
 Change the policy at startup if you need a different one:
 
 - `sensitive.Redact()` — replace each secret with a visible, type-preserving
-  sentinel: `"REDACTED"` for strings, `0xDEFACE` for bytes, `false` for bool,
+  sentinel: `"REDACTED"` for strings, `0xDEFACE` for bytes
+  (`DEFACE` as text, base64 `3vrO` in JSON), `false` for bool,
   and the same number `123` for every int, uint, float and decimal.
   A short number is easy to spot and to assert in tests,
-  and it is exactly representable in any numeric type, so it never turns into NaN or `null`.
+  and it is exactly representable in any numeric type.
   This is the default; call it explicitly to restore default behavior.
 - `sensitive.Disable()` — print the real value, for tests only.
   It is a no-op unless the binary name ends in `.test` and `GO_TEST_DISABLE_SENSITIVE` is set,
