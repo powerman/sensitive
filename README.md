@@ -51,11 +51,20 @@ func main() {
 Redaction has three independent layers.
 
 - **Interface methods — cosmetic only.**
-  `Ref`/`Handle` also implement `fmt.Formatter`, `json.Marshaler`, and `encoding.TextMarshaler`.
+  `Ref`/`Handle` also implement `fmt.Formatter`, `json.Marshaler`, `encoding.TextMarshaler`,
+  and `slog.LogValuer`.
   When `fmt` can reach the value on a clean path, these replace the address noise
   with a readable `REDACTED` and, crucially, **preserve the redacted value's type**:
   a numeric secret stays a number, a bool stays a bool. That keeps JSON output valid
   and text-log parsers working instead of emitting a type they cannot parse.
+
+  The marshalers help `slog` only if a handler happens to choose them to render the value.
+  `LogValue` redacts earlier, in `slog.Value.Resolve`, before the handler decides how to render.
+  This adds no protection, only readable output:
+  a handler which calls `Resolve` but renders values without the marshalers
+  (by reflection or conversion to `map[string]any`)
+  would otherwise print internals of the value instead of the redacted one.
+  A handler which never calls `Resolve` violates the `slog.Handler` contract and does not benefit.
 
 - **Structural protection — the real defense.**
   `Ref[T]` stores its value behind a double pointer (`**T`);
