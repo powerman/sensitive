@@ -5,6 +5,92 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-11-23
+
+### ➖ Removed
+
+- **⚠️ BREAKING!** Drop empty-output as nil by @powerman in [19ebad3]
+
+### 🚀 Added
+
+- Implement slog.LogValuer for Ref and Handle by @powerman in [162326d]
+- Support named types in Ref and Handle by @powerman in [26a11eb]
+- Add CmpExporter for comparing secrets with go-cmp by @powerman in [7f143de]
+
+### 🔔 Changed
+
+- Require Go 1.26 by @powerman in [11783f0]
+- Order tasks in mise.toml like the template by @powerman in [517dadc]
+- **⚠️ BREAKING!** Enable Redact() by default by @powerman in [b287960]
+- **⚠️ BREAKING!** Redact all numeric types as 123 by @powerman in [7f2c3bc]
+- Export ErrTextSyntax and ErrScanConversion by @powerman in [c79283e]
+
+### 🐛 Fixed
+
+- Make New and Make of the zero value equal to the zero Ref and Handle by @powerman in [2c05606]
+- Output nil instead of breaking the document for unsupported Ref types by @powerman in [b9cae5a]
+- Treat only a nil interface as zero in New and IsZero of Ref[any] by @powerman in [6e26005]
+- Keep JSON input out of Ref and Handle unmarshal errors by @powerman in [64d5385]
+
+### 📚 Documentation
+
+- Mark fmt verb coverage for rsjethani/secret and andrewbenton/go-secrets by @powerman in [9425ec1]
+- Drop redundant Redact() call from basic example by @powerman in [2b462ec]
+- Explain why slog.LogValuer complements marshalers by @powerman in [db59748]
+- Fix stale statements by @powerman in [c0de0dc]
+- Document deterministic encryption trade-off by @powerman in [3529b0d]
+- Document that Make(NaN) != Make(NaN) by @powerman in [7146998]
+- Describe fmt, marshaler and LogValuer output as cosmetic by @powerman in [461815f]
+- Fix fmt.State reference in state comment by @powerman in [eccf736]
+- Guard slice bounds in custom format examples by @powerman in [9a46c5e]
+- Warn about unsynchronized changes to Format<type>Fn variables by @powerman in [1b4e7f7]
+- Condense redaction docs and unify Format<Type>Fn spelling by @powerman in [2707263]
+
+### 📦️ Dependencies
+
+- **(deps)** Upgrade go and golangci-lint by @powerman in [d3fc144]
+- **(deps)** Upgrade go modules by @powerman in [a3dcb16]
+- **(deps)** Upgrade lint-sensitive to v0.5.0 by @powerman in [e8dce0a]
+- **(deps)** Upgrade go and golangci-lint by @powerman in [07ce83d]
+- **(deps)** Mise up by @powerman in [0c5b696]
+- **(deps)** Upgrade go and golangci-lint by @powerman in [4219fd0]
+- **(deps)** Upgrade tools by @powerman in [adff78d]
+- **(deps)** Upgrade go modules by @powerman in [d03fa68]
+
+[0.7.0]: https://github.com/powerman/sensitive/compare/v0.6.1..v0.7.0
+[d3fc144]: https://github.com/powerman/sensitive/commit/d3fc144cc81f1b7b2d89f9f560612b71ed440027
+[a3dcb16]: https://github.com/powerman/sensitive/commit/a3dcb16cc593a4d54587fb85dd22b08853c106aa
+[e8dce0a]: https://github.com/powerman/sensitive/commit/e8dce0afb0f467fab670daca1ebbcc12da676ab9
+[07ce83d]: https://github.com/powerman/sensitive/commit/07ce83df226b89e2a83865b1f70f8e9f57da14b2
+[11783f0]: https://github.com/powerman/sensitive/commit/11783f00b34c19892b493349d5faca5ffef17c37
+[0c5b696]: https://github.com/powerman/sensitive/commit/0c5b6968c2ea2a62d6803bb22d5752dc1695bde6
+[517dadc]: https://github.com/powerman/sensitive/commit/517dadce7a11fc92065b947624f3a39e165f83a3
+[9425ec1]: https://github.com/powerman/sensitive/commit/9425ec1eac3dea03bc5102be221138ee9594e8c8
+[4219fd0]: https://github.com/powerman/sensitive/commit/4219fd0253ca3295686cb9643f63897248ffa383
+[adff78d]: https://github.com/powerman/sensitive/commit/adff78dfa337cf4ee803b1ac1fea425e229193cd
+[d03fa68]: https://github.com/powerman/sensitive/commit/d03fa687726593e890155c991c790244ce2bfd5e
+[b287960]: https://github.com/powerman/sensitive/commit/b28796081777d8cb3392aed2c8ff99b582b6434c
+[19ebad3]: https://github.com/powerman/sensitive/commit/19ebad3ae9eb9a9824b49f3d30405855efd7d6fb
+[7f2c3bc]: https://github.com/powerman/sensitive/commit/7f2c3bc46ffdadc3046ef3ec700dbe3f190f8946
+[2b462ec]: https://github.com/powerman/sensitive/commit/2b462ecf29467664a771a4e4248db597a3b30cf7
+[162326d]: https://github.com/powerman/sensitive/commit/162326dadb01b5c4ec73dafa266fc7602dc254f0
+[db59748]: https://github.com/powerman/sensitive/commit/db597489dd72e8b3b34ebf08bd7fb2fac05ccc20
+[c0de0dc]: https://github.com/powerman/sensitive/commit/c0de0dccfc8e6c213f6d5751e3499c62e2d75933
+[3529b0d]: https://github.com/powerman/sensitive/commit/3529b0d29c6f9950f3b87b74e3572caf6446f103
+[7146998]: https://github.com/powerman/sensitive/commit/71469989ed6ffe2f5961203d1e27d7dc20985b23
+[461815f]: https://github.com/powerman/sensitive/commit/461815f86760f1f514ba92b216570c53f752ef57
+[2c05606]: https://github.com/powerman/sensitive/commit/2c056066abdb32f569253fc1171d662940883bb4
+[26a11eb]: https://github.com/powerman/sensitive/commit/26a11eb751de0cb9904a944e9e9ea28c44adf9c5
+[b9cae5a]: https://github.com/powerman/sensitive/commit/b9cae5ab84c2fd019bdc7392ec978514ba7e3da6
+[6e26005]: https://github.com/powerman/sensitive/commit/6e26005d5f2ed174ec803a0c3083ba536872ab5c
+[eccf736]: https://github.com/powerman/sensitive/commit/eccf73680a0df4d0207476e4ae1b10b0a4980ae5
+[9a46c5e]: https://github.com/powerman/sensitive/commit/9a46c5ebacfa5921f8d0b9603557972ed98d898d
+[c79283e]: https://github.com/powerman/sensitive/commit/c79283eaeec22f1b6435543b5afc699e6794e62d
+[1b4e7f7]: https://github.com/powerman/sensitive/commit/1b4e7f7ea6ffb405d1e7d73648d623c1ba4d7001
+[64d5385]: https://github.com/powerman/sensitive/commit/64d5385950d26f2a2df8152454d624da328d45dd
+[2707263]: https://github.com/powerman/sensitive/commit/27072631743a76ee7f2d089eafbecae57b5f6414
+[7f143de]: https://github.com/powerman/sensitive/commit/7f143dec25a40718be4d204686eeb25128e62b96
+
 ## [0.6.1] - 2026-07-12
 
 ### 📦️ Dependencies
