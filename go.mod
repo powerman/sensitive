@@ -4,6 +4,6 @@ go 1.26.0
 
 require (
 	github.com/davecgh/go-spew v1.1.1
-	github.com/powerman/check v1.14.0
+	github.com/powerman/check v1.14.1
 	github.com/shopspring/decimal v1.6.0
 )
