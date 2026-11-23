@@ -12,6 +12,11 @@ import (
 // Initially they are set by [Redact] from package init.
 // Replace any of them to customize output, or call [Disable] in tests.
 //
+// Change them only before starting goroutines which use sensitive values
+// (e.g. in init or TestMain):
+// they are accessed without synchronization,
+// so a concurrent change and any use is a data race.
+//
 //nolint:gochecknoglobals // By design.
 var (
 	FormatBoolFn    func(bool, fmt.State, rune)

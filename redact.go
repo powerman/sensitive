@@ -28,6 +28,11 @@ func init() { Redact() }
 // Redaction is active by default (see package initialization),
 // so calling Redact explicitly is optional and idempotent.
 // It is useful to restore the default policy after overriding Format<type>Fn or calling Disable.
+//
+// It overwrites the package-level Format<type>Fn variables without synchronization,
+// so call it only before starting goroutines which use sensitive values
+// (e.g. in init or TestMain):
+// a concurrent call and any use of those variables is a data race.
 func Redact() {
 	const sentinel = 123
 	FormatBoolFn = func(_ bool, f fmt.State, c rune) { Format(f, c, false) }
