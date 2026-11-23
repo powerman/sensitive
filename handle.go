@@ -233,9 +233,9 @@ func (h Handle[T]) MarshalText() (text []byte, err error) {
 // UnmarshalJSON implements [json.Unmarshaler].
 func (h *Handle[T]) UnmarshalJSON(data []byte) error {
 	var v T
-	err := json.Unmarshal(data, &v)
-	if err != nil {
-		return err
+	// The error of json.Unmarshal may quote the input, which may be a secret.
+	if json.Unmarshal(data, &v) != nil {
+		return fmt.Errorf("sensitive: cannot unmarshal JSON: %w", ErrTextSyntax)
 	}
 	*h = Make(v)
 	return nil

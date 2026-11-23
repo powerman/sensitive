@@ -31,3 +31,22 @@ func TestErrScanConversion(t *testing.T) {
 	var h sensitive.Handle[int64]
 	tt.Err(h.Scan("not-an-int64"), sensitive.ErrScanConversion)
 }
+
+func TestErrTextSyntax_UnmarshalJSON(t *testing.T) {
+	t.Parallel()
+	tt := check.T(t)
+
+	// The errors of encoding/json quote the offending input, which may be a secret.
+	var r sensitive.Ref[int]
+	err := r.UnmarshalJSON([]byte(`1234567.5`))
+	tt.Err(err, sensitive.ErrTextSyntax)
+	tt.NotContains(err.Error(), "1234567")
+	err = r.UnmarshalJSON([]byte(`12345x`))
+	tt.Err(err, sensitive.ErrTextSyntax)
+	tt.NotContains(err.Error(), "12345")
+
+	var h sensitive.Handle[int8]
+	err = h.UnmarshalJSON([]byte(`99999`))
+	tt.Err(err, sensitive.ErrTextSyntax)
+	tt.NotContains(err.Error(), "99999")
+}
