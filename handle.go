@@ -82,7 +82,15 @@ type Handle[T Comparable] struct{ h unique.Handle[T] }
 // For string kinds (including named types), the interned value is encrypted
 // with a random per-process key so a deep-reflection dump reveals only ciphertext.
 // Make(NaN) != Make(NaN), see [Handle].
-func Make[T Comparable](v T) Handle[T] { return Handle[T]{h: unique.Make(encryptT(v))} }
+//
+// Make(zero T) returns the zero Handle, so it is == to Handle[T]{}.
+func Make[T Comparable](v T) Handle[T] {
+	var z T
+	if v == z {
+		return Handle[T]{}
+	}
+	return Handle[T]{h: unique.Make(encryptT(v))}
+}
 
 // ExposeSecret returns the stored value, or the zero T for the zero-value Handle.
 func (h Handle[T]) ExposeSecret() T {

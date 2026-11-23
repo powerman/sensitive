@@ -151,7 +151,7 @@ func TestCrypt_nonStringUnchanged(t *testing.T) {
 		t := check.Must(tt)
 
 		r := New([]byte(nil))
-		t.Nil(**r.pp, "nil []byte must be stored and returned as nil")
+		t.Nil(r.pp, "nil []byte is a zero value, so it must give the zero Ref")
 		t.Nil(r.ExposeSecret(), "ExposeSecret must return nil for nil input")
 	})
 }

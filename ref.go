@@ -56,7 +56,15 @@ type Ref[T any] struct {
 // New returns a [Ref] holding a copy of v.
 // For string and []byte kinds (including named types), the value is encrypted
 // with a random per-process key so a deep-reflection dump reveals only ciphertext.
+//
+// New(zero T) returns the zero Ref, so it is [reflect.DeepEqual] to Ref[T]{}.
+// A non-nil empty []byte is not a zero T, so it is kept as is.
 func New[T any](v T) Ref[T] {
+	rv := reflect.ValueOf(v)
+	// rv is invalid when T is an interface type holding nil.
+	if !rv.IsValid() || rv.IsZero() {
+		return Ref[T]{}
+	}
 	v = encryptT(v)
 	p := &v
 	return Ref[T]{pp: &p}
