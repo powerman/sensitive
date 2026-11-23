@@ -57,14 +57,8 @@ Redaction has three independent layers.
   with a readable `REDACTED` and, crucially, **preserve the redacted value's type**:
   a numeric secret stays a number, a bool stays a bool. That keeps JSON output valid
   and text-log parsers working instead of emitting a type they cannot parse.
-
-  The marshalers help `slog` only if a handler happens to choose them to render the value.
-  `LogValue` redacts earlier, in `slog.Value.Resolve`, before the handler decides how to render.
-  This adds no protection, only readable output:
-  a handler which calls `Resolve` but renders values without the marshalers
-  (by reflection or conversion to `map[string]any`)
-  would otherwise print internals of the value instead of the redacted one.
-  A handler which never calls `Resolve` violates the `slog.Handler` contract and does not benefit.
+  `slog.LogValuer` keeps this output under `slog` handlers
+  which render values without the marshalers.
 
 - **Structural protection — the real defense.**
   `Ref[T]` stores its value behind a double pointer (`**T`);
@@ -81,8 +75,7 @@ Redaction has three independent layers.
   not the original value.
   This is not a memory-disclosure defense: the key lives in ordinary Go memory.
   The encryption is deterministic (equal plaintexts give equal ciphertexts),
-  because `Handle` interns its values and `reflect.DeepEqual` must keep working on both types.
-  So a memory dump also reveals which secrets are equal and how long they are.
+  so a memory dump also reveals which secrets are equal and how long they are.
   It raises the bar against accidental output from tools that bypass the structural layer.
 
 The primary guarantee that the secret never reaches your logs comes from the structural
@@ -209,8 +202,8 @@ Keep it confined to the egress/round-trip DTO and do not carry it deeper into th
 
 ## When interface-only redaction breaks
 
-Types that protect a secret **only** through interfaces (the deprecated named
-types here, `go-playground/sensitive`, `negrel/secrecy`, `angusgmorrison/logfusc`)
+Types that protect a secret **only** through interfaces
+(`go-playground/sensitive`, `negrel/secrecy`, `angusgmorrison/logfusc`)
 redact only while `fmt` reaches the value on a clean path.
 Redaction silently disappears when the secret is reached through an unexported struct field,
 a pointer on the path, or the builtin `print`/`println` — among other subtle cases.
@@ -218,9 +211,7 @@ For the full list of failure modes and examples, see the
 [lint-sensitive README](https://github.com/powerman/lint-sensitive#how-protection-silently-breaks).
 
 `Ref` and `Handle` are immune to all of these because their protection is structural,
-not interface-based. If you must keep the deprecated named types,
-run [lint-sensitive](https://github.com/powerman/lint-sensitive) in CI
-to catch the leaks statically.
+not interface-based.
 
 ## Comparison with other libraries
 
@@ -285,9 +276,6 @@ Change the policy at startup if you need a different one:
       sensitive.Format(f, c, s[:4]+"…")
   }
   ```
-
-  This also drives `Ref[string]`/`Handle[string]` output,
-  since they delegate to the same functions.
 
 ## Memory zeroization
 

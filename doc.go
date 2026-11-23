@@ -50,20 +50,10 @@
 //
 // Protection has several independent layers, but only one carries the guarantee.
 //
-// The [json.Marshaler] and [encoding.TextMarshaler] methods
-// are the sole defense against serialization: encoders walk only exported fields,
-// so structural protection never engages, but these methods always run.
-//
-// The [fmt.Formatter] method, by contrast, is only cosmetic,
-// adding readable REDACTED output on the clean paths where fmt can reach the value.
-//
-// The [slog.LogValuer] method redacts in [slog.Value.Resolve],
-// before a handler chooses how to render the value,
-// while the marshalers help only if the handler happens to choose them.
-// It adds no protection, only readable output:
-// a handler which calls Resolve but renders values without the marshalers (e.g. by reflection)
-// would otherwise print internals of the value instead of the redacted one.
-// A handler which never calls Resolve violates the [slog.Handler] contract and does not benefit.
+// The [fmt.Formatter], [json.Marshaler], [encoding.TextMarshaler] and [slog.LogValuer] methods
+// are only cosmetic, adding readable REDACTED output on the clean paths where they are reached.
+// [slog.LogValuer] keeps this output under slog handlers
+// which render values without the marshalers.
 //
 // Structural protection is the real defense against fmt:
 // both [Ref] and [Handle] keep the value behind a pointer that fmt reflection never follows,
@@ -76,8 +66,7 @@
 // It is not a memory-disclosure defense — the key lives in ordinary Go memory,
 // unlike a mlock/guarded-page approach such as memguard.
 // The encryption is deterministic (equal plaintexts give equal ciphertexts),
-// because [Handle] interns its values and [reflect.DeepEqual] must keep working on both types.
-// So a memory dump also reveals which secrets are equal and how long they are.
+// so a memory dump also reveals which secrets are equal and how long they are.
 //
 // # Why typed redacted values
 //
