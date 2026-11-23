@@ -3,6 +3,7 @@ package sensitive
 import (
 	"crypto/aes"
 	"crypto/cipher"
+	"crypto/hkdf"
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
@@ -10,33 +11,62 @@ import (
 	"sync"
 )
 
-var (
-	cryptoKeyOnce sync.Once //nolint:gochecknoglobals // Process-scoped key init guard.
-	cryptoKey     [32]byte  //nolint:gochecknoglobals // Process-scoped AES-256 key.
+// cryptoKeys are the per-process keys derived from one random master key,
+// so that each key has exactly one purpose.
+type cryptoKeys struct {
+	iv  [32]byte // HMAC-SHA256 key to derive the IV from a plaintext.
+	aes [32]byte // AES-256 key.
+}
+
+// Versioned HKDF info labels: change the version if the way a key is used changes.
+const (
+	infoIV  = "sensitive:iv-v1"
+	infoAES = "sensitive:aes-v1"
 )
 
-func getCryptoKey() [32]byte {
-	cryptoKeyOnce.Do(func() {
-		_, err := rand.Read(cryptoKey[:])
+var (
+	cryptoKeysOnce sync.Once  //nolint:gochecknoglobals // Process-scoped keys init guard.
+	cryptoKeysVal  cryptoKeys //nolint:gochecknoglobals // Process-scoped keys.
+)
+
+func getCryptoKeys() cryptoKeys {
+	cryptoKeysOnce.Do(func() {
+		var master [32]byte
+		_, err := rand.Read(master[:])
 		if err != nil {
 			panic("sensitive: crypto key init: " + err.Error())
 		}
+		cryptoKeysVal = deriveKeys(master)
 	})
-	return cryptoKey
+	return cryptoKeysVal
+}
+
+func deriveKeys(master [32]byte) cryptoKeys {
+	return cryptoKeys{iv: deriveKey(master, infoIV), aes: deriveKey(master, infoAES)}
+}
+
+func deriveKey(master [32]byte, info string) [32]byte {
+	var key [32]byte
+	b, err := hkdf.Key(sha256.New, master[:], nil, info, len(key))
+	if err != nil {
+		panic("sensitive: HKDF: " + err.Error())
+	}
+	copy(key[:], b)
+	return key
 }
 
 // encryptBytes deterministically encrypts plaintext using AES-256-CTR.
-// The IV is derived from HMAC-SHA256(key, plaintext)[:[aes.BlockSize]]
+// The IV is derived from HMAC-SHA256(keys.iv, plaintext)[:[aes.BlockSize]]
 // so identical plaintexts always produce identical ciphertexts within the same process.
 // Output layout: IV ([aes.BlockSize] bytes) || CTR-encrypted body.
 func encryptBytes(plaintext []byte) []byte {
-	key := getCryptoKey()
+	keys := getCryptoKeys()
 
-	mac := hmac.New(sha256.New, key[:])
+	mac := hmac.New(sha256.New, keys.iv[:])
 	mac.Write(plaintext)
 	iv := mac.Sum(nil)[:aes.BlockSize]
 
-	block, err := aes.NewCipher(key[:])
+	block, err := aes.NewCipher(keys.aes[:])
 	if err != nil {
 		panic("sensitive: AES init: " + err.Error())
 	}
@@ -54,9 +84,9 @@ func decryptBytes(ciphertext []byte) []byte {
 		// Too short to be our format; return as-is to avoid panic on malformed data.
 		return ciphertext
 	}
-	key := getCryptoKey()
+	keys := getCryptoKeys()
 
-	block, err := aes.NewCipher(key[:])
+	block, err := aes.NewCipher(keys.aes[:])
 	if err != nil {
 		panic("sensitive: AES init: " + err.Error())
 	}

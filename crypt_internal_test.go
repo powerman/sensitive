@@ -2,6 +2,11 @@ package sensitive
 
 import (
 	"bytes"
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/hkdf"
+	"crypto/hmac"
+	"crypto/sha256"
 	"reflect"
 	"testing"
 
@@ -162,14 +167,66 @@ func TestCrypt_decryptBytesShort(tt *testing.T) {
 	t.True(bytes.Equal(result, input), "decryptBytes of short input must return it unchanged")
 }
 
-// TestCrypt_getCryptoKey verifies that getCryptoKey returns a 32-byte key.
-func TestCrypt_getCryptoKey(tt *testing.T) {
+// TestCrypt_getCryptoKeys verifies that the IV key and the AES key are separate,
+// stable within a process and non-zero.
+func TestCrypt_getCryptoKeys(tt *testing.T) {
 	tt.Parallel()
 	t := check.Must(tt)
 
-	key := getCryptoKey()
-	t.NotPanic(func() { _ = key[0] }, "crypto key must be accessible")
-	t.Equal(len(key), 32, "crypto key must be 32 bytes")
+	keys := getCryptoKeys()
+	t.Equal(len(keys.iv), 32, "IV key must be 32 bytes")
+	t.Equal(len(keys.aes), 32, "AES key must be 32 bytes")
+	t.NotEqual(keys.iv, [32]byte{}, "IV key must not be zero")
+	t.NotEqual(keys.aes, [32]byte{}, "AES key must not be zero")
+	t.NotEqual(keys.iv, keys.aes, "IV key and AES key must differ")
+	t.Equal(getCryptoKeys(), keys, "keys must be stable within a process")
+}
+
+// TestCrypt_deriveKeys verifies that the subkeys come from HKDF-SHA256
+// with the versioned info labels and depend on the master key.
+func TestCrypt_deriveKeys(tt *testing.T) {
+	tt.Parallel()
+	t := check.Must(tt)
+
+	var master [32]byte
+	for i := range master {
+		master[i] = byte(i)
+	}
+	keys := deriveKeys(master)
+
+	wantIV, err := hkdf.Key(sha256.New, master[:], nil, "sensitive:iv-v1", 32)
+	t.Nil(err)
+	wantAES, err := hkdf.Key(sha256.New, master[:], nil, "sensitive:aes-v1", 32)
+	t.Nil(err)
+	t.DeepEqual(keys.iv[:], wantIV)
+	t.DeepEqual(keys.aes[:], wantAES)
+	t.NotEqual(keys.iv, keys.aes)
+
+	master[0]++
+	other := deriveKeys(master)
+	t.NotEqual(other.iv, keys.iv, "IV key must depend on the master key")
+	t.NotEqual(other.aes, keys.aes, "AES key must depend on the master key")
+}
+
+// TestCrypt_keyUsage verifies that the IV is derived with the IV key
+// and the body is encrypted with the AES key.
+func TestCrypt_keyUsage(tt *testing.T) {
+	tt.Parallel()
+	t := check.Must(tt)
+
+	keys := getCryptoKeys()
+	plaintext := []byte("key-usage-secret")
+	ct := encryptBytes(plaintext)
+
+	mac := hmac.New(sha256.New, keys.iv[:])
+	mac.Write(plaintext)
+	t.DeepEqual(ct[:aes.BlockSize], mac.Sum(nil)[:aes.BlockSize])
+
+	block, err := aes.NewCipher(keys.aes[:])
+	t.Nil(err)
+	got := make([]byte, len(plaintext))
+	cipher.NewCTR(block, ct[:aes.BlockSize]).XORKeyStream(got, ct[aes.BlockSize:])
+	t.DeepEqual(got, plaintext)
 }
 
 // TestCrypt_nonUint8Slice verifies that encryptT/decryptT pass through
