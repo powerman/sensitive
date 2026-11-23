@@ -428,7 +428,7 @@ func TestSecretValuer_slog_redacts(t *testing.T) {
 		logger.Info("Test", "valuer", sv)
 		out := buf.String()
 		t.NotContains(out, `"valuer":42`, "int SecretValuer must not leak via slog JSONHandler")
-		t.Contains(out, "-2147483648", "int SecretValuer must return MinInt32 redacted via slog JSONHandler")
+		t.Contains(out, `"valuer":123`, "int SecretValuer must be redacted as 123 via slog JSONHandler")
 	})
 
 	t.Run("int_text_handler", func(tt *testing.T) {
@@ -440,7 +440,7 @@ func TestSecretValuer_slog_redacts(t *testing.T) {
 		logger.Info("Test", "valuer", sv)
 		out := buf.String()
 		t.NotContains(out, `valuer=42`, "int SecretValuer must not leak via slog TextHandler")
-		t.Contains(out, "-2147483648", "int SecretValuer must return MinInt32 redacted via slog TextHandler")
+		t.Contains(out, "valuer=123", "int SecretValuer must be redacted as 123 via slog TextHandler")
 	})
 }
 
@@ -742,73 +742,73 @@ func TestSecretValuer_slog_perTypeSentinels(t *testing.T) {
 			name:     "int",
 			valuer:   sensitive.New(42).ExposeSecretValuer(),
 			secret:   `"valuer":42`,
-			sentinel: "-2147483648", // math.MinInt32
+			sentinel: `"valuer":123`,
 		},
 		{
 			name:     "int8",
 			valuer:   sensitive.New(int8(-100)).ExposeSecretValuer(),
 			secret:   `"valuer":-100`,
-			sentinel: "-128", // math.MinInt8
+			sentinel: `"valuer":123`,
 		},
 		{
 			name:     "int16",
 			valuer:   sensitive.New(int16(-30000)).ExposeSecretValuer(),
 			secret:   `"valuer":-30000`,
-			sentinel: "-32768", // math.MinInt16
+			sentinel: `"valuer":123`,
 		},
 		{
 			name:     "int32",
 			valuer:   sensitive.New(int32(-20000000)).ExposeSecretValuer(),
 			secret:   `"valuer":-20000000`,
-			sentinel: "-2147483648", // math.MinInt32
+			sentinel: `"valuer":123`,
 		},
 		{
 			name:     "int64",
 			valuer:   sensitive.New(int64(-1)).ExposeSecretValuer(),
 			secret:   `"valuer":-1`,
-			sentinel: "-9223372036854775808", // math.MinInt64
+			sentinel: `"valuer":123`,
 		},
 		{
 			name:     "uint",
 			valuer:   sensitive.New(uint(100)).ExposeSecretValuer(),
 			secret:   `"valuer":100`,
-			sentinel: "4294967295", // math.MaxUint32
+			sentinel: `"valuer":123`,
 		},
 		{
 			name:     "uint8",
 			valuer:   sensitive.New(uint8(100)).ExposeSecretValuer(),
 			secret:   `"valuer":100`,
-			sentinel: "255", // math.MaxUint8
+			sentinel: `"valuer":123`,
 		},
 		{
 			name:     "uint16",
 			valuer:   sensitive.New(uint16(1000)).ExposeSecretValuer(),
 			secret:   `"valuer":1000`,
-			sentinel: "65535", // math.MaxUint16
+			sentinel: `"valuer":123`,
 		},
 		{
 			name:     "uint32",
 			valuer:   sensitive.New(uint32(100000)).ExposeSecretValuer(),
 			secret:   `"valuer":100000`,
-			sentinel: "4294967295", // math.MaxUint32
+			sentinel: `"valuer":123`,
 		},
 		{
 			name:     "uint64",
 			valuer:   sensitive.New(uint64(100)).ExposeSecretValuer(),
 			secret:   `"valuer":100`,
-			sentinel: "18446744073709551615", // math.MaxUint64
+			sentinel: `"valuer":123`,
 		},
 		{
 			name:     "float32",
 			valuer:   sensitive.New(float32(1.5)).ExposeSecretValuer(),
 			secret:   `"valuer":1.5`,
-			sentinel: "NaN", // LogValue returns NaN for float32
+			sentinel: `"valuer":123`,
 		},
 		{
 			name:     "float64",
 			valuer:   sensitive.New(2.718).ExposeSecretValuer(),
 			secret:   `"valuer":2.718`,
-			sentinel: "NaN", // LogValue returns NaN for float64
+			sentinel: `"valuer":123`,
 		},
 	}
 

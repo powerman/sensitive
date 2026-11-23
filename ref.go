@@ -5,6 +5,7 @@ import (
 	"encoding"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"reflect"
 	"strconv"
 
@@ -13,6 +14,7 @@ import (
 
 var (
 	_ fmt.Formatter            = (*Ref[any])(nil)
+	_ slog.LogValuer           = Ref[any]{}
 	_ json.Marshaler           = (*Ref[any])(nil)
 	_ encoding.TextMarshaler   = (*Ref[any])(nil)
 	_ json.Unmarshaler         = (*Ref[any])(nil)
@@ -120,6 +122,12 @@ func (r Ref[T]) Format(f fmt.State, c rune) {
 		Format(f, c, z)
 	}
 }
+
+// LogValue implements [slog.LogValuer].
+// It is redacted by [slog.Value.Resolve], before a handler chooses how to render the value,
+// so it also covers handlers which render values without [fmt] and the marshalers.
+// The output follows the same Format<Type>Fn policy (including [Disable]).
+func (r Ref[T]) LogValue() slog.Value { return logValue(r.ExposeSecret()) }
 
 // MarshalJSON implements [json.Marshaler].
 // It exposes the underlying secret as JSON.

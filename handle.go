@@ -5,6 +5,7 @@ import (
 	"encoding"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"strconv"
 	"unique"
 )
@@ -37,6 +38,7 @@ type Comparable interface {
 
 var (
 	_ fmt.Formatter            = Handle[string]{}
+	_ slog.LogValuer           = Handle[string]{}
 	_ json.Marshaler           = Handle[string]{}
 	_ encoding.TextMarshaler   = Handle[string]{}
 	_ json.Unmarshaler         = (*Handle[string])(nil)
@@ -133,6 +135,12 @@ func (h Handle[T]) Format(f fmt.State, c rune) {
 		Format(f, c, z)
 	}
 }
+
+// LogValue implements [slog.LogValuer].
+// It is redacted by [slog.Value.Resolve], before a handler chooses how to render the value,
+// so it also covers handlers which render values without [fmt] and the marshalers.
+// The output follows the same Format<Type>Fn policy (including [Disable]).
+func (h Handle[T]) LogValue() slog.Value { return logValue(h.ExposeSecret()) }
 
 // MarshalJSON implements [json.Marshaler].
 // It exposes the underlying secret as JSON.

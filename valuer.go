@@ -7,10 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	"math"
 	"strconv"
-
-	"github.com/shopspring/decimal"
 )
 
 var (
@@ -152,46 +149,9 @@ func (sv SecretValuer[T]) MarshalText() ([]byte, error) {
 }
 
 // LogValue implements [slog.LogValuer].
-// It returns a type-preserving redacted value so that structured loggers
-// ([slog.JSONHandler], [slog.TextHandler]) never expose the secret.
-func (sv SecretValuer[T]) LogValue() slog.Value {
-	switch any(sv.ref.ExposeSecret()).(type) {
-	case bool:
-		return slog.BoolValue(false)
-	case string:
-		return slog.StringValue("REDACTED")
-	case []byte:
-		return slog.AnyValue([]byte{0xDE, 0xFA, 0xCE})
-	case decimal.Decimal:
-		return slog.Float64Value(math.NaN())
-	case float32:
-		return slog.Float64Value(math.NaN())
-	case float64:
-		return slog.Float64Value(math.NaN())
-	case int:
-		return slog.Int64Value(math.MinInt32)
-	case int8:
-		return slog.Int64Value(math.MinInt8)
-	case int16:
-		return slog.Int64Value(math.MinInt16)
-	case int32:
-		return slog.Int64Value(math.MinInt32)
-	case int64:
-		return slog.Int64Value(math.MinInt64)
-	case uint:
-		return slog.Uint64Value(math.MaxUint32)
-	case uint8:
-		return slog.Uint64Value(math.MaxUint8)
-	case uint16:
-		return slog.Uint64Value(math.MaxUint16)
-	case uint32:
-		return slog.Uint64Value(math.MaxUint32)
-	case uint64:
-		return slog.Uint64Value(math.MaxUint64)
-	default:
-		return slog.StringValue("REDACTED")
-	}
-}
+// It follows the same Format<Type>Fn policy as [Ref.LogValue],
+// so structured loggers never expose the secret.
+func (sv SecretValuer[T]) LogValue() slog.Value { return sv.ref.LogValue() }
 
 // Format implements [fmt.Formatter].
 // It produces redacted output so the secret never appears in formatted strings.
