@@ -157,8 +157,6 @@ func (h Handle[T]) LogValue() slog.Value { return logValue(h.ExposeSecret()) }
 // MarshalJSON implements [json.Marshaler].
 // It writes the redacted value as JSON,
 // controlled by the Format<Type>Fn package-level variables.
-//
-//lint:ignore errchkjson // Delegates to existing marshalers.
 func (h Handle[T]) MarshalJSON() ([]byte, error) {
 	switch v := underlying(h.ExposeSecret()).(type) {
 	case bool:

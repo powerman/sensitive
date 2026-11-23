@@ -99,8 +99,6 @@ func (sv SecretValuer[T]) Value() (driver.Value, error) {
 
 // MarshalJSON implements [json.Marshaler].
 // It exposes the underlying secret as JSON.
-//
-//lint:ignore errchkjson // Delegates to json.Marshal which is already checked.
 func (sv SecretValuer[T]) MarshalJSON() ([]byte, error) {
 	return json.Marshal(sv.ref.ExposeSecret())
 }
