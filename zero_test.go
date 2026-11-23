@@ -23,8 +23,16 @@ func TestZeroNormalization(tt *testing.T) {
 	t.DeepEqual(sensitive.New([]byte(nil)), sensitive.Ref[[]byte]{})
 	t.DeepEqual(sensitive.New(testStruct{}), sensitive.Ref[testStruct]{})
 	t.DeepEqual(sensitive.New[any](nil), sensitive.Ref[any]{})
+	// A zero dynamic value is not a zero interface, so it must be kept with its type.
+	t.Equal(sensitive.New[any](0).ExposeSecret(), 0)
+	t.Equal(sensitive.New[any]("").ExposeSecret(), "")
+	t.True(sensitive.New[any](nil).IsZero())
+	t.False(sensitive.New[any](0).IsZero())
+	t.False(sensitive.New[any]("").IsZero())
 	t.True(reflect.DeepEqual(sensitive.New("x"), sensitive.New("x")))
 	t.False(reflect.DeepEqual(sensitive.New("x"), sensitive.Ref[string]{}))
+
+	t.True(sensitive.New(0).IsZero())
 
 	t.True(sensitive.New("").IsZero())
 	t.Equal(sensitive.New("").ExposeSecret(), "")

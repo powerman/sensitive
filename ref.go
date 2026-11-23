@@ -65,9 +65,9 @@ type Ref[T any] struct {
 // New(zero T) returns the zero Ref, so it is [reflect.DeepEqual] to Ref[T]{}.
 // A non-nil empty []byte is not a zero T, so it is kept as is.
 func New[T any](v T) Ref[T] {
-	rv := reflect.ValueOf(v)
-	// rv is invalid when T is an interface type holding nil.
-	if !rv.IsValid() || rv.IsZero() {
+	// Via a pointer, so for an interface T this checks T itself (nil),
+	// not the dynamic value it holds (e.g. any(0) is not a zero any).
+	if reflect.ValueOf(&v).Elem().IsZero() {
 		return Ref[T]{}
 	}
 	v = encryptT(v)
@@ -88,10 +88,10 @@ func (r Ref[T]) ExposeSecret() T {
 // IsZero reports whether r holds the zero T value.
 // It returns true both for the zero [Ref] and for a Ref created with [New](zero T).
 func (r Ref[T]) IsZero() bool {
-	rv := reflect.ValueOf(r.ExposeSecret())
-	// ExposeSecret can return a nil interface value when T=any and r is zero.
-	// reflect.Value.IsZero panics on the zero Value, so guard against that.
-	return !rv.IsValid() || rv.IsZero()
+	v := r.ExposeSecret()
+	// Via a pointer, so for an interface T this checks T itself (nil),
+	// not the dynamic value it holds, the same as [New] does.
+	return reflect.ValueOf(&v).Elem().IsZero()
 }
 
 // Format implements [fmt.Formatter].
