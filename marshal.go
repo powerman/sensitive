@@ -2,6 +2,7 @@ package sensitive
 
 import (
 	"encoding/json"
+	"fmt"
 	"math"
 	"strconv"
 
@@ -28,16 +29,24 @@ func marshalTextBool(v bool) []byte {
 
 // marshal helpers for Bytes.
 
-func marshalJSONBytes(v []byte) ([]byte, error) {
+// redactedBytes returns the bytes printed by FormatBytesFn.
+// Every encoding of a []byte secret (JSON, text, slog) is derived from them,
+// so FormatBytesFn is always called with the verb 's' only.
+func redactedBytes(v []byte) []byte {
 	var ss state
 	FormatBytesFn(v, &ss, 's')
-	return json.Marshal(ss.b)
+	return ss.b
+}
+
+// encodeTextBytes is the text form of redacted bytes: always valid UTF-8, e.g. DEFACE.
+func encodeTextBytes(b []byte) []byte { return fmt.Appendf(nil, "%X", b) }
+
+func marshalJSONBytes(v []byte) ([]byte, error) {
+	return json.Marshal(redactedBytes(v))
 }
 
 func marshalTextBytes(v []byte) []byte {
-	var ss state
-	FormatBytesFn(v, &ss, 'X')
-	return ss.b
+	return encodeTextBytes(redactedBytes(v))
 }
 
 // marshal helpers for Decimal.

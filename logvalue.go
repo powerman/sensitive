@@ -31,10 +31,7 @@ func logValue(v any) slog.Value {
 		}
 		return slog.BoolValue(b)
 	case []byte:
-		var raw, text state
-		FormatBytesFn(v, &raw, 's')
-		FormatBytesFn(v, &text, 'X')
-		return slog.AnyValue(logBytes{raw: raw.b, text: text.b})
+		return slog.AnyValue(logBytes(redactedBytes(v)))
 	case decimal.Decimal:
 		text := string(marshalTextDecimal(v))
 		d, err := decimal.NewFromString(text)
@@ -73,21 +70,18 @@ func logValue(v any) slog.Value {
 	}
 }
 
-// logBytes keeps both representations of a []byte secret printed by FormatBytesFn,
-// so every slog handler renders it the same way as Ref does:
-// as text it is the 'X' form (always valid UTF-8, e.g. DEFACE),
-// as JSON it is the base64 of the 's' form, like [json.Marshal] does for []byte.
-// Without this type a handler would choose between raw bytes and base64 on its own.
-type logBytes struct {
-	raw  []byte
-	text []byte
-}
+// logBytes holds the bytes printed by FormatBytesFn for a []byte secret.
+// It is a []byte for reflection-based handlers,
+// and it renders the same way as Ref does for every other handler:
+// as text it is the hex form (e.g. DEFACE), as JSON it is the base64 form, like [json.Marshal].
+// Without its own marshalers a handler would choose between raw bytes and base64 on its own.
+type logBytes []byte
 
 // MarshalText implements [encoding.TextMarshaler].
-func (b logBytes) MarshalText() ([]byte, error) { return b.text, nil }
+func (b logBytes) MarshalText() ([]byte, error) { return encodeTextBytes(b), nil }
 
 // MarshalJSON implements [json.Marshaler].
-func (b logBytes) MarshalJSON() ([]byte, error) { return json.Marshal(b.raw) }
+func (b logBytes) MarshalJSON() ([]byte, error) { return json.Marshal([]byte(b)) }
 
 func logFloat(text []byte) slog.Value {
 	f, err := strconv.ParseFloat(string(text), bits64)

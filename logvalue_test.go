@@ -214,7 +214,7 @@ func TestLogValue_customNotLiteral(t *testing.T) {
 		{logCase{"decimal", refOnly(decimal.NewFromInt(42)), `"***"`, `***`}, "***"},
 		{logCase{"uint8 out of range", both(uint8(42)), `"300"`, `300`}, "300"},
 		{logCase{"int is not a float", both(42), `"1.5"`, `1.5`}, "1.5"},
-		{logCase{"bytes", refOnly([]byte("s3cret")), `"Kioq"`, `***`}, "***"},
+		{logCase{"bytes", refOnly([]byte("s3cret")), `"Kioq"`, `2A2A2A`}, "***"},
 	} {
 		setAllHooks(tc.hook)
 		checkLogCases(t, []logCase{tc.logCase})
@@ -310,4 +310,21 @@ func TestLogValue_resolvedHasNoSecret(t *testing.T) {
 			t.False(isLogValuer, "value must be fully resolved")
 		})
 	}
+}
+
+// FormatBytesFn is called with the verb 's' only, so the text form is the hex of its output
+// whatever the hook does with the verb, and it is the same for slog and for MarshalText.
+//
+//nolint:paralleltest // Modifies global Format<Type>Fn.
+func TestLogValue_bytesTextMatchesMarshalText(tt *testing.T) {
+	tt.Cleanup(resetFormatFns)
+	setAllHooks("***")
+	t := check.Must(tt)
+
+	r := sensitive.New([]byte("s3cret"))
+	text, err := r.MarshalText()
+	t.Nil(err)
+	t.Equal(string(text), "2A2A2A")
+	_, gotText := logOutput(r)
+	t.Equal(gotText, "v="+string(text))
 }
