@@ -14,22 +14,22 @@ import (
 //
 //nolint:gochecknoglobals // By design.
 var (
-	FormatBoolFn    = func(_ bool, _ fmt.State, _ rune) {}
-	FormatBytesFn   = func(_ []byte, _ fmt.State, _ rune) {}
-	FormatDecimalFn = func(_ decimal.Decimal, _ fmt.State, _ rune) {}
-	FormatFloat32Fn = func(_ float32, _ fmt.State, _ rune) {}
-	FormatFloat64Fn = func(_ float64, _ fmt.State, _ rune) {}
-	FormatIntFn     = func(_ int, _ fmt.State, _ rune) {}
-	FormatInt8Fn    = func(_ int8, _ fmt.State, _ rune) {}
-	FormatInt16Fn   = func(_ int16, _ fmt.State, _ rune) {}
-	FormatInt32Fn   = func(_ int32, _ fmt.State, _ rune) {}
-	FormatInt64Fn   = func(_ int64, _ fmt.State, _ rune) {}
-	FormatStringFn  = func(_ string, _ fmt.State, _ rune) {}
-	FormatUintFn    = func(_ uint, _ fmt.State, _ rune) {}
-	FormatUint8Fn   = func(_ uint8, _ fmt.State, _ rune) {}
-	FormatUint16Fn  = func(_ uint16, _ fmt.State, _ rune) {}
-	FormatUint32Fn  = func(_ uint32, _ fmt.State, _ rune) {}
-	FormatUint64Fn  = func(_ uint64, _ fmt.State, _ rune) {}
+	FormatBoolFn    func(bool, fmt.State, rune)
+	FormatBytesFn   func([]byte, fmt.State, rune)
+	FormatDecimalFn func(decimal.Decimal, fmt.State, rune)
+	FormatFloat32Fn func(float32, fmt.State, rune)
+	FormatFloat64Fn func(float64, fmt.State, rune)
+	FormatIntFn     func(int, fmt.State, rune)
+	FormatInt8Fn    func(int8, fmt.State, rune)
+	FormatInt16Fn   func(int16, fmt.State, rune)
+	FormatInt32Fn   func(int32, fmt.State, rune)
+	FormatInt64Fn   func(int64, fmt.State, rune)
+	FormatStringFn  func(string, fmt.State, rune)
+	FormatUintFn    func(uint, fmt.State, rune)
+	FormatUint8Fn   func(uint8, fmt.State, rune)
+	FormatUint16Fn  func(uint16, fmt.State, rune)
+	FormatUint32Fn  func(uint32, fmt.State, rune)
+	FormatUint64Fn  func(uint64, fmt.State, rune)
 )
 
 // Format outputs value accordingly to formatting options.

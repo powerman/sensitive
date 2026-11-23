@@ -13,9 +13,6 @@ import (
 func marshalJSONBool(v bool) ([]byte, error) {
 	var ss state
 	FormatBoolFn(v, &ss, 'v')
-	if len(ss.b) == 0 {
-		return json.Marshal(nil)
-	}
 	b, err := strconv.ParseBool(string(ss.b))
 	if err != nil {
 		return nil, err
@@ -48,9 +45,6 @@ func marshalTextBytes(v []byte) []byte {
 func marshalJSONDecimal(v decimal.Decimal) ([]byte, error) {
 	var ss state
 	FormatDecimalFn(v, &ss, 'v')
-	if len(ss.b) == 0 {
-		return json.Marshal(nil)
-	}
 	f, err := strconv.ParseFloat(string(ss.b), bits64)
 	if err != nil {
 		return nil, err
@@ -77,9 +71,6 @@ func marshalTextDecimal(v decimal.Decimal) []byte {
 func marshalJSONFloat32(v float32) ([]byte, error) {
 	var ss state
 	FormatFloat32Fn(v, &ss, 'v')
-	if len(ss.b) == 0 {
-		return json.Marshal(nil)
-	}
 	f, err := strconv.ParseFloat(string(ss.b), bits32)
 	if err != nil {
 		return nil, err
@@ -107,9 +98,6 @@ func marshalTextFloat32(v float32) []byte {
 func marshalJSONFloat64(v float64) ([]byte, error) {
 	var ss state
 	FormatFloat64Fn(v, &ss, 'v')
-	if len(ss.b) == 0 {
-		return json.Marshal(nil)
-	}
 	f, err := strconv.ParseFloat(string(ss.b), bits64)
 	if err != nil {
 		return nil, err
@@ -136,9 +124,6 @@ func marshalTextFloat64(v float64) []byte {
 func marshalJSONInt(v int) ([]byte, error) {
 	var ss state
 	FormatIntFn(v, &ss, 'v')
-	if len(ss.b) == 0 {
-		return json.Marshal(nil)
-	}
 	n, err := strconv.ParseInt(string(ss.b), base10, 0)
 	if err != nil {
 		return nil, err
@@ -157,9 +142,6 @@ func marshalTextInt(v int) []byte {
 func marshalJSONInt8(v int8) ([]byte, error) {
 	var ss state
 	FormatInt8Fn(v, &ss, 'v')
-	if len(ss.b) == 0 {
-		return json.Marshal(nil)
-	}
 	n, err := strconv.ParseInt(string(ss.b), base10, bits8)
 	if err != nil {
 		return nil, err
@@ -178,9 +160,6 @@ func marshalTextInt8(v int8) []byte {
 func marshalJSONInt16(v int16) ([]byte, error) {
 	var ss state
 	FormatInt16Fn(v, &ss, 'v')
-	if len(ss.b) == 0 {
-		return json.Marshal(nil)
-	}
 	n, err := strconv.ParseInt(string(ss.b), base10, bits16)
 	if err != nil {
 		return nil, err
@@ -199,9 +178,6 @@ func marshalTextInt16(v int16) []byte {
 func marshalJSONInt32(v int32) ([]byte, error) {
 	var ss state
 	FormatInt32Fn(v, &ss, 'v')
-	if len(ss.b) == 0 {
-		return json.Marshal(nil)
-	}
 	n, err := strconv.ParseInt(string(ss.b), base10, bits32)
 	if err != nil {
 		return nil, err
@@ -220,9 +196,6 @@ func marshalTextInt32(v int32) []byte {
 func marshalJSONInt64(v int64) ([]byte, error) {
 	var ss state
 	FormatInt64Fn(v, &ss, 'v')
-	if len(ss.b) == 0 {
-		return json.Marshal(nil)
-	}
 	n, err := strconv.ParseInt(string(ss.b), base10, bits64)
 	if err != nil {
 		return nil, err
@@ -255,9 +228,6 @@ func marshalTextString(v string) []byte {
 func marshalJSONUint(v uint) ([]byte, error) {
 	var ss state
 	FormatUintFn(v, &ss, 'v')
-	if len(ss.b) == 0 {
-		return json.Marshal(nil)
-	}
 	n, err := strconv.ParseUint(string(ss.b), base10, 0)
 	if err != nil {
 		return nil, err
@@ -276,9 +246,6 @@ func marshalTextUint(v uint) []byte {
 func marshalJSONUint8(v uint8) ([]byte, error) {
 	var ss state
 	FormatUint8Fn(v, &ss, 'v')
-	if len(ss.b) == 0 {
-		return json.Marshal(nil)
-	}
 	n, err := strconv.ParseUint(string(ss.b), base10, bits8)
 	if err != nil {
 		return nil, err
@@ -297,9 +264,6 @@ func marshalTextUint8(v uint8) []byte {
 func marshalJSONUint16(v uint16) ([]byte, error) {
 	var ss state
 	FormatUint16Fn(v, &ss, 'v')
-	if len(ss.b) == 0 {
-		return json.Marshal(nil)
-	}
 	n, err := strconv.ParseUint(string(ss.b), base10, bits16)
 	if err != nil {
 		return nil, err
@@ -318,9 +282,6 @@ func marshalTextUint16(v uint16) []byte {
 func marshalJSONUint32(v uint32) ([]byte, error) {
 	var ss state
 	FormatUint32Fn(v, &ss, 'v')
-	if len(ss.b) == 0 {
-		return json.Marshal(nil)
-	}
 	n, err := strconv.ParseUint(string(ss.b), base10, bits32)
 	if err != nil {
 		return nil, err
@@ -339,9 +300,6 @@ func marshalTextUint32(v uint32) []byte {
 func marshalJSONUint64(v uint64) ([]byte, error) {
 	var ss state
 	FormatUint64Fn(v, &ss, 'v')
-	if len(ss.b) == 0 {
-		return json.Marshal(nil)
-	}
 	n, err := strconv.ParseUint(string(ss.b), base10, bits64)
 	if err != nil {
 		return nil, err
