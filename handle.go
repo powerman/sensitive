@@ -260,79 +260,79 @@ func (h *Handle[T]) UnmarshalText(text []byte) error {
 	case *bool:
 		b, err := strconv.ParseBool(string(text))
 		if err != nil {
-			return fmt.Errorf("sensitive: cannot unmarshal text into bool: %w", errTextSyntax)
+			return fmt.Errorf("sensitive: cannot unmarshal text into bool: %w", ErrTextSyntax)
 		}
 		*p = b
 	case *int:
 		n, err := strconv.ParseInt(string(text), base10, 0)
 		if err != nil {
-			return fmt.Errorf("sensitive: cannot unmarshal text into int: %w", errTextSyntax)
+			return fmt.Errorf("sensitive: cannot unmarshal text into int: %w", ErrTextSyntax)
 		}
 		*p = int(n)
 	case *int8:
 		n, err := strconv.ParseInt(string(text), base10, bits8)
 		if err != nil {
-			return fmt.Errorf("sensitive: cannot unmarshal text into int8: %w", errTextSyntax)
+			return fmt.Errorf("sensitive: cannot unmarshal text into int8: %w", ErrTextSyntax)
 		}
 		*p = int8(n)
 	case *int16:
 		n, err := strconv.ParseInt(string(text), base10, bits16)
 		if err != nil {
-			return fmt.Errorf("sensitive: cannot unmarshal text into int16: %w", errTextSyntax)
+			return fmt.Errorf("sensitive: cannot unmarshal text into int16: %w", ErrTextSyntax)
 		}
 		*p = int16(n)
 	case *int32:
 		n, err := strconv.ParseInt(string(text), base10, bits32)
 		if err != nil {
-			return fmt.Errorf("sensitive: cannot unmarshal text into int32: %w", errTextSyntax)
+			return fmt.Errorf("sensitive: cannot unmarshal text into int32: %w", ErrTextSyntax)
 		}
 		*p = int32(n)
 	case *int64:
 		n, err := strconv.ParseInt(string(text), base10, bits64)
 		if err != nil {
-			return fmt.Errorf("sensitive: cannot unmarshal text into int64: %w", errTextSyntax)
+			return fmt.Errorf("sensitive: cannot unmarshal text into int64: %w", ErrTextSyntax)
 		}
 		*p = n
 	case *uint:
 		n, err := strconv.ParseUint(string(text), base10, 0)
 		if err != nil {
-			return fmt.Errorf("sensitive: cannot unmarshal text into uint: %w", errTextSyntax)
+			return fmt.Errorf("sensitive: cannot unmarshal text into uint: %w", ErrTextSyntax)
 		}
 		*p = uint(n)
 	case *uint8:
 		n, err := strconv.ParseUint(string(text), base10, bits8)
 		if err != nil {
-			return fmt.Errorf("sensitive: cannot unmarshal text into uint8: %w", errTextSyntax)
+			return fmt.Errorf("sensitive: cannot unmarshal text into uint8: %w", ErrTextSyntax)
 		}
 		*p = uint8(n)
 	case *uint16:
 		n, err := strconv.ParseUint(string(text), base10, bits16)
 		if err != nil {
-			return fmt.Errorf("sensitive: cannot unmarshal text into uint16: %w", errTextSyntax)
+			return fmt.Errorf("sensitive: cannot unmarshal text into uint16: %w", ErrTextSyntax)
 		}
 		*p = uint16(n)
 	case *uint32:
 		n, err := strconv.ParseUint(string(text), base10, bits32)
 		if err != nil {
-			return fmt.Errorf("sensitive: cannot unmarshal text into uint32: %w", errTextSyntax)
+			return fmt.Errorf("sensitive: cannot unmarshal text into uint32: %w", ErrTextSyntax)
 		}
 		*p = uint32(n)
 	case *uint64:
 		n, err := strconv.ParseUint(string(text), base10, bits64)
 		if err != nil {
-			return fmt.Errorf("sensitive: cannot unmarshal text into uint64: %w", errTextSyntax)
+			return fmt.Errorf("sensitive: cannot unmarshal text into uint64: %w", ErrTextSyntax)
 		}
 		*p = n
 	case *float32:
 		f, err := strconv.ParseFloat(string(text), bits32)
 		if err != nil {
-			return fmt.Errorf("sensitive: cannot unmarshal text into float32: %w", errTextSyntax)
+			return fmt.Errorf("sensitive: cannot unmarshal text into float32: %w", ErrTextSyntax)
 		}
 		*p = float32(f)
 	case *float64:
 		f, err := strconv.ParseFloat(string(text), bits64)
 		if err != nil {
-			return fmt.Errorf("sensitive: cannot unmarshal text into float64: %w", errTextSyntax)
+			return fmt.Errorf("sensitive: cannot unmarshal text into float64: %w", ErrTextSyntax)
 		}
 		*p = f
 	default:
@@ -367,7 +367,7 @@ func (h *Handle[T]) Scan(src any) error {
 		case []byte:
 			*p = string(s)
 		default:
-			return fmt.Errorf("sensitive: cannot Scan %T into string: %w", src, errScanConversion)
+			return fmt.Errorf("sensitive: cannot Scan %T into string: %w", src, ErrScanConversion)
 		}
 	case *bool:
 		switch s := src.(type) {
@@ -376,78 +376,78 @@ func (h *Handle[T]) Scan(src any) error {
 		case int64:
 			*p = s != 0
 		default:
-			return fmt.Errorf("sensitive: cannot Scan %T into bool: %w", src, errScanConversion)
+			return fmt.Errorf("sensitive: cannot Scan %T into bool: %w", src, ErrScanConversion)
 		}
 	case *int:
 		s, ok := src.(int64)
 		if !ok {
-			return fmt.Errorf("sensitive: cannot Scan %T into int: %w", src, errScanConversion)
+			return fmt.Errorf("sensitive: cannot Scan %T into int: %w", src, ErrScanConversion)
 		}
 		*p = int(s)
 	case *int8:
 		s, ok := src.(int64)
 		if !ok {
-			return fmt.Errorf("sensitive: cannot Scan %T into int8: %w", src, errScanConversion)
+			return fmt.Errorf("sensitive: cannot Scan %T into int8: %w", src, ErrScanConversion)
 		}
 		*p = int8(s) //nolint:gosec // G115: truncation accepted; caller controls DB schema.
 	case *int16:
 		s, ok := src.(int64)
 		if !ok {
-			return fmt.Errorf("sensitive: cannot Scan %T into int16: %w", src, errScanConversion)
+			return fmt.Errorf("sensitive: cannot Scan %T into int16: %w", src, ErrScanConversion)
 		}
 		*p = int16(s) //nolint:gosec // G115: truncation accepted; caller controls DB schema.
 	case *int32:
 		s, ok := src.(int64)
 		if !ok {
-			return fmt.Errorf("sensitive: cannot Scan %T into int32: %w", src, errScanConversion)
+			return fmt.Errorf("sensitive: cannot Scan %T into int32: %w", src, ErrScanConversion)
 		}
 		*p = int32(s) //nolint:gosec // G115: truncation accepted; caller controls DB schema.
 	case *int64:
 		s, ok := src.(int64)
 		if !ok {
-			return fmt.Errorf("sensitive: cannot Scan %T into int64: %w", src, errScanConversion)
+			return fmt.Errorf("sensitive: cannot Scan %T into int64: %w", src, ErrScanConversion)
 		}
 		*p = s
 	case *uint:
 		s, ok := src.(int64)
 		if !ok {
-			return fmt.Errorf("sensitive: cannot Scan %T into uint: %w", src, errScanConversion)
+			return fmt.Errorf("sensitive: cannot Scan %T into uint: %w", src, ErrScanConversion)
 		}
 		*p = uint(s) //nolint:gosec // G115: negative DB value wraps; caller controls DB schema.
 	case *uint8:
 		s, ok := src.(int64)
 		if !ok {
-			return fmt.Errorf("sensitive: cannot Scan %T into uint8: %w", src, errScanConversion)
+			return fmt.Errorf("sensitive: cannot Scan %T into uint8: %w", src, ErrScanConversion)
 		}
 		*p = uint8(s) //nolint:gosec // G115: truncation accepted; caller controls DB schema.
 	case *uint16:
 		s, ok := src.(int64)
 		if !ok {
-			return fmt.Errorf("sensitive: cannot Scan %T into uint16: %w", src, errScanConversion)
+			return fmt.Errorf("sensitive: cannot Scan %T into uint16: %w", src, ErrScanConversion)
 		}
 		*p = uint16(s) //nolint:gosec // G115: truncation accepted; caller controls DB schema.
 	case *uint32:
 		s, ok := src.(int64)
 		if !ok {
-			return fmt.Errorf("sensitive: cannot Scan %T into uint32: %w", src, errScanConversion)
+			return fmt.Errorf("sensitive: cannot Scan %T into uint32: %w", src, ErrScanConversion)
 		}
 		*p = uint32(s) //nolint:gosec // G115: truncation accepted; caller controls DB schema.
 	case *uint64:
 		s, ok := src.(int64)
 		if !ok {
-			return fmt.Errorf("sensitive: cannot Scan %T into uint64: %w", src, errScanConversion)
+			return fmt.Errorf("sensitive: cannot Scan %T into uint64: %w", src, ErrScanConversion)
 		}
 		*p = uint64(s) //nolint:gosec // G115: negative DB value wraps; caller controls DB schema.
 	case *float32:
 		s, ok := src.(float64)
 		if !ok {
-			return fmt.Errorf("sensitive: cannot Scan %T into float32: %w", src, errScanConversion)
+			return fmt.Errorf("sensitive: cannot Scan %T into float32: %w", src, ErrScanConversion)
 		}
 		*p = float32(s)
 	case *float64:
 		s, ok := src.(float64)
 		if !ok {
-			return fmt.Errorf("sensitive: cannot Scan %T into float64: %w", src, errScanConversion)
+			return fmt.Errorf("sensitive: cannot Scan %T into float64: %w", src, ErrScanConversion)
 		}
 		*p = s
 	default:
