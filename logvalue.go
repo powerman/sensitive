@@ -22,7 +22,7 @@ import (
 //
 //nolint:funlen // A flat type switch over all supported types is the clearest form.
 func logValue(v any) slog.Value {
-	switch v := v.(type) {
+	switch v := underlying(v).(type) {
 	case bool:
 		text := string(marshalTextBool(v))
 		b, err := strconv.ParseBool(text)

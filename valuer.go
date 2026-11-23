@@ -61,7 +61,7 @@ func (sv SecretValuer[T]) Value() (driver.Value, error) {
 	if vr, ok := any(v).(driver.Valuer); ok {
 		return vr.Value()
 	}
-	switch u := any(v).(type) {
+	switch u := underlying(v).(type) {
 	case string:
 		return u, nil
 	case []byte:
@@ -112,7 +112,7 @@ func (sv SecretValuer[T]) MarshalText() ([]byte, error) {
 	if tm, ok := any(v).(encoding.TextMarshaler); ok {
 		return tm.MarshalText()
 	}
-	switch u := any(v).(type) {
+	switch u := underlying(v).(type) {
 	case string:
 		return []byte(u), nil
 	case []byte:

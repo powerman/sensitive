@@ -114,7 +114,7 @@ func (h Handle[T]) IsZero() bool {
 // It produces redacted text output
 // controlled by the Format<Type>Fn package-level variables.
 func (h Handle[T]) Format(f fmt.State, c rune) {
-	switch v := any(h.ExposeSecret()).(type) {
+	switch v := underlying(h.ExposeSecret()).(type) {
 	case bool:
 		FormatBoolFn(v, f, c)
 	case float32:
@@ -161,7 +161,7 @@ func (h Handle[T]) LogValue() slog.Value { return logValue(h.ExposeSecret()) }
 //
 //lint:ignore errchkjson // Delegates to existing marshalers.
 func (h Handle[T]) MarshalJSON() ([]byte, error) {
-	switch v := any(h.ExposeSecret()).(type) {
+	switch v := underlying(h.ExposeSecret()).(type) {
 	case bool:
 		return marshalJSONBool(v)
 	case float32:
@@ -199,7 +199,7 @@ func (h Handle[T]) MarshalJSON() ([]byte, error) {
 // It writes the redacted value as text,
 // controlled by the Format<Type>Fn package-level variables.
 func (h Handle[T]) MarshalText() (text []byte, err error) {
-	switch v := any(h.ExposeSecret()).(type) {
+	switch v := underlying(h.ExposeSecret()).(type) {
 	case bool:
 		return marshalTextBool(v), nil
 	case float32:
@@ -257,7 +257,7 @@ func (h *Handle[T]) UnmarshalText(text []byte) error {
 		*h = Make(v)
 		return nil
 	}
-	switch p := any(&v).(type) {
+	switch p := underlyingPtr(&v).(type) {
 	case *string:
 		*p = string(text)
 	case *bool:
@@ -362,7 +362,7 @@ func (h *Handle[T]) Scan(src any) error {
 		*h = Handle[T]{}
 		return nil
 	}
-	switch p := any(&v).(type) {
+	switch p := underlyingPtr(&v).(type) {
 	case *string:
 		switch s := src.(type) {
 		case string:
