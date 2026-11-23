@@ -215,8 +215,8 @@ to catch the leaks statically.
 | Feature                                                 | `sensitive` `Ref`/`Handle` | `rsjethani/secret` | `andrewbenton/go-secrets` | `go-playground/sensitive` | `negrel/secrecy` | `angusgmorrison/logfusc` |
 | ------------------------------------------------------- | -------------------------- | ------------------ | ------------------------- | ------------------------- | ---------------- | ------------------------ |
 | Structural protection (survives unexported / pointer)   | ✓                          | ✓                  | ✓                         | ✗                         | ✗                | ✗                        |
-| Redacts under **all** `fmt` verbs (`fmt.Formatter`)     | ✓                          | ✓                  | ✓                         | ✓                         | ✗                | ✗                        |
-| Redacts under `%v`/`%s`/`%#v` (`Stringer`/`GoStringer`) | ✓                          | ✓                  | ✓                         | ✓                         | ✓                | ✓                        |
+| Redacts under **all** `fmt` verbs (`fmt.Formatter`)     | ✓                          | ✗⁵                 | ✗⁵                        | ✓                         | ✗                | ✗                        |
+| Redacts under `%v`/`%s`/`%#v` (`Stringer`/`GoStringer`) | ✓                          | ~⁵                 | ~⁵                        | ✓                         | ✓                | ✓                        |
 | JSON redaction                                          | ✓                          | ✓                  | ✓¹                        | ✓                         | ✓                | ✓                        |
 | `encoding.TextMarshaler` redaction                      | ✓                          | ✓                  | ✗                         | ✓                         | ✓                | ✗                        |
 | Type-preserving redaction (number stays a number)       | ✓                          | —                  | ~¹                        | ✗                         | ✗                | ✗                        |
@@ -237,7 +237,10 @@ and is only meaningful for JSON.<br/>
 so JSON ingest works for strings only.<br/>
 ³ — `==` compiles but compares the internal `*string` by identity (silently wrong);
 its `Equal` helper must be used instead.<br/>
-⁴ — deferred by design, see [Memory zeroization](#memory-zeroization).
+⁴ — deferred by design, see [Memory zeroization](#memory-zeroization).<br/>
+⁵ — implements `Stringer` but neither `Formatter` nor `GoStringer`:
+`%#v` and other verbs print internal pointers or closures instead of a redacted value.
+This is structurally safe (the secret does not leak), but it is not redaction.
 
 `rsjethani/secret` and `andrewbenton/go-secrets` are the two other libraries that
 happen to be structurally protected — the former stores a `*string`, the latter a
