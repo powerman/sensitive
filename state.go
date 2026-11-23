@@ -12,7 +12,7 @@ const (
 
 var _ fmt.State = (*state)(nil)
 
-// state implements [fmt.state].
+// state implements [fmt.State].
 type state struct {
 	b []byte
 }
