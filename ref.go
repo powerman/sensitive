@@ -40,7 +40,8 @@ var (
 // Compare values explicitly when needed — [bytes.Equal] for []byte,
 // [decimal.Decimal.Equal] for decimals, a constant-time compare for hashes —
 // or compare whole structs in tests with [reflect.DeepEqual],
-// which reads through Ref and compares by value.
+// which reads through Ref and compares by value
+// (as usual, a NaN float is never equal to another NaN).
 type Ref[T any] struct {
 	// Disable ==.
 	_ [0]func()

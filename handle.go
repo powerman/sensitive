@@ -66,6 +66,10 @@ var (
 // [decimal.Decimal], []byte, and composite structs are rejected at compile time
 // because their native == compares pointer identity, not value — use [Ref] for those.
 //
+// Floats keep their NaN semantics: Make(NaN) != Make(NaN),
+// so such handles are never found by value as map keys,
+// although a copy of the same Handle equals itself (unlike NaN).
+//
 // The zero value is safe: [Handle.ExposeSecret] returns the zero T.
 type Handle[T Comparable] struct{ h unique.Handle[T] }
 
@@ -77,6 +81,7 @@ type Handle[T Comparable] struct{ h unique.Handle[T] }
 // the entry is reclaimed when no Handle refers to it.
 // For string kinds (including named types), the interned value is encrypted
 // with a random per-process key so a deep-reflection dump reveals only ciphertext.
+// Make(NaN) != Make(NaN), see [Handle].
 func Make[T Comparable](v T) Handle[T] { return Handle[T]{h: unique.Make(encryptT(v))} }
 
 // ExposeSecret returns the stored value, or the zero T for the zero-value Handle.

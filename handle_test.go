@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
+	"reflect"
 	"testing"
 
 	"github.com/powerman/check"
@@ -737,3 +738,20 @@ func TestHandle_Scan(t *testing.T) {
 
 // textUnmarshalerHandle verifies that Handle[T] satisfies encoding.TextUnmarshaler at compile time.
 var _ encoding.TextUnmarshaler = (*sensitive.Handle[string])(nil)
+
+// TestHandle_NaN pins the documented NaN semantics:
+// floats keep their NaN != NaN, for Handle == and for reflect.DeepEqual of Ref and Handle.
+func TestHandle_NaN(tt *testing.T) {
+	tt.Parallel()
+	t := check.Must(tt)
+
+	same := func(x, y sensitive.Handle[float64]) bool { return x == y }
+	a, b := sensitive.Make(math.NaN()), sensitive.Make(math.NaN())
+	t.False(same(a, b), "Make(NaN) must differ from another Make(NaN)")
+	t.True(same(a, a), "a copy of the same Handle equals itself")
+	t.False(reflect.DeepEqual(a, b))
+	t.False(reflect.DeepEqual(sensitive.New(math.NaN()), sensitive.New(math.NaN())))
+
+	same32 := func(x, y sensitive.Handle[float32]) bool { return x == y }
+	t.False(same32(sensitive.Make(float32(math.NaN())), sensitive.Make(float32(math.NaN()))))
+}

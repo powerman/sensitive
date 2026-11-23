@@ -122,6 +122,8 @@ The choice is driven by how `==` should behave on the secret:
   `==` compares by value and a `Handle` is a valid map key.
   `T` is restricted to primitive comparable types
   (string, bool, integers, floats, and named types over them).
+  Floats keep their NaN semantics: `Make(math.NaN()) != Make(math.NaN())`,
+  and `reflect.DeepEqual` of two separately created `Ref`s or `Handle`s holding NaN is false too.
 
 Both are structurally protected, both work with `reflect.DeepEqual`,
 and both satisfy the `Secret[T]` interface via `ExposeSecret`.
