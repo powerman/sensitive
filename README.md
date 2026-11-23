@@ -109,6 +109,8 @@ The choice is driven by how `==` should behave on the secret:
   It is non-comparable and not a valid map key; compare values explicitly
   (`bytes.Equal`, `decimal.Decimal.Equal`, a constant-time compare)
   or whole structs in tests with `reflect.DeepEqual`.
+  A composite struct has no redacted form,
+  so it is printed and marshaled as nil (`<nil>`, JSON `null`) instead of failing the document.
 
 - **`Handle[T]`** — for value-comparable primitive secrets where `==` is fine:
   bearer tokens, session IDs, API keys.

@@ -36,6 +36,11 @@ var (
 //
 // The zero value is safe: [Ref.ExposeSecret] returns the zero T.
 //
+// A composite T has no redacted form, so Format, MarshalJSON, MarshalText and LogValue
+// output nil for it ("<nil>", null) rather than an error,
+// which would break the surrounding document.
+// UnmarshalText, Scan and [SecretValuer.Value] still report an error for it.
+//
 // == on a Ref, or on any struct containing a Ref field, is a compile-time error.
 // Compare values explicitly when needed — [bytes.Equal] for []byte,
 // [decimal.Decimal.Equal] for decimals, a constant-time compare for hashes —
@@ -127,8 +132,7 @@ func (r Ref[T]) Format(f fmt.State, c rune) {
 	case uint64:
 		FormatUint64Fn(v, f, c)
 	default:
-		var z T
-		Format(f, c, z)
+		Format(f, 's', nilText)
 	}
 }
 
@@ -178,7 +182,7 @@ func (r Ref[T]) MarshalJSON() ([]byte, error) {
 	case uint64:
 		return marshalJSONUint64(v)
 	default:
-		return nil, nil
+		return json.Marshal(nil)
 	}
 }
 
@@ -220,7 +224,7 @@ func (r Ref[T]) MarshalText() (text []byte, err error) {
 	case uint64:
 		return marshalTextUint64(v), nil
 	default:
-		return nil, nil
+		return []byte(nilText), nil
 	}
 }
 

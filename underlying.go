@@ -73,3 +73,7 @@ func underlyingPtr(p any) any {
 	}
 	return rv.Convert(reflect.PointerTo(pt)).Interface()
 }
+
+// nilText is the text output for a type which is not supported by Ref or Handle,
+// e.g. a composite struct: it looks nothing like real data, and it never fails an encoder.
+const nilText = "<nil>"

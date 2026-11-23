@@ -144,8 +144,7 @@ func (h Handle[T]) Format(f fmt.State, c rune) {
 	case uint64:
 		FormatUint64Fn(v, f, c)
 	default:
-		var z T
-		Format(f, c, z)
+		Format(f, 's', nilText)
 	}
 }
 
@@ -191,7 +190,7 @@ func (h Handle[T]) MarshalJSON() ([]byte, error) {
 	case uint64:
 		return marshalJSONUint64(v)
 	default:
-		return nil, nil
+		return json.Marshal(nil)
 	}
 }
 
@@ -229,7 +228,7 @@ func (h Handle[T]) MarshalText() (text []byte, err error) {
 	case uint64:
 		return marshalTextUint64(v), nil
 	default:
-		return nil, nil
+		return []byte(nilText), nil
 	}
 }
 
