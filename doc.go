@@ -70,7 +70,7 @@
 //
 // # Why typed redacted values
 //
-// When you call [Redact], each sensitive type is replaced with a visible but
+// By default (as if [Redact] was called), each sensitive type is replaced with a visible but
 // safe value that preserves the original's type:
 //
 //	Bool    → FALSE               (still a bool in JSON)

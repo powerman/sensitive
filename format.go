@@ -8,7 +8,11 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-//nolint:gochecknoglobals,godoclint // By design.
+// Format<type>Fn define how each sensitive type is printed by fmt, marshalers and slog.
+// Initially they are set by [Redact] from package init.
+// Replace any of them to customize output, or call [Disable] in tests.
+//
+//nolint:gochecknoglobals // By design.
 var (
 	FormatBoolFn    = func(_ bool, _ fmt.State, _ rune) {}
 	FormatBytesFn   = func(_ []byte, _ fmt.State, _ rune) {}

@@ -29,25 +29,10 @@ func equal(a, b any) bool {
 	return reflect.DeepEqual(a, b)
 }
 
-// resetFormatFns restores all Format<Type>Fn to their default no-op state.
+// resetFormatFns restores all Format<Type>Fn to their default (Redact) state.
 // Useful in t.Cleanup after tests that mutate global Format<Type>Fn.
 func resetFormatFns() {
-	sensitive.FormatBoolFn = func(_ bool, _ fmt.State, _ rune) {}
-	sensitive.FormatBytesFn = func(_ []byte, _ fmt.State, _ rune) {}
-	sensitive.FormatDecimalFn = func(_ decimal.Decimal, _ fmt.State, _ rune) {}
-	sensitive.FormatFloat32Fn = func(_ float32, _ fmt.State, _ rune) {}
-	sensitive.FormatFloat64Fn = func(_ float64, _ fmt.State, _ rune) {}
-	sensitive.FormatIntFn = func(_ int, _ fmt.State, _ rune) {}
-	sensitive.FormatInt8Fn = func(_ int8, _ fmt.State, _ rune) {}
-	sensitive.FormatInt16Fn = func(_ int16, _ fmt.State, _ rune) {}
-	sensitive.FormatInt32Fn = func(_ int32, _ fmt.State, _ rune) {}
-	sensitive.FormatInt64Fn = func(_ int64, _ fmt.State, _ rune) {}
-	sensitive.FormatStringFn = func(_ string, _ fmt.State, _ rune) {}
-	sensitive.FormatUintFn = func(_ uint, _ fmt.State, _ rune) {}
-	sensitive.FormatUint8Fn = func(_ uint8, _ fmt.State, _ rune) {}
-	sensitive.FormatUint16Fn = func(_ uint16, _ fmt.State, _ rune) {}
-	sensitive.FormatUint32Fn = func(_ uint32, _ fmt.State, _ rune) {}
-	sensitive.FormatUint64Fn = func(_ uint64, _ fmt.State, _ rune) {}
+	sensitive.Redact()
 }
 
 // structWithUnexportedRef holds Ref values in unexported fields.
@@ -355,10 +340,10 @@ func testRefGlobalMode(mode string) {
 
 	switch mode {
 	case "default":
-		// Default Format<Type>Fn are no-ops → empty output.
-		checkFormat("", sensitive.New("str"))
-		checkFormat("", sensitive.New(42))
-		checkFormat("", sensitive.New([]byte("bytes")))
+		// Redact is the default policy.
+		checkFormat("REDACTED", sensitive.New("str"))
+		checkFormat(fmt.Sprintf("%v", math.MinInt32), sensitive.New(42))
+		checkFormat("[222 250 206]", sensitive.New([]byte("bytes")))
 	case "Redact":
 		// Redact sets typed redacted values.
 		checkFormat("REDACTED", sensitive.New("str"))

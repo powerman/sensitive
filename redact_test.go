@@ -42,7 +42,6 @@ func ExampleRedact() {
 		json.NewEncoder(os.Stdout).Encode(vs) //nolint:errchkjson // Example test, output verified.
 		fmt.Println()
 	}
-	output()
 	sensitive.Redact()
 	os.Unsetenv("GO_TEST_DISABLE_SENSITIVE")
 	sensitive.Disable()
@@ -51,10 +50,6 @@ func ExampleRedact() {
 	sensitive.Disable()
 	output()
 	// Output:
-	// fmt.Println(...):                 EOL
-	// fmt.Printf(vs): [               ]
-	// [null,null,null,null,null,null,null,null,null,null,null,null,null,"",null,null]
-	//
 	// fmt.Println(...): FALSE NaN NaN -128 -32768 -2147483648 -9223372036854775808 -2147483648 255 65535 4294967295 18446744073709551615 4294967295 REDACTED [222 250 206] NaN EOL
 	// fmt.Printf(vs): [FALSE NaN NaN -128 -32768 -2147483648 -9223372036854775808 -2147483648 255 65535 4294967295 18446744073709551615 4294967295 REDACTED [222 250 206] NaN]
 	// [false,null,null,-128,-32768,-2147483648,-9223372036854775808,-2147483648,255,65535,4294967295,18446744073709551615,4294967295,"REDACTED","3vrO",null]

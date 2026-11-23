@@ -9,6 +9,9 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+//nolint:gochecknoinits // Secure-by-default: redaction is the initial policy.
+func init() { Redact() }
+
 // Redact sets all Format<type>Fn to output visible, non-zero values:
 //
 //	Bool:    FALSE (in upper case, unlike usual bool)
@@ -18,6 +21,10 @@ import (
 //	String:  "REDACTED"
 //	Bytes:   0xDEFACE
 //	Decimal: NaN
+//
+// Redaction is already active by default (see package initialization),
+// so calling Redact explicitly is optional and idempotent.
+// It is useful to restore the default policy after overriding Format<type>Fn or calling Disable.
 func Redact() {
 	FormatBoolFn = func(_ bool, f fmt.State, _ rune) { Format(f, 's', "FALSE") }
 	FormatFloat32Fn = func(_ float32, f fmt.State, c rune) { Format(f, c, float32(math.NaN())) }

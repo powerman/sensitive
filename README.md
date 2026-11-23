@@ -31,8 +31,6 @@ type Config struct {
 }
 
 func main() {
-    sensitive.Redact() // enable REDACTED-style output; call once at startup
-
     cfg := Config{
         Password: sensitive.New("hunter2"),
         TenantID: sensitive.Make(42),
@@ -253,11 +251,15 @@ and `go-secrets` breaks `reflect.DeepEqual`.
 
 ## Redaction output
 
-By default every `Format<Type>Fn` is a no-op, so secrets print as empty.
-Pick a policy at startup:
+By default `Redact()` is already active, so no setup is needed.
+Change the policy at startup if you need a different one:
 
 - `sensitive.Redact()` — replace each secret with a visible, type-preserving
   sentinel (`"REDACTED"`, `NaN`, `math.MinInt*`, `math.MaxUint*`, `0xDEFACE`, …).
+  This is the default; call it explicitly to restore default behavior.
+- `sensitive.Disable()` — print the real value, for tests only.
+  It is a no-op unless the binary name ends in `.test` and `GO_TEST_DISABLE_SENSITIVE` is set,
+  minimizing the chance of disabling protection in production.
 - Override an individual `Format<Type>Fn` for custom output (e.g. show the first few characters):
 
   ```go
@@ -268,10 +270,6 @@ Pick a policy at startup:
 
   This also drives `Ref[string]`/`Handle[string]` output,
   since they delegate to the same functions.
-
-- `sensitive.Disable()` — print the real value, for tests only.
-  It is a no-op unless the binary name ends in `.test` and `GO_TEST_DISABLE_SENSITIVE` is set,
-  minimizing the chance of disabling protection in production.
 
 ## Memory zeroization
 
