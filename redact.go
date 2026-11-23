@@ -2,7 +2,6 @@ package sensitive
 
 import (
 	"fmt"
-	"math"
 	"os"
 	"strings"
 
@@ -12,36 +11,43 @@ import (
 //nolint:gochecknoinits // Secure-by-default: redaction is the initial policy.
 func init() { Redact() }
 
-// Redact sets all Format<type>Fn to output visible, non-zero values:
+// Redact sets all Format<type>Fn to output visible, type-preserving values:
 //
-//	Bool:    FALSE (in upper case, unlike usual bool)
-//	Float*:  NaN
-//	Int*:    math.MinInt* (MinInt32 for Int)
-//	Uint*:   math.MaxUint* (MaxUint32 for Uint)
+//	Bool:    false
+//	Float*:  123
+//	Int*:    123
+//	Uint*:   123
 //	String:  "REDACTED"
 //	Bytes:   0xDEFACE
-//	Decimal: NaN
+//	Decimal: 123
+//
+// The same short number is used for every numeric type on purpose:
+// it is easy to spot and to assert in tests,
+// and it is exactly representable in any numeric type (int8, float32, decimal),
+// so a redacted number never turns into NaN or null.
 //
 // Redaction is already active by default (see package initialization),
 // so calling Redact explicitly is optional and idempotent.
 // It is useful to restore the default policy after overriding Format<type>Fn or calling Disable.
 func Redact() {
-	FormatBoolFn = func(_ bool, f fmt.State, _ rune) { Format(f, 's', "FALSE") }
-	FormatFloat32Fn = func(_ float32, f fmt.State, c rune) { Format(f, c, float32(math.NaN())) }
-	FormatFloat64Fn = func(_ float64, f fmt.State, c rune) { Format(f, c, math.NaN()) }
-	FormatInt8Fn = func(_ int8, f fmt.State, c rune) { Format(f, c, int8(math.MinInt8)) }
-	FormatInt16Fn = func(_ int16, f fmt.State, c rune) { Format(f, c, int16(math.MinInt16)) }
-	FormatInt32Fn = func(_ int32, f fmt.State, c rune) { Format(f, c, int32(math.MinInt32)) }
-	FormatInt64Fn = func(_ int64, f fmt.State, c rune) { Format(f, c, int64(math.MinInt64)) }
-	FormatIntFn = func(_ int, f fmt.State, c rune) { Format(f, c, int(math.MinInt32)) }
-	FormatUint8Fn = func(_ uint8, f fmt.State, c rune) { Format(f, c, uint8(math.MaxUint8)) }
-	FormatUint16Fn = func(_ uint16, f fmt.State, c rune) { Format(f, c, uint16(math.MaxUint16)) }
-	FormatUint32Fn = func(_ uint32, f fmt.State, c rune) { Format(f, c, uint32(math.MaxUint32)) }
-	FormatUint64Fn = func(_ uint64, f fmt.State, c rune) { Format(f, c, uint64(math.MaxUint64)) }
-	FormatUintFn = func(_ uint, f fmt.State, c rune) { Format(f, c, uint(math.MaxUint32)) }
+	const sentinel = 123
+	FormatBoolFn = func(_ bool, f fmt.State, c rune) { Format(f, c, false) }
+	FormatFloat32Fn = func(_ float32, f fmt.State, c rune) { Format(f, c, float32(sentinel)) }
+	FormatFloat64Fn = func(_ float64, f fmt.State, c rune) { Format(f, c, float64(sentinel)) }
+	FormatInt8Fn = func(_ int8, f fmt.State, c rune) { Format(f, c, int8(sentinel)) }
+	FormatInt16Fn = func(_ int16, f fmt.State, c rune) { Format(f, c, int16(sentinel)) }
+	FormatInt32Fn = func(_ int32, f fmt.State, c rune) { Format(f, c, int32(sentinel)) }
+	FormatInt64Fn = func(_ int64, f fmt.State, c rune) { Format(f, c, int64(sentinel)) }
+	FormatIntFn = func(_ int, f fmt.State, c rune) { Format(f, c, int(sentinel)) }
+	FormatUint8Fn = func(_ uint8, f fmt.State, c rune) { Format(f, c, uint8(sentinel)) }
+	FormatUint16Fn = func(_ uint16, f fmt.State, c rune) { Format(f, c, uint16(sentinel)) }
+	FormatUint32Fn = func(_ uint32, f fmt.State, c rune) { Format(f, c, uint32(sentinel)) }
+	FormatUint64Fn = func(_ uint64, f fmt.State, c rune) { Format(f, c, uint64(sentinel)) }
+	FormatUintFn = func(_ uint, f fmt.State, c rune) { Format(f, c, uint(sentinel)) }
 	FormatStringFn = func(_ string, f fmt.State, c rune) { Format(f, c, "REDACTED") }
 	FormatBytesFn = func(_ []byte, f fmt.State, c rune) { Format(f, c, []byte{0xDE, 0xFA, 0xCE}) }
-	FormatDecimalFn = func(_ decimal.Decimal, f fmt.State, c rune) { Format(f, c, math.NaN()) }
+	// Decimal does not implement fmt.Formatter, so float verbs would not work on it.
+	FormatDecimalFn = func(_ decimal.Decimal, f fmt.State, c rune) { Format(f, c, float64(sentinel)) }
 }
 
 // Disable protection of sensitive values.

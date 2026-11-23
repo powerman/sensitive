@@ -73,13 +73,14 @@
 // By default (as if [Redact] was called), each sensitive type is replaced with a visible but
 // safe value that preserves the original's type:
 //
-//	Bool    → FALSE               (still a bool in JSON)
-//	Float*  → NaN                 (still a number in JSON)
-//	Int*    → math.MinInt*        (still a number in JSON)
-//	Uint*   → math.MaxUint*       (still a number in JSON)
+//	Bool    → false               (still a bool in JSON)
+//	Float*  → 123                 (still a number in JSON)
+//	Int*    → 123                 (still a number in JSON)
+//	Uint*   → 123                 (still a number in JSON)
 //	String  → "REDACTED"          (still a string in JSON)
 //	Bytes   → 0xDEFACE            (still a byte slice)
-//	Decimal → NaN                 (still a number in JSON)
+//	Decimal → 123                 (decimal's own JSON form: "123" or 123,
+//	                               see decimal.MarshalJSONWithoutQuotes)
 //
 // Using type-specific sentinels means that if a secret accidentally ends up in JSON output,
 // the JSON structure stays valid and parseable — a numeric field remains a number,

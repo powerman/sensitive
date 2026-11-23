@@ -45,19 +45,12 @@ func marshalTextBytes(v []byte) []byte {
 func marshalJSONDecimal(v decimal.Decimal) ([]byte, error) {
 	var ss state
 	FormatDecimalFn(v, &ss, 'v')
-	f, err := strconv.ParseFloat(string(ss.b), bits64)
+	d, err := decimal.NewFromString(string(ss.b))
 	if err != nil {
 		return nil, err
 	}
-	// NaN/Inf is the redaction sentinel for Decimal (set by Redact()).
-	// Standard JSON cannot represent NaN or Inf — json.Marshal would
-	// return an error, breaking the surrounding document. A redacted
-	// secret must never do that, so we output null instead.
-	// Do not remove this guard: it is intentional.
-	if math.IsNaN(f) || math.IsInf(f, 0) {
-		return json.Marshal(nil)
-	}
-	return json.Marshal(f)
+	// Use decimal's own JSON form to respect decimal.MarshalJSONWithoutQuotes.
+	return json.Marshal(d)
 }
 
 func marshalTextDecimal(v decimal.Decimal) []byte {
@@ -76,11 +69,9 @@ func marshalJSONFloat32(v float32) ([]byte, error) {
 		return nil, err
 	}
 	ff := float32(f)
-	// NaN/Inf is the redaction sentinel for Float32 (set by Redact()).
-	// Standard JSON cannot represent NaN or Inf — json.Marshal would
-	// return an error, breaking the surrounding document. A redacted
-	// secret must never do that, so we output null instead.
-	// Do not remove this guard: it is intentional.
+	// Standard JSON cannot represent NaN or Inf, and json.Marshal would fail
+	// the whole surrounding document, so output null for them.
+	// Redact never produces them; they come from Disable or a custom Format<type>Fn.
 	if math.IsNaN(float64(ff)) || math.IsInf(float64(ff), 0) {
 		return json.Marshal(nil)
 	}
@@ -102,11 +93,9 @@ func marshalJSONFloat64(v float64) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	// NaN/Inf is the redaction sentinel for Float64 (set by Redact()).
-	// Standard JSON cannot represent NaN or Inf — json.Marshal would
-	// return an error, breaking the surrounding document. A redacted
-	// secret must never do that, so we output null instead.
-	// Do not remove this guard: it is intentional.
+	// Standard JSON cannot represent NaN or Inf, and json.Marshal would fail
+	// the whole surrounding document, so output null for them.
+	// Redact never produces them; they come from Disable or a custom Format<type>Fn.
 	if math.IsNaN(f) || math.IsInf(f, 0) {
 		return json.Marshal(nil)
 	}

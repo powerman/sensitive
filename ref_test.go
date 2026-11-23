@@ -268,30 +268,54 @@ func TestRef_marshalText(t *testing.T) {
 	}
 }
 
-//nolint:paralleltest // modifies global Format<Type>Fn
-func TestRef_jsonRedactedNaN(t *testing.T) {
+//nolint:paralleltest // modifies global Format<Type>Fn and decimal.MarshalJSONWithoutQuotes
+func TestRef_jsonRedacted(t *testing.T) {
 	sensitive.Redact()
 	t.Cleanup(resetFormatFns)
 
 	t.Run("float32", func(tt *testing.T) {
 		t := check.Must(tt)
-		b, err := json.Marshal(sensitive.New(float32(1.0)))
+		b, err := json.Marshal(sensitive.New(float32(1.5)))
 		t.Nil(err)
-		t.Equal(string(b), "null")
+		t.Equal(string(b), "123")
 	})
 
 	t.Run("float64", func(tt *testing.T) {
 		t := check.Must(tt)
-		b, err := json.Marshal(sensitive.New(1.0))
+		b, err := json.Marshal(sensitive.New(1.5))
 		t.Nil(err)
-		t.Equal(string(b), "null")
+		t.Equal(string(b), "123")
 	})
 
 	t.Run("decimal", func(tt *testing.T) {
 		t := check.Must(tt)
 		b, err := json.Marshal(sensitive.New(decimal.NewFromFloat(1.5)))
 		t.Nil(err)
+		t.Equal(string(b), `"123"`)
+	})
+
+	t.Run("decimal without quotes", func(tt *testing.T) {
+		t := check.Must(tt)
+		decimal.MarshalJSONWithoutQuotes = true
+		tt.Cleanup(func() { decimal.MarshalJSONWithoutQuotes = false })
+		b, err := json.Marshal(sensitive.New(decimal.NewFromFloat(1.5)))
+		t.Nil(err)
+		t.Equal(string(b), "123")
+	})
+
+	t.Run("honest NaN is null", func(tt *testing.T) {
+		t := check.Must(tt)
+		sensitive.FormatFloat64Fn = func(_ float64, f fmt.State, c rune) { sensitive.Format(f, c, math.NaN()) }
+		b, err := json.Marshal(sensitive.New(1.5))
+		t.Nil(err)
 		t.Equal(string(b), "null")
+	})
+
+	t.Run("decimal NaN is an error", func(tt *testing.T) {
+		t := check.Must(tt)
+		sensitive.FormatDecimalFn = func(_ decimal.Decimal, f fmt.State, c rune) { sensitive.Format(f, c, math.NaN()) }
+		_, err := json.Marshal(sensitive.New(decimal.NewFromFloat(1.5)))
+		t.NotNil(err)
 	})
 }
 
@@ -342,12 +366,12 @@ func testRefGlobalMode(mode string) {
 	case "default":
 		// Redact is the default policy.
 		checkFormat("REDACTED", sensitive.New("str"))
-		checkFormat(fmt.Sprintf("%v", math.MinInt32), sensitive.New(42))
+		checkFormat("123", sensitive.New(42))
 		checkFormat("[222 250 206]", sensitive.New([]byte("bytes")))
 	case "Redact":
 		// Redact sets typed redacted values.
 		checkFormat("REDACTED", sensitive.New("str"))
-		checkFormat(fmt.Sprintf("%v", math.MinInt32), sensitive.New(42))
+		checkFormat("123", sensitive.New(42))
 		checkFormat("[222 250 206]", sensitive.New([]byte("bytes")))
 	case "Disable":
 		// Disable shows real values.

@@ -36,10 +36,10 @@ func main() {
         TenantID: sensitive.Make(42),
     }
 
-    fmt.Printf("%v\n", cfg) // {REDACTED -2147483648}
+    fmt.Printf("%v\n", cfg) // {REDACTED 123}
 
     b, _ := json.Marshal(cfg)
-    fmt.Println(string(b)) // {"Password":"REDACTED","TenantID":-2147483648}
+    fmt.Println(string(b)) // {"Password":"REDACTED","TenantID":123}
 
     pw := cfg.Password.ExposeSecret() // explicit opt-in to the real value
     _ = pw
@@ -255,7 +255,10 @@ By default `Redact()` is already active, so no setup is needed.
 Change the policy at startup if you need a different one:
 
 - `sensitive.Redact()` — replace each secret with a visible, type-preserving
-  sentinel (`"REDACTED"`, `NaN`, `math.MinInt*`, `math.MaxUint*`, `0xDEFACE`, …).
+  sentinel: `"REDACTED"` for strings, `0xDEFACE` for bytes, `false` for bool,
+  and the same number `123` for every int, uint, float and decimal.
+  A short number is easy to spot and to assert in tests,
+  and it is exactly representable in any numeric type, so it never turns into NaN or `null`.
   This is the default; call it explicitly to restore default behavior.
 - `sensitive.Disable()` — print the real value, for tests only.
   It is a no-op unless the binary name ends in `.test` and `GO_TEST_DISABLE_SENSITIVE` is set,
