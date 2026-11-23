@@ -275,7 +275,7 @@ Change the policy at startup if you need a different one:
 
   ```go
   sensitive.FormatStringFn = func(s string, f fmt.State, c rune) {
-      sensitive.Format(f, c, s[:4]+"…")
+      sensitive.Format(f, c, s[:min(4, len(s))]+"…")
   }
   ```
 

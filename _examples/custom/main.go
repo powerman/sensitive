@@ -17,7 +17,7 @@ func init() {
 		default:
 			sensitive.Format(f, c, "redacted")
 		case 'v':
-			sensitive.Format(f, c, s[:4]+"*******")
+			sensitive.Format(f, c, s[:min(4, len(s))]+"*******")
 		}
 	}
 }
