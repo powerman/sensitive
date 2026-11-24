@@ -11,8 +11,8 @@
 ![macOS | amd64 arm64](https://img.shields.io/badge/macOS-amd64%20arm64-royalblue)
 ![Windows | amd64 arm64](https://img.shields.io/badge/Windows-amd64%20arm64-royalblue)
 
-Package `sensitive` wraps secret values — passwords, API tokens, keys —
-so they cannot be leaked through `fmt`, `encoding/json`,
+Package `sensitive` wraps secret values — passwords, API tokens, keys, decimal balances —
+so they cannot be leaked through `log/slog`, `fmt`, `encoding/json`,
 or any package that uses `encoding.TextMarshaler`,
 and so that accidental comparisons of secrets fail loudly.
 
