@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.1] - 2026-11-24
+
+### ⚡ Performance
+
+- Pool crypt state and skip reflect for common types by @powerman in [22c6e00]
+
+### 📚 Documentation
+
+- Add rbranson/camo to comparison table by @powerman in [87ca706]
+
+[0.7.1]: https://github.com/powerman/sensitive/compare/v0.7.0..v0.7.1
+[87ca706]: https://github.com/powerman/sensitive/commit/87ca7060a26627f1d93ba658dac73cce1aa87c26
+[22c6e00]: https://github.com/powerman/sensitive/commit/22c6e00962b0863b97d6037c58001039da28dddf
+
 ## [0.7.0] - 2026-11-23
 
 ### ➖ Removed
