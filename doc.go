@@ -1,5 +1,5 @@
 // Package sensitive protects secret values from accidental exposure through
-// fmt, encoding/json, other packages that use [encoding.TextMarshaler],
+// log/slog, fmt, encoding/json, other packages that use [encoding.TextMarshaler],
 // and from silent bugs caused by comparing secrets that hold indirections.
 //
 // # Choosing a type
@@ -35,7 +35,7 @@
 // Both satisfy [Secret] via ExposeSecret, and both work with [reflect.DeepEqual],
 // so tests comparing whole structs keep working without per-field helpers.
 //
-// Comparing such structs with go-cmp requires an option, see [CmpExporter].
+// Comparing such structs with [go-cmp] requires an option, see [CmpExporter].
 //
 // # How protection works
 //
@@ -52,10 +52,10 @@
 //
 // In-memory encryption is an add-on for string and []byte only:
 // those are stored as ciphertext under a random per-process AES-256 key,
-// raising the bar against deep-reflection tools (go-spew, custom **T serializers)
+// raising the bar against deep-reflection tools ([go-spew], custom **T serializers)
 // that bypass the structural protection against fmt.
 // It is not a memory-disclosure defense — the key lives in ordinary Go memory,
-// unlike a mlock/guarded-page approach such as memguard.
+// unlike a mlock/guarded-page approach such as [memguard].
 // The encryption is deterministic (equal plaintexts give equal ciphertexts),
 // so a memory dump also reveals which secrets are equal and how long they are.
 //
@@ -79,4 +79,8 @@
 // give each field its own Handle/Ref.
 // A Ref of the whole struct protects it too,
 // but it is printed and marshaled as nil, see [Ref].
+//
+// [go-cmp]: https://github.com/google/go-cmp
+// [go-spew]: https://github.com/davecgh/go-spew
+// [memguard]: https://github.com/awnumar/memguard
 package sensitive
