@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.2] - 2026-11-24
+
+### 📚 Documentation
+
+- Mention log/slog and decimal balances in README by @powerman in [485a437]
+- Link third-party packages and mention log/slog in doc.go by @powerman in [d08e2aa]
+
+[0.7.2]: https://github.com/powerman/sensitive/compare/v0.7.1..v0.7.2
+[485a437]: https://github.com/powerman/sensitive/commit/485a437b1fe24b9c0b1f661103ece2b67d708d26
+[d08e2aa]: https://github.com/powerman/sensitive/commit/d08e2aa58bd2802deaa32235324451059a43341e
+
 ## [0.7.1] - 2026-11-24
 
 ### ⚡ Performance
